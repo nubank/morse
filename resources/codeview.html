@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <link rel="stylesheet" href="libs/codemirror/lib/codemirror.css">
+  <link rel="stylesheet" href="codeview.css">
+  <script src="libs/codemirror/lib/codemirror.js"></script>
+  <script src="libs/codemirror/mode/clojure/clojure.js"></script>
+  <script src="libs/parinfer.js"></script>
+  <script src="libs/parinfer-codemirror.js"></script>
+</head>
+<body>
+  <script>
+(function(){
+
+var cm = CodeMirror(document.body);
+document.cm = cm;
+
+cm.setValue(`
+"Welcome to REBL.
+Enter forms here and press the eval button or ALT+ENTER"
+`);
+
+parinferCodeMirror.init(cm);
+
+})();
+  </script>
+</body>
+</html>
