@@ -74,14 +74,39 @@
 
 (def Map? #(instance? java.util.Map %1))
 
+(defn finitify
+  "Turn a list into a finite indexed collection"
+  [coll]
+  (if (vector? coll)
+    coll
+    (into [] (take (or *print-length* 100000) coll))))
+
+;; making an explicit collection of pairs so we have a row index
+;; in hand, otherwise we get into silliness overriding concrete
+;; TableCell to recover it later.
+;; See https://stackoverflow.com/a/43102706/1456939
+(defn coll-vb
+  ([alist] (coll-vb alist nil))
+  ([alist val-cb]
+     (let [t (TableView. (FXCollections/observableList (into [] (map-indexed vector) (finitify alist))))]
+       (-> t .getColumns (.setAll [(table-column "idx" first) (table-column "val" second)]))
+       (when val-cb
+         (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
+         (-> t .getSelectionModel .selectFirst))
+       t)))
+
+(def Coll? #(instance? java.util.Collection %1))
+
 (swap! rebl/registry update-in [:viewers]
        assoc
        :rebl/edn {:pred #'any? :ctor #'edn-viewer}
-       :rebl/map {:pred #'Map? :ctor #'map-vb})
+       :rebl/map {:pred #'Map? :ctor #'map-vb}
+       :rebl/coll {:pred #'Coll? :ctor #'coll-vb})
 
 (swap! rebl/registry update-in [:browsers]
        assoc
-       :rebl/map {:pred Map? :ctor #'map-vb})
+       :rebl/map {:pred Map? :ctor #'map-vb}
+       :rebl/coll {:pred #'Coll? :ctor #'coll-vb})
 
 (defn viewer-for
   "returns {:keys [view-ui view-options view-choice]}"

@@ -30,7 +30,8 @@
   (atom {:browsers {}
          :viewers {}
          :browser-prefs {}
-         :viewer-prefs {#{:rebl/edn :rebl/map} :rebl/map}}))
+         :viewer-prefs {#{:rebl/edn :rebl/coll} :rebl/coll
+                        #{:rebl/edn :rebl/map} :rebl/map}}))
 
 (defn- choices-for
   "returns map with:
