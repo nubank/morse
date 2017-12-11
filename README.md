@@ -4,6 +4,11 @@
 
 REBL ...
 
+## Requirements
+
+- Clojure 1.9
+- Java 1.8.0_151 or higher
+
 ## Usage:
 
 `git clone` this repo
