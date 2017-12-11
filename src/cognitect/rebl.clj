@@ -29,8 +29,9 @@
   ;;TODO - API for handler registration?
   (atom {:browsers {}
          :viewers {}
-         :browser-prefs {}
+         :browser-prefs {#{:rebl/coll :rebl/tuples} :rebl/tuples}
          :viewer-prefs {#{:rebl/edn :rebl/coll} :rebl/coll
+                        #{:rebl/edn :rebl/coll :rebl/tuples} :rebl/tuples
                         #{:rebl/edn :rebl/map} :rebl/map}}))
 
 (defn- choices-for

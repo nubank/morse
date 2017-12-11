@@ -18,6 +18,9 @@
            [javafx.util Callback]
            [javafx.beans.property ReadOnlyObjectWrapper]))
 
+(defn fxlist [coll]
+  (FXCollections/observableList coll))
+
 (defn set-code [code-view code]
   (-> (.getEngine code-view)
       (.executeScript "document.cm")
@@ -65,7 +68,7 @@
 (defn map-vb
   ([amap] (map-vb amap nil))
   ([amap val-cb]
-     (let [t (TableView. (FXCollections/observableList (vec amap)))]
+     (let [t (TableView. (fxlist (vec amap)))]
        (-> t .getColumns (.setAll [(table-column "key" key) (table-column "val" val)]))
        (when val-cb
          (add-selection-listener t (fn [idx [k v]] (val-cb k v)))
@@ -73,6 +76,21 @@
        t)))
 
 (def Map? #(instance? java.util.Map %1))
+(def Coll? #(instance? java.util.Collection %1))
+
+(def max-cols 100)
+
+(defn tuples?
+  [coll]
+  (and (Coll? coll)
+       (seq coll)
+       (let [e (first coll)]
+         (and (sequential? e)
+              (let [bc (partial bounded-count max-cols)
+                    cnt (bc e)]
+                (every? #(and (sequential? %1)
+                              (= cnt (bc %1)))
+                        (take 100 coll)))))))
 
 (defn finitify
   "Turn a list into a finite indexed collection"
@@ -81,6 +99,7 @@
     coll
     (into [] (take (or *print-length* 100000) coll))))
 
+
 ;; making an explicit collection of pairs so we have a row index
 ;; in hand, otherwise we get into silliness overriding concrete
 ;; TableCell to recover it later.
@@ -88,25 +107,39 @@
 (defn coll-vb
   ([alist] (coll-vb alist nil))
   ([alist val-cb]
-     (let [t (TableView. (FXCollections/observableList (into [] (map-indexed vector) (finitify alist))))]
+     (let [t (TableView. (fxlist (into [] (map-indexed vector) (finitify alist))))]
        (-> t .getColumns (.setAll [(table-column "idx" first) (table-column "val" second)]))
        (when val-cb
          (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
          (-> t .getSelectionModel .selectFirst))
        t)))
 
-(def Coll? #(instance? java.util.Collection %1))
+;;TODO - factor out commonality with coll-vb and others w/ordinal index cols
+(defn tuples-vb
+  ([tuples] (tuples-vb tuples nil))
+  ([tuples val-cb]
+     (let [e (first tuples) 
+           t (TableView. (fxlist (into [] (map-indexed vector) (finitify tuples))))]
+       (-> t .getColumns (.setAll (cons (table-column "idx" first)
+                                        (map (fn [i] (table-column (str i) #(-> %1 second (nth i))))
+                                             (range (count e))))))
+       (when val-cb
+         (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
+         (-> t .getSelectionModel .selectFirst))
+       t)))
 
 (swap! rebl/registry update-in [:viewers]
        assoc
        :rebl/edn {:pred #'any? :ctor #'edn-viewer}
        :rebl/map {:pred #'Map? :ctor #'map-vb}
-       :rebl/coll {:pred #'Coll? :ctor #'coll-vb})
+       :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
+       :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb})
 
 (swap! rebl/registry update-in [:browsers]
        assoc
-       :rebl/map {:pred Map? :ctor #'map-vb}
-       :rebl/coll {:pred #'Coll? :ctor #'coll-vb})
+       :rebl/map {:pred #'Map? :ctor #'map-vb}
+       :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
+       :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb})
 
 (defn viewer-for
   "returns {:keys [view-ui view-options view-choice]}"
@@ -118,7 +151,7 @@
      :view-choice (-> viewers pref (assoc :id pref))}))
 
 (defn update-choice [control options choice]
-  (-> control (.setItems (FXCollections/observableList options)))
+  (-> control (.setItems (fxlist options)))
   (-> control (.setValue choice)))
 
 (defn update-pane [pane ui]
@@ -144,7 +177,8 @@
   (let [browser (browser-for ui val)]
     (swap! state merge (assoc browser :browse-val val))
     (update-choice browser-choice (:browse-options browser) (:browse-choice browser))
-    (update-pane browse-pane (:browse-ui browser))))
+    (update-pane browse-pane (:browse-ui browser))
+    (.requestFocus (:browse-ui browser))))
 
 (defn rtz [{:keys [state state-history eval-table eval-history
                    browse-pane browser-choice code-view root-button back-button] :as ui}]
@@ -200,7 +234,6 @@
 (defn back-pressed [{:keys [state state-history root-button back-button fwd-button
                             browse-pane view-pane browser-choice viewer-choice] :as ui}]
   (let [[[ostate] nhist] (swap-vals! state-history pop)]
-    (prn :ostate ostate)
     (reset! state ostate)
     (update-pane browse-pane (:browse-ui ostate))
     (update-pane view-pane (:view-ui ostate))
@@ -208,7 +241,8 @@
     (update-choice viewer-choice (:view-options ostate) (:view-choice ostate))
     (.setDisable root-button (empty? nhist))
     (.setDisable back-button (empty? nhist))
-    (.setDisable fwd-button (-> (:view-val ostate) rebl/browsers-for :browsers empty?))))
+    (.setDisable fwd-button (-> (:view-val ostate) rebl/browsers-for :browsers empty?))
+    (.requestFocus (:browse-ui ostate))))
 
 (defn wire-handlers [{:keys [root-button back-button fwd-button eval-button
                              scene eval-table code-view browse-pane view-pane] :as ui}]
@@ -223,9 +257,12 @@
                                                  (.consume e)
                                                  (f)))))))]
     (wire-key #(eval-pressed ui) KeyCode/ENTER KeyCodeCombination/CONTROL_DOWN)
+    ;;sending focus to parent pane doesn't work
     (wire-key #(.requestFocus browse-pane) KeyCode/B KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(.requestFocus view-pane) KeyCode/V KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(.requestFocus code-view) KeyCode/C KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(when-not (.isDisabled fwd-button) (fwd-pressed ui)) KeyCode/RIGHT KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(when-not (.isDisabled back-button) (back-pressed ui)) KeyCode/LEFT KeyCodeCombination/CONTROL_DOWN)
     (wire-button #(eval-pressed ui) eval-button)
     (wire-button #(fwd-pressed ui) fwd-button)
     (wire-button #(back-pressed ui) back-button)
@@ -255,7 +292,7 @@
                    :state-history (atom ())
                    :eval-history (atom ())
                    :eval-table (doto (node "evalTable")
-                                 (.setItems (FXCollections/observableList (java.util.ArrayList.))))
+                                 (.setItems (fxlist (java.util.ArrayList.))))
                    :expr-column (doto (node "exprColumn")
                                   (.setCellValueFactory (MapValueFactory. :expr)))
                    :val-column (doto (node "valColumn")
