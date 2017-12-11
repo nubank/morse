@@ -92,6 +92,16 @@
                               (= cnt (bc %1)))
                         (take 100 coll)))))))
 
+(defn maps?
+  [coll]
+  (and (Coll? coll)
+       (seq coll)
+       (every? Map? (take 100 coll))))
+
+(defn maps-keys
+  [maps]
+  (into [] (comp (filter Map?) (map keys) cat (distinct) (take max-cols)) maps))
+
 (defn finitify
   "Turn a list into a finite indexed collection"
   [coll]
@@ -128,18 +138,33 @@
          (-> t .getSelectionModel .selectFirst))
        t)))
 
+(defn maps-vb
+  ([maps] (maps-vb maps nil))
+  ([maps val-cb]
+     (let [ks (maps-keys maps) 
+           t (TableView. (fxlist (into [] (map-indexed vector) (finitify maps))))]
+       (-> t .getColumns (.setAll (cons (table-column "idx" first)
+                                        (map (fn [k] (table-column (str k) #(-> %1 second (get k))))
+                                             ks))))
+       (when val-cb
+         (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
+         (-> t .getSelectionModel .selectFirst))
+       t)))
+
 (swap! rebl/registry update-in [:viewers]
        assoc
        :rebl/edn {:pred #'any? :ctor #'edn-viewer}
        :rebl/map {:pred #'Map? :ctor #'map-vb}
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
-       :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb})
+       :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
+       :rebl/maps {:pred #'maps? :ctor #'maps-vb})
 
 (swap! rebl/registry update-in [:browsers]
        assoc
        :rebl/map {:pred #'Map? :ctor #'map-vb}
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
-       :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb})
+       :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
+       :rebl/maps {:pred #'maps? :ctor #'maps-vb})
 
 (defn viewer-for
   "returns {:keys [view-ui view-options view-choice]}"

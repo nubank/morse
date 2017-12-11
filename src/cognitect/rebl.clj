@@ -29,10 +29,12 @@
   ;;TODO - API for handler registration?
   (atom {:browsers {}
          :viewers {}
-         :browser-prefs {#{:rebl/coll :rebl/tuples} :rebl/tuples}
+         :browser-prefs {#{:rebl/coll :rebl/tuples} :rebl/tuples
+                         #{:rebl/maps :rebl/tuples} :rebl/tuples}
          :viewer-prefs {#{:rebl/edn :rebl/coll} :rebl/coll
                         #{:rebl/edn :rebl/coll :rebl/tuples} :rebl/tuples
-                        #{:rebl/edn :rebl/map} :rebl/map}}))
+                        #{:rebl/edn :rebl/map} :rebl/map
+                        #{:rebl/edn :rebl/coll :rebl/maps} :rebl/maps}}))
 
 (defn- choices-for
   "returns map with:
