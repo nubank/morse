@@ -54,15 +54,21 @@
                                        #_(f (.getValue cdf))
                                        (ReadOnlyObjectWrapper. (f (.getValue cdf))))))))
 
+(defn change-listener
+  "makes a javafx.beans.value.ChangeListener given a function of observable,oldval,newval"
+  [f]
+  (reify javafx.beans.value.ChangeListener
+         (changed [_ ob oldval newval]
+                  (f ob oldval newval))))
+
 (defn add-selection-listener
   "adds a selection listener to table given f, a fn of the index and
   the row value. returns table"
   [table f]
   (-> table .getSelectionModel .selectedIndexProperty
-      (.addListener (reify javafx.beans.value.ChangeListener
-                           (changed [_ ob oldidx nidx]
-                                    (when (not= nidx -1)
-                                      (f nidx (-> table .getItems (.get nidx))))))))
+      (.addListener (change-listener (fn [ob oldidx nidx]
+                                       (when (not= nidx -1)
+                                         (f nidx (-> table .getItems (.get nidx))))))))
   table)
 
 (defn map-vb
@@ -189,6 +195,13 @@
     (update-pane view-pane (:view-ui viewer))
     (.setDisable fwd-button (-> val rebl/browsers-for :browsers empty?))))
 
+(defn viewer-chosen [{:keys [state view-pane] :as ui} choice]
+  (let [{:keys [view-choice view-val]} @state]
+    (when (and choice (not= view-choice choice))
+      (let [vw ((:ctor choice) view-val)]
+        (swap! state assoc :view-choice choice :view-ui vw)
+        (update-pane view-pane vw)))))
+
 (defn browser-for
   "returns {:keys [browse-ui browse-options browse-choice]}"
   [ui val]
@@ -204,6 +217,14 @@
     (update-choice browser-choice (:browse-options browser) (:browse-choice browser))
     (update-pane browse-pane (:browse-ui browser))
     (.requestFocus (:browse-ui browser))))
+
+(defn browser-chosen [{:keys [state browse-pane] :as ui} choice]
+  (let [{:keys [browse-choice browse-val]} @state]
+    (when (and choice (not= browse-choice choice))
+      (let [br ((:ctor choice) browse-val (partial view ui))]
+        (swap! state assoc :browse-choice choice :browse-ui br)
+        (update-pane browse-pane br)
+        (.requestFocus br)))))
 
 (defn rtz [{:keys [state state-history eval-table eval-history
                    browse-pane browser-choice code-view root-button back-button] :as ui}]
@@ -270,6 +291,7 @@
     (.requestFocus (:browse-ui ostate))))
 
 (defn wire-handlers [{:keys [root-button back-button fwd-button eval-button
+                             viewer-choice browser-choice
                              scene eval-table code-view browse-pane view-pane] :as ui}]
   (let [wire-button (fn [f b]
                       (.setOnAction b (reify EventHandler (handle [_ e] (f)))))
@@ -281,6 +303,7 @@
                                                (when (.match kc e)
                                                  (.consume e)
                                                  (f)))))))]
+    ;;keys
     (wire-key #(eval-pressed ui) KeyCode/ENTER KeyCodeCombination/CONTROL_DOWN)
     ;;sending focus to parent pane doesn't work
     (wire-key #(.requestFocus browse-pane) KeyCode/B KeyCodeCombination/CONTROL_DOWN)
@@ -288,10 +311,15 @@
     (wire-key #(.requestFocus code-view) KeyCode/C KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(when-not (.isDisabled fwd-button) (fwd-pressed ui)) KeyCode/RIGHT KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(when-not (.isDisabled back-button) (back-pressed ui)) KeyCode/LEFT KeyCodeCombination/CONTROL_DOWN)
+    ;;buttons
     (wire-button #(eval-pressed ui) eval-button)
     (wire-button #(fwd-pressed ui) fwd-button)
     (wire-button #(back-pressed ui) back-button)
     (wire-button #(rtz ui) root-button)
+    ;;choice controls
+    (-> viewer-choice .valueProperty (.addListener (change-listener (fn [ob ov nv] (viewer-chosen ui nv)))))
+    (-> browser-choice .valueProperty (.addListener (change-listener (fn [ob ov nv] (browser-chosen ui nv)))))
+    
     ;;this handling is special and not like other browsers
     (add-selection-listener eval-table (fn [idx row]
                                          (let [{:keys [expr val]} row]
@@ -313,7 +341,7 @@
                ui {:scene scene
                    :stage stage
                    :exprs exprs
-                   :state (atom {})
+                   :state (atom {:browse-choice {:id :rebl/eval-history}})
                    :state-history (atom ())
                    :eval-history (atom ())
                    :eval-table (doto (node "evalTable")

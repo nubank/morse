@@ -21,10 +21,10 @@
           (>!! rets [ret]))
         (recur)))))
 
-(def registry
-  "an atom on map with keys:
+(comment "an atom on map with keys:
 :browsers and :viewers - :identk -> {:keys [pred ctor]}
-:browser-prefs and viewer-prefs - #{:identks...} -> :preferred-identk"
+:browser-prefs and viewer-prefs - #{:identks...} -> :preferred-identk")
+(defonce  registry
   ;;TODO - durable prefs
   ;;TODO - API for handler registration?
   (atom {:browsers {}
