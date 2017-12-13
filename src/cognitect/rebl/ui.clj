@@ -21,6 +21,11 @@
 (defn fxlist [coll]
   (FXCollections/observableList coll))
 
+(defn reset-code [code-view]
+  (-> (.getEngine code-view)
+      (.executeScript "document.cm")
+      (.call "setValue" (to-array [""]))))
+
 (defn set-code [code-view code]
   (-> (.getEngine code-view)
       (.executeScript "document.cm")
@@ -239,10 +244,24 @@
     (swap! state merge browser)
     (update-choice browser-choice [bc] bc)
     (update-pane browse-pane eval-table)
-    (set-code code-view (-> ehist first :expr))
+    ;;(set-code code-view (-> ehist first :expr))
     (.setDisable root-button true)
     (.setDisable back-button true)
-    (-> eval-table .getSelectionModel .selectFirst)))
+    (-> eval-table .getSelectionModel .selectFirst)
+    (.requestFocus eval-table)))
+
+(defn load-expr [{:keys [eval-history code-view] :as ui} n]
+  (if (= -1 n)
+    (reset-code code-view)
+    (set-code code-view (-> @eval-history (nth n) :expr))))
+
+(defn next-expr [{:keys [expr-ord] :as ui}]
+  (let [n (swap! expr-ord #(if (< -1 %1 ) (dec %1) %1))]
+    (load-expr ui n)))
+
+(defn prev-expr [{:keys [expr-ord eval-history] :as ui}]
+  (let [n (swap! expr-ord #(if (< %1 (-> eval-history deref count dec)) (inc %1) %1))]
+    (load-expr ui n)))
 
 (defn expr-loop [{:keys [exprs eval-history follow-editor-check] :as ui}]
   (binding [*file* "user/rebl.clj"]
@@ -265,9 +284,12 @@
 
 (defonce ^:private ui-count (atom 0))
 
-(defn eval-pressed [{:keys [code-view exprs] :as ui}]
+(defn eval-pressed [{:keys [code-view exprs expr-ord] :as ui}]
+  ;;TODO handle bad form
+  (reset! expr-ord -1)
   (let [code (get-code code-view)
         form (read-string code)]
+    (reset-code code-view)
     (async/put! exprs {:eval form})))
 
 (defn fwd-pressed [{:keys [state state-history root-button back-button] :as ui}]
@@ -306,11 +328,17 @@
     ;;keys
     (wire-key #(eval-pressed ui) KeyCode/ENTER KeyCodeCombination/CONTROL_DOWN)
     ;;sending focus to parent pane doesn't work
-    (wire-key #(.requestFocus browse-pane) KeyCode/B KeyCodeCombination/CONTROL_DOWN)
-    (wire-key #(.requestFocus view-pane) KeyCode/V KeyCodeCombination/CONTROL_DOWN)
-    (wire-key #(.requestFocus code-view) KeyCode/C KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(-> browse-pane .getChildren (.get 0) .requestFocus) KeyCode/B KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(.requestFocus browser-choice) KeyCode/B KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
+    (wire-key #(-> view-pane .getChildren (.get 0) .requestFocus) KeyCode/V KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(.requestFocus viewer-choice) KeyCode/V KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
+    (wire-key #(.requestFocus code-view) KeyCode/R KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(when-not (.isDisabled fwd-button) (fwd-pressed ui)) KeyCode/RIGHT KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(when-not (.isDisabled back-button) (back-pressed ui)) KeyCode/LEFT KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(when-not (.isDisabled root-button) (rtz ui)) KeyCode/LEFT
+              KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
+    (wire-key #(prev-expr ui) KeyCode/UP KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(next-expr ui) KeyCode/DOWN KeyCodeCombination/CONTROL_DOWN)
     ;;buttons
     (wire-button #(eval-pressed ui) eval-button)
     (wire-button #(fwd-pressed ui) fwd-button)
@@ -321,10 +349,11 @@
     (-> browser-choice .valueProperty (.addListener (change-listener (fn [ob ov nv] (browser-chosen ui nv)))))
     
     ;;this handling is special and not like other browsers
-    (add-selection-listener eval-table (fn [idx row]
-                                         (let [{:keys [expr val]} row]
-                                           (set-code code-view expr)
-                                           (view ui idx val))))))
+    )
+  (add-selection-listener eval-table (fn [idx row]
+                                       (let [{:keys [expr val]} row]
+                                         ;;(set-code code-view expr)
+                                         (view ui idx val)))))
 
 (defn- init [{:keys [exprs-mult]}]
   (Platform/runLater
@@ -342,6 +371,7 @@
                    :stage stage
                    :exprs exprs
                    :state (atom {:browse-choice {:id :rebl/eval-history}})
+                   :expr-ord (atom -1)
                    :state-history (atom ())
                    :eval-history (atom ())
                    :eval-table (doto (node "evalTable")
