@@ -14,7 +14,7 @@
            [javafx.collections FXCollections]
            [javafx.scene.input KeyEvent KeyCodeCombination KeyCode KeyCombination$Modifier]
            [javafx.scene.control.cell MapValueFactory]
-           [javafx.scene.control TableView TableColumn]
+           [javafx.scene.control TableView TableColumn Tooltip]
            [javafx.util Callback]
            [javafx.beans.property ReadOnlyObjectWrapper]))
 
@@ -299,7 +299,8 @@
     (.setDisable root-button false)
     (.setDisable back-button false)))
 
-(defn back-pressed [{:keys [state state-history root-button back-button fwd-button
+(defn back-pressed [{:keys [state state-history root-button back-button fwd-button eval-button
+                            code-view
                             browse-pane view-pane browser-choice viewer-choice] :as ui}]
   (let [[[ostate] nhist] (swap-vals! state-history pop)]
     (reset! state ostate)
@@ -324,7 +325,8 @@
                                              (handle [_ e]
                                                (when (.match kc e)
                                                  (.consume e)
-                                                 (f)))))))]
+                                                 (f)))))))
+        tooltip (fn [node text] (Tooltip/install node (Tooltip. text)))]
     ;;keys
     (wire-key #(eval-pressed ui) KeyCode/ENTER KeyCodeCombination/CONTROL_DOWN)
     ;;sending focus to parent pane doesn't work
@@ -347,13 +349,22 @@
     ;;choice controls
     (-> viewer-choice .valueProperty (.addListener (change-listener (fn [ob ov nv] (viewer-chosen ui nv)))))
     (-> browser-choice .valueProperty (.addListener (change-listener (fn [ob ov nv] (browser-chosen ui nv)))))
+    ;;tooltips
+    (tooltip root-button "Nav to root (eval history) ^⇧LEFT")
+    (tooltip back-button "Nav back ^LEFT")
+    (tooltip fwd-button "Nav forward (browse the currently viewed value) ^RIGHT")
+    (tooltip eval-button "eval code (in editor above) ^ENTER")
+    (tooltip code-view "edit code for evaluation here, with parinfer support. eval with ^ENTER, load prev/next exprs with ^UP/^DOWN")
+    (tooltip eval-table "browser pane, focus with ^B")
+    (tooltip browser-choice "choose browser UI, focus with ^⇧B")
+    (tooltip viewer-choice "choose viewer UI, focus with ^⇧V")
+    (tooltip view-pane "viewer pane, focus with ^V")
     
     ;;this handling is special and not like other browsers
-    )
-  (add-selection-listener eval-table (fn [idx row]
-                                       (let [{:keys [expr val]} row]
-                                         ;;(set-code code-view expr)
-                                         (view ui idx val)))))
+    (add-selection-listener eval-table (fn [idx row]
+                                         (let [{:keys [expr val]} row]
+                                           ;;(set-code code-view expr)
+                                           (view ui idx val))))))
 
 (defn- init [{:keys [exprs-mult]}]
   (Platform/runLater
