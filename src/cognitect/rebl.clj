@@ -30,7 +30,7 @@
          :viewers {}
          :browser-prefs {#{:rebl/coll :rebl/tuples} :rebl/tuples
                          #{:rebl/maps :rebl/tuples} :rebl/tuples
-                         #{:rebl/edn :rebl/map :rebl/exception} :rebl/exception}
+                         #{:rebl/map :rebl/exception} :rebl/exception}
          :viewer-prefs {#{:rebl/edn :rebl/coll} :rebl/coll
                         #{:rebl/edn :rebl/coll :rebl/tuples} :rebl/tuples
                         #{:rebl/edn :rebl/map} :rebl/map

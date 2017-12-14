@@ -7,8 +7,7 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.VBox?>
 
-
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="600.0" minWidth="300.0" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<VBox xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <VBox>
          <children>
@@ -23,7 +22,7 @@
             <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
          </VBox.margin>
       </VBox>
-      <VBox prefHeight="200.0" prefWidth="100.0">
+      <VBox fx:id="exDataBox" prefHeight="200.0" prefWidth="100.0">
          <children>
             <Label text="Ex Data" />
             <TableView fx:id="exDataTable" prefHeight="200.0" prefWidth="200.0">
@@ -63,14 +62,14 @@
             <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
          </VBox.margin>
       </VBox>
-      <VBox prefHeight="200.0" prefWidth="100.0">
+      <VBox prefWidth="100.0">
          <children>
             <Label text="Stack Trace">
                <VBox.margin>
                   <Insets />
                </VBox.margin>
             </Label>
-            <TableView fx:id="traceTable" prefHeight="200.0">
+            <TableView fx:id="traceTable">
               <columns>
                 <TableColumn prefWidth="75.0" text="idx" />
                 <TableColumn minWidth="200.0" prefWidth="-1.0" text="class" />

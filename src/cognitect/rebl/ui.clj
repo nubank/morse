@@ -130,7 +130,10 @@
          (.setText (:cause ex)))
        (if-let [data (:data ex)]
          (doto (node "exDataTable")
-           (set-table-map data val-cb)))
+           (set-table-map data val-cb))
+         (doto (node "exDataBox")
+           (.setManaged false)
+           (.setVisible false)))
        (doto (node "viaTable")
          (set-table-maps (:via ex) [:type :message :at] val-cb))
        (doto (node "traceTable")
