@@ -5,7 +5,6 @@
    [clojure.main :as main]
    [clojure.core.async :as async :refer [>!! <!! chan mult]]))
 
-
 #_(defn- eval-ch [exprs rets]
   (binding [*file* "user/rebl.clj"]
     (in-ns 'user)
@@ -36,6 +35,26 @@
                         #{:rebl/edn :rebl/map} :rebl/map
                         #{:rebl/edn :rebl/coll :rebl/maps} :rebl/maps}}))
 
+(defn update-browsers
+  "Update the available browsers. browsers is a map of
+
+    :identk -> {:keys [pred ctor]}
+
+See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
+  [browsers]
+  (swap! registry update :browsers merge browsers)
+  nil)
+
+(defn update-viewers
+  "Update the available browsers. browsers is a map of
+
+    :identk -> {:keys [pred ctor]}
+
+See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
+  [viewers]
+  (swap! registry update :viewers merge viewers)
+  nil)
+
 (defn- choices-for
   "returns map with:
   choicek - subset of the registry choices that apply to val
@@ -45,7 +64,7 @@
         cs (choicek reg)
         ps (prefk reg)
         vs (reduce-kv (fn [ret k {:keys [pred] :as v}]
-                        (if (pred val)
+                        (if (and pred (pred val))
                           (assoc ret k v)
                           ret))
                       {} cs)
