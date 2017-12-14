@@ -76,7 +76,7 @@
                                          (f nidx (-> table .getItems (.get nidx))))))))
   table)
 
-(defn mnap-vb
+(defn map-vb
   ([amap] (map-vb amap nil))
   ([amap val-cb]
      (let [t (TableView. (fxlist (vec amap)))]

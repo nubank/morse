@@ -98,14 +98,20 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
   (javafx.embed.swing.JFXPanel.)
   ((resolve 'cognitect.rebl.ui/create) {:exprs-mult exprs}))
 
+(defn submit [expr val]
+  (>!! echan {:event :rebl/editor-eval
+              :expr expr
+              :val (if (instance? Throwable val) (Throwable->map val) val)}))
+
+(defmacro inspect [expr]
+  `(submit '~expr ~expr))
+
 (defn -main []
   (let [ev (fn [expr]
              (let [ret (try (eval expr)
                             (catch Throwable ex
                               ex))]
-               (>!! echan {:event :rebl/editor-eval
-                           :expr expr
-                           :val (if (instance? Throwable ret) (Throwable->map ret) ret)})
+               (submit expr ret)
                (if (instance? Throwable ret)
                  (throw ret)
                  ret)))]
