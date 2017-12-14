@@ -51,28 +51,6 @@
       (.executeScript "document.cm")
       (.call "getValue" (to-array []))))
 
-(defn edn-viewer [val]
-  (let [wv (javafx.scene.web.WebView.)
-        eng (.getEngine wv)]
-    (-> eng .getLoadWorker .stateProperty
-        (.addListener
-         (reify javafx.beans.value.ChangeListener
-                (changed [_ ob oldv newv]
-                         (when (= newv javafx.concurrent.Worker$State/SUCCEEDED)
-                           (set-code wv val))))))
-    (.load eng (str (io/resource "codeview.html")))
-    wv))
-
-(defn table-column
-  "returns a TableColumn with given name and CellValueFactory callback
-  based on f, a fn of the row"
-  [name f]
-  (doto (TableColumn. name)
-    (.setCellValueFactory (reify Callback
-                                 (call [_ cdf]
-                                       #_(f (.getValue cdf))
-                                       (ReadOnlyObjectWrapper. (f (.getValue cdf))))))))
-
 (defn change-listener
   "makes a javafx.beans.value.ChangeListener given a function of observable,oldval,newval"
   [f]
@@ -90,8 +68,17 @@
                                          (f nidx (-> table .getItems (.get nidx))))))))
   table)
 
-;; TODO: refactor vbs to call these
-(defn- set-webview-edn
+(defn table-column
+  "returns a TableColumn with given name and CellValueFactory callback
+  based on f, a fn of the row"
+  [name f]
+  (doto (TableColumn. name)
+    (.setCellValueFactory (reify Callback
+                                 (call [_ cdf]
+                                       #_(f (.getValue cdf))
+                                       (ReadOnlyObjectWrapper. (f (.getValue cdf))))))))
+
+(defn set-webview-edn
   [wv v]
   (let [eng (.getEngine wv)]
     (-> eng .getLoadWorker .stateProperty
@@ -103,7 +90,8 @@
     (.load eng (str (io/resource "codeview.html")))
     wv))
 
-(defn- set-table-maps
+;;TODO - factor out commonality with other set-table-*
+(defn set-table-maps
   [t maps ks val-cb]
   (.setItems t (fxlist (into [] (map-indexed vector) (finitify maps))))
   (-> t .getColumns (.setAll (cons (table-column "idx" first)
@@ -114,7 +102,7 @@
     (-> t .getSelectionModel .selectFirst))
   t)
 
-(defn- set-table-map
+(defn set-table-map
   [t amap val-cb]
   (.setItems t (fxlist (vec amap)))
   (-> t .getColumns (.setAll [(table-column "key" key) (table-column "val" val)]))
@@ -123,7 +111,7 @@
     (-> t .getSelectionModel .selectFirst))
   t)
 
-(defn- set-table-tuples
+(defn set-table-tuples
   [t tuples ks val-cb]
   (.setItems t (fxlist (into [] (map-indexed vector) (finitify tuples))))
   (-> t .getColumns (.setAll (cons (table-column "idx" first)
@@ -133,6 +121,22 @@
     (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
     (-> t .getSelectionModel .selectFirst))
   t)
+
+;; making an explicit collection of pairs so we have a row index
+;; in hand, otherwise we get into silliness overriding concrete
+;; TableCell to recover it later.
+;; See https://stackoverflow.com/a/43102706/1456939
+(defn set-table-coll
+  [t coll val-cb]
+  (.setItems t (fxlist (into [] (map-indexed vector) (finitify coll))))
+  (-> t .getColumns (.setAll [(table-column "idx" first) (table-column "val" second)]))
+  (when val-cb
+    (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
+    (-> t .getSelectionModel .selectFirst))
+  t)
+
+(defn edn-viewer [edn]
+  (set-webview-edn (javafx.scene.web.WebView.) edn))
 
 (defn throwable-map?
   [x]
@@ -178,13 +182,7 @@
 
 (defn map-vb
   ([amap] (map-vb amap nil))
-  ([amap val-cb]
-     (let [t (TableView. (fxlist (vec amap)))]
-       (-> t .getColumns (.setAll [(table-column "key" key) (table-column "val" val)]))
-       (when val-cb
-         (add-selection-listener t (fn [idx [k v]] (val-cb k v)))
-         (-> t .getSelectionModel .selectFirst))
-       t)))
+  ([amap val-cb] (set-table-map (TableView.) amap val-cb)))
 
 (def Map? #(instance? java.util.Map %1))
 (def Coll? #(instance? java.util.Collection %1))
@@ -213,46 +211,19 @@
   [maps]
   (into [] (comp (filter Map?) (map keys) cat (distinct) (take max-cols)) maps))
 
-;; making an explicit collection of pairs so we have a row index
-;; in hand, otherwise we get into silliness overriding concrete
-;; TableCell to recover it later.
-;; See https://stackoverflow.com/a/43102706/1456939
 (defn coll-vb
   ([alist] (coll-vb alist nil))
-  ([alist val-cb]
-     (let [t (TableView. (fxlist (into [] (map-indexed vector) (finitify alist))))]
-       (-> t .getColumns (.setAll [(table-column "idx" first) (table-column "val" second)]))
-       (when val-cb
-         (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
-         (-> t .getSelectionModel .selectFirst))
-       t)))
+  ([alist val-cb] (set-table-coll (TableView.) alist val-cb)))
 
-;;TODO - factor out commonality with coll-vb and others w/ordinal index cols
 (defn tuples-vb
   ([tuples] (tuples-vb tuples nil))
   ([tuples val-cb]
-     (let [e (first tuples) 
-           t (TableView. (fxlist (into [] (map-indexed vector) (finitify tuples))))]
-       (-> t .getColumns (.setAll (cons (table-column "idx" first)
-                                        (map (fn [i] (table-column (str i) #(-> %1 second (nth i))))
-                                             (range (count e))))))
-       (when val-cb
-         (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
-         (-> t .getSelectionModel .selectFirst))
-       t)))
+     (let [ks (range (count (first tuples)))]
+       (set-table-tuples (TableView.) tuples ks val-cb))))
 
 (defn maps-vb
   ([maps] (maps-vb maps nil))
-  ([maps val-cb]
-     (let [ks (maps-keys maps) 
-           t (TableView. (fxlist (into [] (map-indexed vector) (finitify maps))))]
-       (-> t .getColumns (.setAll (cons (table-column "idx" first)
-                                        (map (fn [k] (table-column (str k) #(-> %1 second (get k))))
-                                             ks))))
-       (when val-cb
-         (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
-         (-> t .getSelectionModel .selectFirst))
-       t)))
+  ([maps val-cb] (set-table-maps (TableView.) maps (maps-keys maps) val-cb)))
 
 (swap! rebl/registry update-in [:viewers]
        assoc
