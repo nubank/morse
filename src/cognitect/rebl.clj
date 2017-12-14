@@ -93,12 +93,12 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
 (defn ui
   "Creates a new UI window"
   []
+   (require 'cognitect.rebl.ui)
+    ;;init javafx w/o deriving app from anything
+  (javafx.embed.swing.JFXPanel.)
   ((resolve 'cognitect.rebl.ui/create) {:exprs-mult exprs}))
 
 (defn -main []
-  ;;init javafx w/o deriving app from anything
-  (javafx.embed.swing.JFXPanel.)
-  (require 'cognitect.rebl.ui)
   (let [ev (fn [expr]
              (let [ret (try (eval expr)
                             (catch Throwable ex

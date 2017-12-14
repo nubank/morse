@@ -76,7 +76,7 @@
                                          (f nidx (-> table .getItems (.get nidx))))))))
   table)
 
-(defn map-vb
+(defn mnap-vb
   ([amap] (map-vb amap nil))
   ([amap val-cb]
      (let [t (TableView. (fxlist (vec amap)))]
@@ -326,7 +326,10 @@
                                                (when (.match kc e)
                                                  (.consume e)
                                                  (f)))))))
-        tooltip (fn [node text] (Tooltip/install node (Tooltip. text)))]
+        ttfont (javafx.scene.text.Font. 14.0)
+        tooltip (fn [node text] (Tooltip/install node (doto (Tooltip. text)
+                                                        (.setFont ttfont)
+                                                        (.setWrapText true))))]
     ;;keys
     (wire-key #(eval-pressed ui) KeyCode/ENTER KeyCodeCombination/CONTROL_DOWN)
     ;;sending focus to parent pane doesn't work
