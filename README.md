@@ -30,5 +30,5 @@ You should see the UI while still getting repl evals in your editor.
 You can start more UIs with `(cognitect.rebl/ui)`
 
 
-You can also [use REBL with lein](https://github.com/cognitect-labs/rebl/wiki/Using-REBL-with-Leiningen)
+You can also use REBL with [boot](https://github.com/cognitect-labs/rebl/wiki/Using-REBL-with-Boot) or [lein](https://github.com/cognitect-labs/rebl/wiki/Using-REBL-with-Leiningen).
 
