@@ -21,6 +21,13 @@
 (defn fxlist [coll]
   (FXCollections/observableList coll))
 
+(defn finitify
+  "Turn a list into a finite indexed collection"
+  [coll]
+  (if (vector? coll)
+    coll
+    (into [] (take (or *print-length* 100000) coll))))
+
 (defn reset-code [code-view]
   (-> (.getEngine code-view)
       (.executeScript "document.cm")
@@ -166,14 +173,6 @@
 (defn maps-keys
   [maps]
   (into [] (comp (filter Map?) (map keys) cat (distinct) (take max-cols)) maps))
-
-(defn finitify
-  "Turn a list into a finite indexed collection"
-  [coll]
-  (if (vector? coll)
-    coll
-    (into [] (take (or *print-length* 100000) coll))))
-
 
 ;; making an explicit collection of pairs so we have a row index
 ;; in hand, otherwise we get into silliness overriding concrete
