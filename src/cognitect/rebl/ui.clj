@@ -8,7 +8,7 @@
    [clojure.spec.alpha :as s]
    [clojure.core.async :as async :refer [<!! chan tap untap]])
   (:import [javafx.fxml FXMLLoader]
-           [javafx.scene Scene]
+           [javafx.scene Node Scene]
            [javafx.event EventHandler]
            [javafx.application Platform]
            [javafx.collections FXCollections]
@@ -20,6 +20,13 @@
 
 (defn fxlist [coll]
   (FXCollections/observableList coll))
+
+;; see e.g. https://stackoverflow.com/questions/28558165/javafx-setvisible-doesnt-hide-the-element
+(defn hide-node
+  [^Node n]
+  (doto n
+    (.setManaged false)
+    (.setVisible false)))
 
 (defn finitify
   "Turn a list into a finite indexed collection"
@@ -84,6 +91,18 @@
   table)
 
 ;; TODO: refactor vbs to call these
+(defn- set-webview-edn
+  [wv v]
+  (let [eng (.getEngine wv)]
+    (-> eng .getLoadWorker .stateProperty
+        (.addListener
+         (reify javafx.beans.value.ChangeListener
+                (changed [_ ob oldv newv]
+                         (when (= newv javafx.concurrent.Worker$State/SUCCEEDED)
+                           (set-code wv v))))))
+    (.load eng (str (io/resource "codeview.html")))
+    wv))
+
 (defn- set-table-maps
   [t maps ks val-cb]
   (.setItems t (fxlist (into [] (map-indexed vector) (finitify maps))))
@@ -131,13 +150,30 @@
        (if-let [data (:data ex)]
          (doto (node "exDataTable")
            (set-table-map data val-cb))
-         (doto (node "exDataBox")
-           (.setManaged false)
-           (.setVisible false)))
+         (hide-node (node "exDataBox")))
        (doto (node "viaTable")
          (set-table-maps (:via ex) [:type :message :at] val-cb))
        (doto (node "traceTable")
          (set-table-tuples (:trace ex) [:class :method :file] val-cb))
+       root)))
+
+(defn var-vb
+  ([v] (var-vb v nil))
+  ([v val-cb]
+     (let [loader (FXMLLoader. (io/resource "var.fxml"))
+           root (.load loader)
+           names (.getNamespace loader)
+           node (fn [id] (.get names id))
+           m (meta v)]
+       (if-let [d (:doc m)]
+         (doto (node "docView")
+           (.setText d))
+         (hide-node (node "docBox")))
+       (let [other-m (dissoc m :doc)]
+         (doto (node "metaTable")
+           (set-table-map other-m val-cb)))
+       (doto (node "ednView")
+         (set-webview-edn @v))
        root)))
 
 (defn map-vb
@@ -225,7 +261,8 @@
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
        :rebl/maps {:pred #'maps? :ctor #'maps-vb}
-       :rebl/exception {:ctor #'throwable-map-vb :pred #'throwable-map?})
+       :rebl/exception {:ctor #'throwable-map-vb :pred #'throwable-map?}
+       :rebl/var {:ctor #'var-vb :pred #'var?})
 
 (swap! rebl/registry update-in [:browsers]
        assoc
@@ -233,7 +270,8 @@
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
        :rebl/maps {:pred #'maps? :ctor #'maps-vb}
-       :rebl/exception {:ctor #'throwable-map-vb :pred #'throwable-map?})
+       :rebl/exception {:ctor #'throwable-map-vb :pred #'throwable-map?}
+       :rebl/var {:ctor #'var-vb :pred #'var?})
 
 (defn viewer-for
   "returns {:keys [view-ui view-options view-choice]}"

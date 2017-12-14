@@ -35,7 +35,8 @@
                         #{:rebl/edn :rebl/coll :rebl/tuples} :rebl/tuples
                         #{:rebl/edn :rebl/map} :rebl/map
                         #{:rebl/edn :rebl/coll :rebl/maps} :rebl/maps
-                        #{:rebl/edn :rebl/map :rebl/exception} :rebl/exception}}))
+                        #{:rebl/edn :rebl/map :rebl/exception} :rebl/exception
+                        #{:rebl/edn :rebl/var} :rebl/var}}))
 
 (defn update-browsers
   "Update the available browsers. browsers is a map of

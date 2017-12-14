@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.web.WebView?>
+
+<VBox xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <VBox fx:id="docBox">
+         <children>
+            <Label text="Doc">
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </Label>
+            <TextArea fx:id="docView" editable="false" prefHeight="100.0" />
+         </children>
+         <VBox.margin>
+            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+         </VBox.margin>
+      </VBox>
+      <VBox fx:id="exDataBox" prefHeight="200.0" prefWidth="100.0">
+         <children>
+            <Label text="Meta" />
+            <TableView fx:id="metaTable" prefHeight="200.0" prefWidth="200.0">
+              <columns>
+                <TableColumn prefWidth="150.0" text="key" />
+                <TableColumn maxWidth="-1.0" minWidth="0.0" prefWidth="-1.0" text="value" />
+              </columns>
+            </TableView>
+         </children>
+         <VBox.margin>
+            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+         </VBox.margin>
+      </VBox>
+      <VBox prefHeight="200.0" prefWidth="100.0">
+         <children>
+            <Label text="Value">
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </Label>
+            <WebView fx:id="ednView" prefHeight="200.0" prefWidth="200.0" />
+         </children>
+         <VBox.margin>
+            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+         </VBox.margin>
+      </VBox>
+   </children>
+</VBox>
