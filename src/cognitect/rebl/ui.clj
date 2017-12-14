@@ -184,6 +184,15 @@
   ([amap] (map-vb amap nil))
   ([amap val-cb] (set-table-map (TableView.) amap val-cb)))
 
+(defn namespace?
+  [x]
+  (instance? clojure.lang.Namespace x))
+
+(defn ns-publics-vb
+  ([v] (ns-publics-vb v nil))
+  ([v val-cb]
+     (map-vb (ns-publics v) val-cb)))
+
 (def Map? #(instance? java.util.Map %1))
 (def Coll? #(instance? java.util.Collection %1))
 
@@ -233,14 +242,16 @@
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
        :rebl/maps {:pred #'maps? :ctor #'maps-vb}
        :rebl/exception {:ctor #'throwable-map-vb :pred #'throwable-map?}
-       :rebl/var {:ctor #'var-vb :pred #'var?})
+       :rebl/var {:ctor #'var-vb :pred #'var?}
+       :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'namespace?})
 
 (swap! rebl/registry update-in [:browsers]
        assoc
        :rebl/map {:pred #'Map? :ctor #'map-vb}
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
-       :rebl/maps {:pred #'maps? :ctor #'maps-vb})
+       :rebl/maps {:pred #'maps? :ctor #'maps-vb}
+       :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'namespace?})
 
 (defn viewer-for
   "returns {:keys [view-ui view-options view-choice]}"
