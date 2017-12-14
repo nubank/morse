@@ -31,12 +31,12 @@
                               <ChoiceBox fx:id="browserChoice" prefWidth="150.0" />
                            </children>
                            <padding>
-                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                              <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
                            </padding>
                         </FlowPane>
                      </children>
                      <padding>
-                        <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                        <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
                      </padding>
                   </VBox>
                   <StackPane fx:id="browsePane" maxHeight="1.7976931348623157E308" prefHeight="421.0" prefWidth="495.0">
@@ -52,7 +52,7 @@
                         </TableView>
                      </children>
                      <padding>
-                        <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                        <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
                      </padding></StackPane>
               </items>
             </SplitPane>
@@ -65,12 +65,12 @@
                         <ChoiceBox fx:id="viewerChoice" prefWidth="150.0" />
                      </children>
                      <padding>
-                        <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                        <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
                      </padding>
                   </FlowPane>
                   <StackPane fx:id="viewPane" prefHeight="622.0" prefWidth="519.0" VBox.vgrow="ALWAYS">
                      <VBox.margin>
-                        <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                        <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
                      </VBox.margin></StackPane>
                </children>
             </VBox>
@@ -95,7 +95,7 @@
             </Button>
          </children>
          <VBox.margin>
-            <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+            <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
          </VBox.margin>
       </HBox>
    </children>

@@ -19,7 +19,7 @@
             <TextArea fx:id="causeView" editable="false" prefHeight="100.0" />
          </children>
          <VBox.margin>
-            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+            <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
          </VBox.margin>
       </VBox>
       <VBox fx:id="exDataBox" prefHeight="200.0" prefWidth="100.0">
@@ -33,7 +33,7 @@
             </TableView>
          </children>
          <VBox.margin>
-            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+            <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
          </VBox.margin>
       </VBox>
       <VBox prefHeight="200.0" prefWidth="100.0">
@@ -59,7 +59,7 @@
             </TableView>
          </children>
          <VBox.margin>
-            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+            <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
          </VBox.margin>
       </VBox>
       <VBox prefWidth="100.0">
@@ -82,7 +82,7 @@
             </TableView>
          </children>
          <VBox.margin>
-            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+            <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
          </VBox.margin>
       </VBox>
    </children>
