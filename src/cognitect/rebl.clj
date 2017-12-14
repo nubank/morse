@@ -29,11 +29,13 @@
   (atom {:browsers {}
          :viewers {}
          :browser-prefs {#{:rebl/coll :rebl/tuples} :rebl/tuples
-                         #{:rebl/maps :rebl/tuples} :rebl/tuples}
+                         #{:rebl/maps :rebl/tuples} :rebl/tuples
+                         #{:rebl/edn :rebl/map :rebl/exception} :rebl/exception}
          :viewer-prefs {#{:rebl/edn :rebl/coll} :rebl/coll
                         #{:rebl/edn :rebl/coll :rebl/tuples} :rebl/tuples
                         #{:rebl/edn :rebl/map} :rebl/map
-                        #{:rebl/edn :rebl/coll :rebl/maps} :rebl/maps}}))
+                        #{:rebl/edn :rebl/coll :rebl/maps} :rebl/maps
+                        #{:rebl/edn :rebl/map :rebl/exception} :rebl/exception}}))
 
 (defn update-browsers
   "Update the available browsers. browsers is a map of

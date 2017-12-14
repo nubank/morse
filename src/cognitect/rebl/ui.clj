@@ -76,6 +76,60 @@
                                          (f nidx (-> table .getItems (.get nidx))))))))
   table)
 
+;; TODO: refactor vbs to call these
+(defn- set-table-maps
+  [t maps ks val-cb]
+  (.setItems t (fxlist (into [] (map-indexed vector) (finitify maps))))
+  (-> t .getColumns (.setAll (cons (table-column "idx" first)
+                                   (map (fn [k] (table-column (str k) #(-> %1 second (get k))))
+                                        ks))))
+  (when val-cb
+    (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
+    (-> t .getSelectionModel .selectFirst))
+  t)
+
+(defn- set-table-map
+  [t amap val-cb]
+  (.setItems t (fxlist (vec amap)))
+  (-> t .getColumns (.setAll [(table-column "key" key) (table-column "val" val)]))
+  (when val-cb
+    (add-selection-listener t (fn [idx [k v]] (val-cb k v)))
+    (-> t .getSelectionModel .selectFirst))
+  t)
+
+(defn- set-table-tuples
+  [t tuples ks val-cb]
+  (.setItems t (fxlist (into [] (map-indexed vector) (finitify tuples))))
+  (-> t .getColumns (.setAll (cons (table-column "idx" first)
+                                   (map-indexed (fn [n k] (table-column (str k) #(-> %1 second (nth n))))
+                                                ks))))
+  (when val-cb
+    (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
+    (-> t .getSelectionModel .selectFirst))
+  t)
+
+(defn throwable-map?
+  [x]
+  (and (map? x) (:cause x) (:via x) (:trace x)))
+
+(defn throwable-map-vb
+  ([ex] (throwable-map-vb ex nil))
+  ([ex val-cb]
+     (let [loader (FXMLLoader. (io/resource "exception.fxml"))
+           root (.load loader)
+           names (.getNamespace loader)
+           node (fn [id] (.get names id))]
+       (doto (node "causeView")
+         (.setText (:cause ex)))
+       (if-let [data (:data ex)]
+         (doto (node "exDataTable")
+           (set-table-map data val-cb)))
+       (doto (node "viaTable")
+         (set-table-maps (:via ex) [:type :message :at] val-cb))
+       (doto (node "traceTable")
+         (set-table-tuples (:trace ex) [:class :method :file] val-cb))
+       root)))
+
 (defn map-vb
   ([amap] (map-vb amap nil))
   ([amap val-cb]
@@ -168,14 +222,16 @@
        :rebl/map {:pred #'Map? :ctor #'map-vb}
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
-       :rebl/maps {:pred #'maps? :ctor #'maps-vb})
+       :rebl/maps {:pred #'maps? :ctor #'maps-vb}
+       :rebl/exception {:ctor #'throwable-map-vb :pred #'throwable-map?})
 
 (swap! rebl/registry update-in [:browsers]
        assoc
        :rebl/map {:pred #'Map? :ctor #'map-vb}
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
-       :rebl/maps {:pred #'maps? :ctor #'maps-vb})
+       :rebl/maps {:pred #'maps? :ctor #'maps-vb}
+       :rebl/exception {:ctor #'throwable-map-vb :pred #'throwable-map?})
 
 (defn viewer-for
   "returns {:keys [view-ui view-options view-choice]}"
