@@ -29,8 +29,7 @@
   (atom {:browsers {}
          :viewers {}
          :browser-prefs {#{:rebl/coll :rebl/tuples} :rebl/tuples
-                         #{:rebl/maps :rebl/tuples} :rebl/tuples
-                         #{:rebl/map :rebl/exception} :rebl/exception}
+                         #{:rebl/maps :rebl/tuples} :rebl/tuples}
          :viewer-prefs {#{:rebl/edn :rebl/coll} :rebl/coll
                         #{:rebl/edn :rebl/coll :rebl/tuples} :rebl/tuples
                         #{:rebl/edn :rebl/map} :rebl/map

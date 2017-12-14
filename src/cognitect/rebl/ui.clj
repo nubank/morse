@@ -156,9 +156,9 @@
            (set-table-map data val-cb))
          (hide-node (node "exDataBox")))
        (doto (node "viaTable")
-         (set-table-maps (:via ex) [:type :message :at] val-cb))
+         (set-table-maps (:via ex) [:type :message :at] nil))
        (doto (node "traceTable")
-         (set-table-tuples (:trace ex) [:class :method :file] val-cb))
+         (set-table-tuples (:trace ex) [:class :method :file] nil))
        root)))
 
 (defn var-vb
@@ -240,9 +240,7 @@
        :rebl/map {:pred #'Map? :ctor #'map-vb}
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
-       :rebl/maps {:pred #'maps? :ctor #'maps-vb}
-       :rebl/exception {:ctor #'throwable-map-vb :pred #'throwable-map?}
-       :rebl/var {:ctor #'var-vb :pred #'var?})
+       :rebl/maps {:pred #'maps? :ctor #'maps-vb})
 
 (defn viewer-for
   "returns {:keys [view-ui view-options view-choice]}"
