@@ -6,6 +6,7 @@
    [clojure.java.io :as io]
    [clojure.pprint :as pp]
    [clojure.spec.alpha :as s]
+   [clojure.set :as set]
    [clojure.core.async :as async :refer [<!! chan tap untap]])
   (:import [javafx.fxml FXMLLoader]
            [javafx.scene Node Scene]
@@ -17,6 +18,39 @@
            [javafx.scene.control TableView TableColumn Tooltip]
            [javafx.util Callback]
            [javafx.beans.property ReadOnlyObjectWrapper]))
+
+(def coll-check-limit 101)
+
+(defn sample
+  "Returns a seq of n items from coll. Picks the first items
+if coll not indexed?, otherwise sets a step size and uses nth
+to get elements from throughout the collection"
+  [coll n]
+  (if (indexed? coll)
+    (let [ct (count coll)]
+      (let [step (max 1 (long (/ ct n)))]
+        (map #(nth coll %) (take (min n ct) (iterate #(+ % step) 0)))))
+    (take n coll)))
+
+(defn- jaccard-index
+  "Returns the Jaccard index for distance between two Clojure sets"
+  [s1 s2]
+  (/ (double (count (set/intersection s1 s2)))
+     (count (set/union s1 s2))))
+
+(defn- maps-jaccard
+  "Given coll of n maps, return n-1 Jaccard indexes for adjacent
+comparisons."
+  [maps]
+  (->> maps
+       (partition 2 1)
+       (map (fn [[m1 m2]] (jaccard-index (into #{} (keys m1))
+                                         (into #{} (keys m2)))))))
+
+(defn uniformish?
+  "Quick and dirty test for maps having mostly similar keys"
+  [maps]
+  (every? #(< 0.9 %) (maps-jaccard maps)))
 
 (defn fxlist [coll]
   (FXCollections/observableList coll))
@@ -210,11 +244,13 @@
                               (= cnt (bc %1)))
                         (take 100 coll)))))))
 
-(defn maps?
+(defn uniformish-maps?
   [coll]
   (and (Coll? coll)
        (seq coll)
-       (every? Map? (take 100 coll))))
+       (let [samp (sample coll coll-check-limit)]
+         (and (every? Map? samp)
+              (uniformish? samp)))))
 
 (defn maps-keys
   [maps]
@@ -240,7 +276,7 @@
        :rebl/map {:pred #'Map? :ctor #'map-vb}
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
-       :rebl/maps {:pred #'maps? :ctor #'maps-vb}
+       :rebl/maps {:pred #'uniformish-maps? :ctor #'maps-vb}
        :rebl/exception {:ctor #'throwable-map-vb :pred #'throwable-map?}
        :rebl/var {:ctor #'var-vb :pred #'var?}
        :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'namespace?})
@@ -250,7 +286,7 @@
        :rebl/map {:pred #'Map? :ctor #'map-vb}
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
-       :rebl/maps {:pred #'maps? :ctor #'maps-vb}
+       :rebl/maps {:pred #'uniformish-maps? :ctor #'maps-vb}
        :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'namespace?})
 
 (defn viewer-for
