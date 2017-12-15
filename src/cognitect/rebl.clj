@@ -106,10 +106,14 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
               :expr expr
               :val (if (instance? Throwable val) (Throwable->map val) val)}))
 
-(defmacro inspect [expr]
+(defmacro inspect
+  "sends the expr and its value to the REBL UI"
+  [expr]
   `(submit '~expr ~expr))
 
-(defn -main []
+(defn repl
+  "starts a repl on stdio and launches a REBL UI connected to it"
+  []
   (let [ev (fn [expr]
              (let [ret (try (eval expr)
                             (catch Throwable ex
@@ -124,6 +128,9 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
                        (apply require main/repl-requires))
                ;;TODO - we'd like to have the strings as well as the forms
                :eval ev)))
+
+(defn -main []
+  (repl))
 
 (comment
 ;;
