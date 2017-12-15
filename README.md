@@ -13,6 +13,7 @@ REBL is a graphical, interactive tool for browsing Clojure data. It features:
 * the ability to capture nested values as defs in the user namespace
 * the ability to run multiple independent UI windows
 * extensibility to new browsers and viewers
+* full keyboard control via [hotkeys](https://github.com/cognitect-labs/rebl/wiki/Hotkeys)
 
 ![screenshot](screenshot.png)
 
@@ -35,14 +36,13 @@ add an alias to your deps.edn:
  {:rebl {:extra-deps {com.cognitect/rebl {:local/root "/Users/rich/dev/rebl"}}}}}
 ```
 
-replace your normal repl invocation (e.g. for inferior-lisp) with rebl:
+replace your normal repl invocation (`clj`, or `clojure` e.g. for inferior-lisp) with REBL:
 
-`clojure -R:rebl -m cognitect.rebl`
+`clj -R:rebl -m cognitect.rebl`
 
-You should see the UI while still getting repl evals in your editor.
+Your repl should start, along with the REBL UI. Everything you type in the repl will also appear in REBL. You can also type expressions right into REBL's editor (in the upper left). REBL will maintain a history of exprs+results in the root browse table.
 
 You can start more UIs with `(cognitect.rebl/ui)`
-
 
 You can also use REBL with [boot](https://github.com/cognitect-labs/rebl/wiki/Using-REBL-with-Boot) or [lein](https://github.com/cognitect-labs/rebl/wiki/Using-REBL-with-Leiningen).
 
