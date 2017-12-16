@@ -69,6 +69,21 @@ comparisons."
     coll
     (into [] (take (or *print-length* 100000) coll))))
 
+(defn finite-pprint-str
+  "Returns a pretty printed string for e.g. an edn viewer"
+  [x]
+  (binding [pp/*print-right-margin* 80
+            *print-length* 10000
+            *print-level* 20]
+    (with-out-str (pp/pprint x))))
+
+(defn finite-pr-str
+  "Returns a truncated string rep for e.g. a table cell"
+  [x]
+  (binding [*print-length* 5
+            *print-level* 2]
+    (pr-str x)))
+
 (defn reset-code [code-view]
   (-> (.getEngine code-view)
       (.executeScript "document.cm")
@@ -77,8 +92,7 @@ comparisons."
 (defn set-code [code-view code]
   (-> (.getEngine code-view)
       (.executeScript "document.cm")
-      (.call "setValue" (to-array [(binding [pp/*print-right-margin* 80]
-                                     (with-out-str (pp/pprint code)))]))))
+      (.call "setValue" (to-array [(finite-pprint-str code)]))))
 
 (defn get-code [code-view]
   (-> (.getEngine code-view)
@@ -102,15 +116,19 @@ comparisons."
                                          (f nidx (-> table .getItems (.get nidx))))))))
   table)
 
+(defn cell-value-callback
+  "Returns a Callback that applies finite-pr-str to f of cell value."
+  [f]
+  (reify Callback
+         (call [_ cdf]
+               (ReadOnlyObjectWrapper. (finite-pr-str (f (.getValue cdf)))))))
+
 (defn table-column
   "returns a TableColumn with given name and CellValueFactory callback
-  based on f, a fn of the row"
+  based on finitely printing the result of f, a fn of the row"
   [name f]
   (doto (TableColumn. name)
-    (.setCellValueFactory (reify Callback
-                                 (call [_ cdf]
-                                       #_(f (.getValue cdf))
-                                       (ReadOnlyObjectWrapper. (f (.getValue cdf))))))))
+    (.setCellValueFactory (cell-value-callback f))))
 
 (defn set-webview-edn
   [wv v]
@@ -129,7 +147,7 @@ comparisons."
   [t maps ks val-cb]
   (.setItems t (fxlist (into [] (map-indexed vector) (finitify maps))))
   (-> t .getColumns (.setAll (cons (table-column "idx" first)
-                                   (map (fn [k] (table-column (str k) #(-> %1 second (get k))))
+                                   (map (fn [k] (table-column (finite-pr-str k) #(-> %1 second (get k))))
                                         ks))))
   (when val-cb
     (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
@@ -149,7 +167,7 @@ comparisons."
   [t tuples ks val-cb]
   (.setItems t (fxlist (into [] (map-indexed vector) (finitify tuples))))
   (-> t .getColumns (.setAll (cons (table-column "idx" first)
-                                   (map-indexed (fn [n k] (table-column (str k) #(-> %1 second (nth n))))
+                                   (map-indexed (fn [n k] (table-column (finite-pr-str k) #(-> %1 second (nth n))))
                                                 ks))))
   (when val-cb
     (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
@@ -503,9 +521,9 @@ comparisons."
                    :eval-table (doto (node "evalTable")
                                  (.setItems (fxlist (java.util.ArrayList.))))
                    :expr-column (doto (node "exprColumn")
-                                  (.setCellValueFactory (MapValueFactory. :expr)))
+                                  (.setCellValueFactory (cell-value-callback :expr)))
                    :val-column (doto (node "valColumn")
-                                 (.setCellValueFactory (MapValueFactory. :val)))
+                                 (.setCellValueFactory (cell-value-callback :val)))
                    :code-view (doto (node "codeView")
                                 #_(.setZoom 1.2))
                    :follow-editor-check (node "followEditorCheck")
