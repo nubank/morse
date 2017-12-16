@@ -32,6 +32,7 @@
                          #{:rebl/maps :rebl/tuples} :rebl/tuples
                          #{:rebl/maps :rebl/coll} :rebl/maps}
          :viewer-prefs {#{:rebl/edn :rebl/coll} :rebl/coll
+                        #{:rebl/edn :rebl/spec-edn} :rebl/spec-edn
                         #{:rebl/edn :rebl/coll :rebl/tuples} :rebl/tuples
                         #{:rebl/edn :rebl/map} :rebl/map
                         #{:rebl/edn :rebl/coll :rebl/maps} :rebl/maps

@@ -190,6 +190,8 @@ comparisons."
 (defn edn-viewer [edn]
   (set-webview-edn (javafx.scene.web.WebView.) edn))
 
+(def spec-edn-viewer (comp edn-viewer s/form))
+
 (defn throwable-map?
   [x]
   (and (map? x) (:cause x) (:via x) (:trace x)))
@@ -291,6 +293,7 @@ comparisons."
 (swap! rebl/registry update-in [:viewers]
        assoc
        :rebl/edn {:pred #'any? :ctor #'edn-viewer}
+       :rebl/spec-edn {:pred #'s/spec? :ctor #'spec-edn-viewer}
        :rebl/map {:pred #'Map? :ctor #'map-vb}
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
