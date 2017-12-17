@@ -142,10 +142,16 @@ comparisons."
     (.load eng (str (io/resource "codeview.html")))
     wv))
 
-;;TODO - factor out commonality with other set-table-*
+;; per Sorting at https://docs.oracle.com/javase/8/javafx/api/javafx/scene/control/TableView.html
+(defn set-sortable-items
+  [^TableView t items]
+  (let [sorted (javafx.collections.transformation.SortedList. items)]
+    (-> sorted .comparatorProperty (.bind (.comparatorProperty t)))
+    (.setItems t sorted)))
+
 (defn set-table-maps
-  [t maps ks val-cb]
-  (.setItems t (fxlist (into [] (map-indexed vector) (finitify maps))))
+  [^TableView t maps ks val-cb]
+  (set-sortable-items t (fxlist (into [] (map-indexed vector) (finitify maps))))
   (-> t .getColumns (.setAll (cons (table-column "idx" first)
                                    (map (fn [k] (table-column (finite-pr-str k) #(-> %1 second (get k))))
                                         ks))))
@@ -155,8 +161,8 @@ comparisons."
   t)
 
 (defn set-table-map
-  [t amap val-cb]
-  (.setItems t (fxlist (vec amap)))
+  [^TableView t amap val-cb]
+  (set-sortable-items t (fxlist (vec amap)))
   (-> t .getColumns (.setAll [(table-column "key" key) (table-column "val" val)]))
   (when val-cb
     (add-selection-listener t (fn [idx [k v]] (val-cb k v)))
@@ -164,8 +170,8 @@ comparisons."
   t)
 
 (defn set-table-tuples
-  [t tuples ks val-cb]
-  (.setItems t (fxlist (into [] (map-indexed vector) (finitify tuples))))
+  [^TableView t tuples ks val-cb]
+  (set-sortable-items t (fxlist (into [] (map-indexed vector) (finitify tuples))))
   (-> t .getColumns (.setAll (cons (table-column "idx" first)
                                    (map-indexed (fn [n k] (table-column (finite-pr-str k) #(-> %1 second (nth n))))
                                                 ks))))
@@ -179,8 +185,8 @@ comparisons."
 ;; TableCell to recover it later.
 ;; See https://stackoverflow.com/a/43102706/1456939
 (defn set-table-coll
-  [t coll val-cb]
-  (.setItems t (fxlist (into [] (map-indexed vector) (finitify coll))))
+  [^TableView t coll val-cb]
+  (set-sortable-items t (fxlist (into [] (map-indexed vector) (finitify coll))))
   (-> t .getColumns (.setAll [(table-column "idx" first) (table-column "val" second)]))
   (when val-cb
     (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
