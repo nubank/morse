@@ -21,6 +21,14 @@
 
 (def coll-check-limit 101)
 
+(defn fx-later [f]
+  (Platform/runLater f))
+
+(defn current-ui [pane]
+  (let [cs (.getChildren pane)]
+    (when-not (empty? cs)
+      (.get cs 0))))
+
 (defn sample
   "Returns a seq of n items from coll. Picks the first items
 if coll not indexed?, otherwise sets a step size and uses nth
@@ -156,8 +164,8 @@ comparisons."
                                    (map (fn [k] (table-column (finite-pr-str k) #(-> %1 second (get k))))
                                         ks))))
   (when val-cb
-    (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
-    (-> t .getSelectionModel .selectFirst))
+    (add-selection-listener t (fn [idx [k v]] (val-cb t idx v)))
+    (fx-later #(-> t .getSelectionModel .selectFirst)))
   t)
 
 (defn set-table-map
@@ -165,8 +173,8 @@ comparisons."
   (set-sortable-items t (fxlist (vec amap)))
   (-> t .getColumns (.setAll [(table-column "key" key) (table-column "val" val)]))
   (when val-cb
-    (add-selection-listener t (fn [idx [k v]] (val-cb k v)))
-    (-> t .getSelectionModel .selectFirst))
+    (add-selection-listener t (fn [idx [k v]] (val-cb t k v)))
+    (fx-later #(-> t .getSelectionModel .selectFirst)))
   t)
 
 (defn set-table-tuples
@@ -176,8 +184,8 @@ comparisons."
                                    (map-indexed (fn [n k] (table-column (finite-pr-str k) #(-> %1 second (nth n))))
                                                 ks))))
   (when val-cb
-    (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
-    (-> t .getSelectionModel .selectFirst))
+    (add-selection-listener t (fn [idx [k v]] (val-cb t idx v)))
+    (fx-later #(-> t .getSelectionModel .selectFirst)))
   t)
 
 ;; making an explicit collection of pairs so we have a row index
@@ -189,8 +197,8 @@ comparisons."
   (set-sortable-items t (fxlist (into [] (map-indexed vector) (finitify coll))))
   (-> t .getColumns (.setAll [(table-column "idx" first) (table-column "val" second)]))
   (when val-cb
-    (add-selection-listener t (fn [idx [k v]] (val-cb idx v)))
-    (-> t .getSelectionModel .selectFirst))
+    (add-selection-listener t (fn [idx [k v]] (val-cb t idx v)))
+    (fx-later #(-> t .getSelectionModel .selectFirst)))
   t)
 
 (defn edn-viewer [edn]
@@ -222,36 +230,35 @@ comparisons."
        root)))
 
 (defn var-vb
-  ([v] (var-vb v nil))
-  ([v val-cb]
-     (let [loader (FXMLLoader. (io/resource "var.fxml"))
-           root (.load loader)
-           names (.getNamespace loader)
-           node (fn [id] (.get names id))
-           m (meta v)]
-       (if-let [d (:doc m)]
-         (doto (node "docView")
-           (.setText d))
-         (hide-node (node "docBox")))
-       (let [other-m (dissoc m :doc)]
-         (doto (node "metaTable")
-           (set-table-map other-m val-cb)))
-       (doto (node "ednView")
-         (set-webview-edn @v))
-       root)))
+  [v val-cb]
+  (let [loader (FXMLLoader. (io/resource "var.fxml"))
+        root (.load loader)
+        names (.getNamespace loader)
+        node (fn [id] (.get names id))
+        m (meta v)
+        val @v]
+    (if-let [d (:doc m)]
+      (doto (node "docView")
+        (.setText d))
+      (hide-node (node "docBox")))
+    (let [other-m (dissoc m :doc)]
+      (doto (node "metaTable")
+        (set-table-map other-m nil)))
+    (doto (node "ednView")
+      (set-webview-edn val))
+    (fx-later #(val-cb root :val val))
+    root))
 
 (defn map-vb
-  ([amap] (map-vb amap nil))
-  ([amap val-cb] (set-table-map (TableView.) amap val-cb)))
+  [amap val-cb] (set-table-map (TableView.) amap val-cb))
 
 (defn namespace?
   [x]
   (instance? clojure.lang.Namespace x))
 
 (defn ns-publics-vb
-  ([v] (ns-publics-vb v nil))
-  ([v val-cb]
-     (map-vb (ns-publics v) val-cb)))
+  [v val-cb]
+  (map-vb (ns-publics v) val-cb))
 
 (def Map? #(instance? java.util.Map %1))
 (def Coll? #(instance? java.util.Collection %1))
@@ -283,18 +290,15 @@ comparisons."
   (into [] (comp (filter Map?) (map keys) cat (distinct) (take max-cols)) maps))
 
 (defn coll-vb
-  ([alist] (coll-vb alist nil))
-  ([alist val-cb] (set-table-coll (TableView.) alist val-cb)))
+  [alist val-cb] (set-table-coll (TableView.) alist val-cb))
 
 (defn tuples-vb
-  ([tuples] (tuples-vb tuples nil))
-  ([tuples val-cb]
-     (let [ks (range (count (first tuples)))]
-       (set-table-tuples (TableView.) tuples ks val-cb))))
+  [tuples val-cb]
+  (let [ks (range (count (first tuples)))]
+    (set-table-tuples (TableView.) tuples ks val-cb)))
 
 (defn maps-vb
-  ([maps] (maps-vb maps nil))
-  ([maps val-cb] (set-table-maps (TableView.) maps (maps-keys maps) val-cb)))
+  [maps val-cb] (set-table-maps (TableView.) maps (maps-keys maps) val-cb))
 
 (swap! rebl/registry update-in [:viewers]
        assoc
@@ -311,19 +315,25 @@ comparisons."
 (swap! rebl/registry update-in [:browsers]
        assoc
        :rebl/map {:pred #'Map? :ctor #'map-vb}
+       :rebl/var {:ctor #'var-vb :pred #'var?}
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
        :rebl/maps {:pred #'uniformish-maps? :ctor #'maps-vb}
        :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'namespace?})
 
+(declare val-selected)
+
 (defn viewer-for
   "returns {:keys [view-ui view-options view-choice]}"
-  [val]
-  (let [{:keys [viewers pref]} (rebl/viewers-for val)]
-    {:view-ui ((-> viewers pref :ctor) val)
+  [ui val]
+  (let [{:keys [viewers pref]} (rebl/viewers-for val)
+        p (pref viewers)]
+    {:view-ui (if (rebl/is-browser? pref)
+                ((:ctor p) val (partial val-selected ui))
+                ((:ctor p) val))
      ;;incorporate :id for choice control
-     :view-options (mapv (fn [[k v]] (assoc v :id k)) viewers)
-     :view-choice (-> viewers pref (assoc :id pref))}))
+     :view-options (-> viewers vals vec)
+     :view-choice p}))
 
 (defn update-choice [control options choice]
   (-> control (.setItems (fxlist options)))
@@ -333,11 +343,17 @@ comparisons."
   (-> pane .getChildren (.setAll [ui])))
 
 (defn view [{:keys [state view-pane viewer-choice fwd-button] :as ui} path-seg val]
-  (let [viewer (viewer-for val)]
+  (let [viewer (viewer-for ui val)]
     (swap! state merge (assoc viewer :path-seg path-seg :view-val val))
     (update-choice viewer-choice (:view-options viewer) (:view-choice viewer))
     (update-pane view-pane (:view-ui viewer))
     (.setDisable fwd-button (-> val rebl/browsers-for :browsers empty?))))
+
+(defn val-selected
+  [{:keys [view-pane state] :as ui} node path-seg val]
+  (if (identical? (current-ui view-pane) node)
+    (swap! state assoc :on-deck {:path-seg path-seg :val val})
+    (view ui path-seg val)))
 
 (defn viewer-chosen [{:keys [state view-pane] :as ui} choice]
   (let [{:keys [view-choice view-val]} @state]
@@ -350,22 +366,24 @@ comparisons."
   "returns {:keys [browse-ui browse-options browse-choice]}"
   [ui val]
   (let [{:keys [browsers pref]} (rebl/browsers-for val)]
-    {:browse-ui ((-> browsers pref :ctor) val (partial view ui))
+    {:browse-ui ((-> browsers pref :ctor) val (partial val-selected ui))
      ;;incorporate :id for choice control
-     :browse-options (mapv (fn [[k v]] (assoc v :id k)) browsers)
-     :browse-choice (-> browsers pref (assoc :id pref))}))
+     :browse-options (-> browsers vals vec)
+     :browse-choice (browsers pref)}))
 
-(defn browse [{:keys [state browse-pane browser-choice] :as ui} val]
-  (let [browser (browser-for ui val)]
-    (swap! state merge (assoc browser :browse-val val))
-    (update-choice browser-choice (:browse-options browser) (:browse-choice browser))
-    (update-pane browse-pane (:browse-ui browser))
-    (.requestFocus (:browse-ui browser))))
+(defn browse-with [{:keys [state browse-pane browser-choice] :as ui} browser val]
+  (swap! state merge (assoc browser :browse-val val))
+  (update-choice browser-choice (:browse-options browser) (:browse-choice browser))
+  (update-pane browse-pane (:browse-ui browser))
+  (.requestFocus (:browse-ui browser)))
+
+(defn browse [ui val]
+  (browse-with (browser-for ui val)))
 
 (defn browser-chosen [{:keys [state browse-pane] :as ui} choice]
   (let [{:keys [browse-choice browse-val]} @state]
     (when (and choice (not= browse-choice choice))
-      (let [br ((:ctor choice) browse-val (partial view ui))]
+      (let [br ((:ctor choice) browse-val (partial val-selected ui))]
         (swap! state assoc :browse-choice choice :browse-ui br)
         (update-pane browse-pane br)
         (.requestFocus br)))))
@@ -418,7 +436,7 @@ comparisons."
                       msg)]
             (when (or eval? (.isSelected follow-editor-check))
                   (swap! eval-history conj msg)
-                  (Platform/runLater #(rtz ui)))
+                  (fx-later #(rtz ui)))
             (recur)))))))
 
 (defonce ^:private ui-count (atom 0))
@@ -432,16 +450,28 @@ comparisons."
     (async/put! exprs {:eval form})))
 
 (defn fwd-pressed [{:keys [state state-history root-button back-button] :as ui}]
-  (let [statev @state]
-    (swap! state-history conj statev)
-    (browse ui (:view-val statev))
+  (let [{:keys [view-val view-ui view-choice on-deck] :as statev} @state]
+    (swap! state-history conj (dissoc statev :on-deck))
+    (if (rebl/is-browser? (:id view-choice))
+      (let [{:keys [browsers]} (rebl/browsers-for val)]
+        (browse-with ui
+                     {:browse-options (-> browsers vals vec)
+                      :browse-ui view-ui
+                      :browse-choice (browsers view-choice)}
+                     view-val)
+        (when-let [{:keys [path-seg val]} on-deck]
+          (view ui path-seg val)))
+      (browse ui view-val))
     (.setDisable root-button false)
     (.setDisable back-button false)))
 
 (defn back-pressed [{:keys [state state-history root-button back-button fwd-button eval-button
                             code-view
                             browse-pane view-pane browser-choice viewer-choice] :as ui}]
-  (let [[[ostate] nhist] (swap-vals! state-history pop)]
+  (let [{:keys [browse-ui path-seg view-val]} @state
+        [[ostate] nhist] (swap-vals! state-history pop)
+        ostate (cond-> ostate (identical? browse-ui (:view-ui ostate))
+                       (assoc :on-deck {:path-seg path-seg :val view-val}))]
     (reset! state ostate)
     (update-pane browse-pane (:browse-ui ostate))
     (update-pane view-pane (:view-ui ostate))
@@ -472,9 +502,9 @@ comparisons."
     ;;keys
     (wire-key #(eval-pressed ui) KeyCode/ENTER KeyCodeCombination/CONTROL_DOWN)
     ;;sending focus to parent pane doesn't work
-    (wire-key #(-> browse-pane .getChildren (.get 0) .requestFocus) KeyCode/B KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(-> browse-pane current-ui .requestFocus) KeyCode/B KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(.requestFocus browser-choice) KeyCode/B KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
-    (wire-key #(-> view-pane .getChildren (.get 0) .requestFocus) KeyCode/V KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(-> view-pane current-ui .requestFocus) KeyCode/V KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(.requestFocus viewer-choice) KeyCode/V KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
     (wire-key #(.requestFocus code-view) KeyCode/R KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(when-not (.isDisabled fwd-button) (fwd-pressed ui)) KeyCode/RIGHT KeyCodeCombination/CONTROL_DOWN)
@@ -509,7 +539,7 @@ comparisons."
                                            (view ui idx val))))))
 
 (defn- init [{:keys [exprs-mult]}]
-  (Platform/runLater
+  (fx-later
    #(try (let [loader (FXMLLoader. (io/resource "rebl.fxml"))
                root (.load loader)               
                names (.getNamespace loader)

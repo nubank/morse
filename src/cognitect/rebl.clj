@@ -62,7 +62,7 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
 
 (defn- choices-for
   "returns map with:
-  choicek - subset of the registry choices that apply to val
+  choicek - subset of the registry choices that apply to val, with :id added
   :pref - the identk of preferred choice"
   [choicek prefk val]
   (let [reg @registry
@@ -70,7 +70,7 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
         ps (prefk reg)
         vs (reduce-kv (fn [ret k {:keys [pred] :as v}]
                         (if (and pred (pred val))
-                          (assoc ret k v)
+                          (assoc ret k (assoc v :id k))
                           ret))
                       {} cs)
         pref (or (ps (set (keys vs)))
@@ -91,6 +91,9 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
   :pref - the identk of preferred browser"
   [val]
   (choices-for :browsers :browser-prefs val))
+
+(defn is-browser? [identk]
+  (-> @registry :browsers (contains? identk)))
 
 (defonce ^:private echan (chan 10))
 (defonce ^:private exprs (mult echan))
