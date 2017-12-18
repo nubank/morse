@@ -378,7 +378,7 @@ comparisons."
   (.requestFocus (:browse-ui browser)))
 
 (defn browse [ui val]
-  (browse-with (browser-for ui val)))
+  (browse-with ui (browser-for ui val) val))
 
 (defn browser-chosen [{:keys [state browse-pane] :as ui} choice]
   (let [{:keys [browse-choice browse-val]} @state]
