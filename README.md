@@ -28,7 +28,7 @@ REBL runs in your application JVM process, and can be used at dev-time without a
 
 `git clone` this repo
 
-add an alias to your deps.edn:
+add an alias to (your existing project's) deps.edn:
 
 ``` clj
 {:deps {}
