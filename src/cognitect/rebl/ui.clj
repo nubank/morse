@@ -15,7 +15,7 @@
            [javafx.collections FXCollections]
            [javafx.scene.input KeyEvent KeyCodeCombination KeyCode KeyCombination$Modifier]
            [javafx.scene.control.cell MapValueFactory]
-           [javafx.scene.control TableView TableColumn Tooltip]
+           [javafx.scene.control TableView TableColumn TextArea Tooltip]
            [javafx.util Callback]
            [javafx.beans.property ReadOnlyObjectWrapper]))
 
@@ -80,7 +80,7 @@ comparisons."
 (defn finite-pprint-str
   "Returns a pretty printed string for e.g. an edn viewer"
   [x]
-  (binding [pp/*print-right-margin* 80
+  (binding [pp/*print-right-margin* 72
             *print-length* 10000
             *print-level* 20]
     (with-out-str (pp/pprint x))))
@@ -201,6 +201,12 @@ comparisons."
     (fx-later #(-> t .getSelectionModel .selectFirst)))
   t)
 
+(defn plain-edn-viewer
+  [edn]
+  (let [s (finite-pprint-str edn)]
+    (doto (TextArea. s)
+      (.setFont (javafx.scene.text.Font. "Courier" 14.0)))))
+
 (defn edn-viewer [edn]
   (set-webview-edn (javafx.scene.web.WebView.) edn))
 
@@ -302,7 +308,7 @@ comparisons."
 
 (swap! rebl/registry update-in [:viewers]
        assoc
-       :rebl/edn {:pred #'any? :ctor #'edn-viewer}
+       :rebl/edn {:pred #'any? :ctor #'plain-edn-viewer}
        :rebl/spec-edn {:pred #'s/spec? :ctor #'spec-edn-viewer}
        :rebl/map {:pred #'Map? :ctor #'map-vb}
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
