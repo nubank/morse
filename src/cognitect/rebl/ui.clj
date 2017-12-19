@@ -89,8 +89,14 @@ comparisons."
   "Returns a truncated string rep for e.g. a table cell"
   [x]
   (binding [*print-length* 5
-            *print-level* 2]
+            *print-level* 5]
     (pr-str x)))
+
+;; N.B. controls that have .setText do not have a common base interface
+(defn set-text
+  "Set text of a control to stringified x."
+  [control x]
+  (.setText control (str x)))
 
 (defn reset-code [code-view]
   (-> (.getEngine code-view)
@@ -150,6 +156,13 @@ comparisons."
     (.load eng (str (io/resource "codeview.html")))
     wv))
 
+(defn set-text-area-edn
+  [ta edn]
+  (let [s (finite-pprint-str edn)]
+    (doto ta
+      (.setText s)
+      (.setFont (javafx.scene.text.Font. "Courier" 14.0)))))
+
 ;; per Sorting at https://docs.oracle.com/javase/8/javafx/api/javafx/scene/control/TableView.html
 (defn set-sortable-items
   [^TableView t items]
@@ -203,9 +216,7 @@ comparisons."
 
 (defn plain-edn-viewer
   [edn]
-  (let [s (finite-pprint-str edn)]
-    (doto (TextArea. s)
-      (.setFont (javafx.scene.text.Font. "Courier" 14.0)))))
+  (set-text-area-edn (TextArea.) edn))
 
 (defn edn-viewer [edn]
   (set-webview-edn (javafx.scene.web.WebView.) edn))
@@ -242,16 +253,22 @@ comparisons."
         names (.getNamespace loader)
         node (fn [id] (.get names id))
         m (meta v)
+        {:keys [ns name file column line since]} m
         val @v]
-    (if-let [d (:doc m)]
+    (doto (node "symbol")
+      (set-text (str ns "/" name)))
+    (doto (node "location")
+      (set-text (str file ":" line ":" column)))
+    (doto (node "since")
+      (set-text since))
+    (let [d (:doc m)]
       (doto (node "docView")
-        (.setText d))
-      (hide-node (node "docBox")))
-    (let [other-m (dissoc m :doc)]
+        (set-text d)))
+    (let [other-m (dissoc m :doc :ns :name :added :file :column :line)]
       (doto (node "metaTable")
         (set-table-map other-m nil)))
     (doto (node "ednView")
-      (set-webview-edn val))
+      (set-text-area-edn val))
     (fx-later #(val-cb root :val val))
     root))
 
