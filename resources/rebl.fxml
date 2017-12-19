@@ -26,7 +26,10 @@
                         <FlowPane alignment="CENTER_RIGHT" hgap="10.0" prefHeight="44.0" prefWidth="301.0" vgap="4.0" VBox.vgrow="NEVER">
                            <children>
                               <CheckBox fx:id="followEditorCheck" mnemonicParsing="false" selected="true" text="Follow Editor" />
-                              <Button fx:id="evalButton" mnemonicParsing="false" text="eval" />
+                              <Button fx:id="evalButton" mnemonicParsing="false" text="eval">
+                                 <FlowPane.margin>
+                                    <Insets />
+                                 </FlowPane.margin></Button>
                               <Label text="Browser:" />
                               <ChoiceBox fx:id="browserChoice" prefWidth="150.0" />
                            </children>

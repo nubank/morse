@@ -11,9 +11,9 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox xmlns="http://javafx.com/javafx/8.0.152" xmlns:fx="http://javafx.com/fxml/1">
+<VBox xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <GridPane prefWidth="550.0">
+      <GridPane minHeight="-Infinity" prefWidth="550.0" VBox.vgrow="NEVER">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" maxWidth="434.0" minWidth="10.0" prefWidth="426.0" />
           <ColumnConstraints hgrow="SOMETIMES" maxWidth="271.0" minWidth="10.0" prefWidth="124.0" />
@@ -55,7 +55,10 @@
                   <Insets />
                </VBox.margin>
             </Label>
-            <TextArea fx:id="ednView" editable="false" prefHeight="200.0" />
+            <TextArea fx:id="ednView" editable="false" prefHeight="200.0" text="dsalldsa">
+               <font>
+                  <Font name="Monaco" size="14.0" />
+               </font></TextArea>
          </children>
          <VBox.margin>
             <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />

@@ -21,6 +21,9 @@
 
 (def coll-check-limit 101)
 
+(defn clear-deck [{:keys [state] :as ui}]
+  (swap! state dissoc :on-deck))
+
 (defn fx-later [f]
   (Platform/runLater f))
 
@@ -160,8 +163,8 @@ comparisons."
   [ta edn]
   (let [s (finite-pprint-str edn)]
     (doto ta
-      (.setText s)
-      (.setFont (javafx.scene.text.Font. "Courier" 14.0)))))
+      (.setFont (javafx.scene.text.Font. "Monaco" 14.0))
+      (.setText s))))
 
 ;; per Sorting at https://docs.oracle.com/javase/8/javafx/api/javafx/scene/control/TableView.html
 (defn set-sortable-items
@@ -367,6 +370,7 @@ comparisons."
 
 (defn view [{:keys [state view-pane viewer-choice fwd-button] :as ui} path-seg val]
   (let [viewer (viewer-for ui val)]
+    (clear-deck ui)
     (swap! state merge (assoc viewer :path-seg path-seg :view-val val))
     (update-choice viewer-choice (:view-options viewer) (:view-choice viewer))
     (update-pane view-pane (:view-ui viewer))
@@ -381,6 +385,7 @@ comparisons."
 (defn viewer-chosen [{:keys [state view-pane] :as ui} choice]
   (let [{:keys [view-choice view-val]} @state]
     (when (and choice (not= view-choice choice))
+      (clear-deck ui)
       (let [vw ((:ctor choice) view-val)]
         (swap! state assoc :view-choice choice :view-ui vw)
         (update-pane view-pane vw)))))
@@ -395,6 +400,7 @@ comparisons."
      :browse-choice (browsers pref)}))
 
 (defn browse-with [{:keys [state browse-pane browser-choice] :as ui} browser val]
+  #_(clear-deck ui)
   (swap! state merge (assoc browser :browse-val val))
   (update-choice browser-choice (:browse-options browser) (:browse-choice browser))
   (update-pane browse-pane (:browse-ui browser))
@@ -406,6 +412,7 @@ comparisons."
 (defn browser-chosen [{:keys [state browse-pane] :as ui} choice]
   (let [{:keys [browse-choice browse-val]} @state]
     (when (and choice (not= browse-choice choice))
+      (clear-deck ui)
       (let [br ((:ctor choice) browse-val (partial val-selected ui))]
         (swap! state assoc :browse-choice choice :browse-ui br)
         (update-pane browse-pane br)
@@ -421,6 +428,7 @@ comparisons."
                  :browse-options [bc]
                  :browse-choice bc}]
     (-> eval-table .getItems (.setAll ehist))
+    (clear-deck ui)
     (swap! state merge browser)
     (update-choice browser-choice [bc] bc)
     (update-pane browse-pane eval-table)
