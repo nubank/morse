@@ -36,7 +36,8 @@
                         #{:rebl/edn :rebl/coll :rebl/tuples} :rebl/tuples
                         #{:rebl/edn :rebl/map} :rebl/map
                         #{:rebl/edn :rebl/coll :rebl/maps} :rebl/maps
-                        #{:rebl/edn :rebl/map :rebl/exception} :rebl/exception
+                        #{:rebl/edn :rebl/map :rebl/throwable-map} :rebl/throwable-map
+                        #{:rebl/edn :rebl/throwable} :rebl/throwable
                         #{:rebl/edn :rebl/var} :rebl/var
                         #{:rebl/ns-publics :rebl/edn} :rebl/ns-publics}}))
 

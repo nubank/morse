@@ -230,6 +230,10 @@ comparisons."
   [x]
   (and (map? x) (:cause x) (:via x) (:trace x)))
 
+(defn throwable?
+  [x]
+  (instance? Throwable x))
+
 (defn throwable-map-vb
   ([ex] (throwable-map-vb ex nil))
   ([ex val-cb]
@@ -248,6 +252,10 @@ comparisons."
        (doto (node "traceTable")
          (set-table-tuples (:trace ex) [:class :method :file] nil))
        root)))
+
+(defn throwable-vb
+  ([ex] (throwable-vb ex nil))
+  ([ex val-cb] (throwable-map-vb (Throwable->map ex) val-cb)))
 
 (defn var-vb
   [v val-cb]
@@ -334,7 +342,8 @@ comparisons."
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
        :rebl/maps {:pred #'uniformish-maps? :ctor #'maps-vb}
-       :rebl/exception {:ctor #'throwable-map-vb :pred #'throwable-map?}
+       :rebl/throwable-map {:ctor #'throwable-map-vb :pred #'throwable-map?}
+       :rebl/throwable {:ctor #'throwable-vb :pred #'throwable?}
        :rebl/var {:ctor #'var-vb :pred #'var?}
        :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'namespace?})
 
