@@ -406,7 +406,9 @@ pair."
   (let [{:keys [view-choice view-val]} @state]
     (when (and choice (not= view-choice choice))
       (clear-deck ui)
-      (let [vw ((:ctor choice) view-val)]
+      (let [vw (if (rebl/is-browser? (:id choice))
+                 ((:ctor choice) view-val (partial val-selected ui))
+                 ((:ctor choice) view-val))]
         (swap! state assoc :view-choice choice :view-ui vw)
         (update-pane view-pane vw)))))
 
