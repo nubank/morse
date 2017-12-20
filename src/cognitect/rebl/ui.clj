@@ -7,6 +7,7 @@
    [clojure.pprint :as pp]
    [clojure.spec.alpha :as s]
    [clojure.set :as set]
+   [clojure.string :as str]
    [clojure.core.async :as async :refer [<!! chan tap untap]])
   (:import [javafx.fxml FXMLLoader]
            [javafx.scene Node Scene]
@@ -88,12 +89,24 @@ comparisons."
             *print-level* 20]
     (with-out-str (pp/pprint x))))
 
+(defn normalize-whitespace
+  "Flatten all whitespace runs to single space char."
+  [s]
+  (str/replace s #"\s+" " "))
+
+(defn ellipsize
+  "Ellipsize strings longer than n to fit into n chars"
+  [s n]
+  (if (<= (count s) n)
+    s
+    (str (subs s 0 (- n 3)) "...")))
+
 (defn finite-pr-str
   "Returns a truncated string rep for e.g. a table cell"
   [x]
   (binding [*print-length* 5
             *print-level* 5]
-    (pr-str x)))
+    (-> x pr-str normalize-whitespace (ellipsize 40))))
 
 ;; N.B. controls that have .setText do not have a common base interface
 (defn set-text
