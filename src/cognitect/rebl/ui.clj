@@ -133,6 +133,16 @@ comparisons."
                                          (f nidx (-> table .getItems (.get nidx))))))))
   table)
 
+(defn add-selection-val-cb
+  "adds val-cb as a selection listener on table, returning table.
+Assumes that the value stored in the table is a [position value]
+pair."
+  [t val-cb]
+  (when val-cb
+    (add-selection-listener t (fn [_ [pos val]] (val-cb t pos val)))
+    (-> t .getSelectionModel .selectFirst))
+  t)
+
 (defn cell-value-callback
   "Returns a Callback that applies finite-pr-str to f of cell value."
   [f]
@@ -179,19 +189,13 @@ comparisons."
   (-> t .getColumns (.setAll (cons (table-column "idx" first)
                                    (map (fn [k] (table-column (finite-pr-str k) #(-> %1 second (get k))))
                                         ks))))
-  (when val-cb
-    (add-selection-listener t (fn [idx [k v]] (val-cb t idx v)))
-    (-> t .getSelectionModel .selectFirst))
-  t)
+  (add-selection-val-cb t val-cb))
 
 (defn set-table-map
   [^TableView t amap val-cb]
   (set-sortable-items t (fxlist (vec amap)))
   (-> t .getColumns (.setAll [(table-column "key" key) (table-column "val" val)]))
-  (when val-cb
-    (add-selection-listener t (fn [idx [k v]] (val-cb t k v)))
-    (-> t .getSelectionModel .selectFirst))
-  t)
+  (add-selection-val-cb t val-cb))
 
 (defn set-table-tuples
   [^TableView t tuples ks val-cb]
@@ -199,10 +203,7 @@ comparisons."
   (-> t .getColumns (.setAll (cons (table-column "idx" first)
                                    (map-indexed (fn [n k] (table-column (finite-pr-str k) #(-> %1 second (nth n))))
                                                 ks))))
-  (when val-cb
-    (add-selection-listener t (fn [idx [k v]] (val-cb t idx v)))
-    (-> t .getSelectionModel .selectFirst))
-  t)
+  (add-selection-val-cb t val-cb))
 
 ;; making an explicit collection of pairs so we have a row index
 ;; in hand, otherwise we get into silliness overriding concrete
@@ -212,10 +213,7 @@ comparisons."
   [^TableView t coll val-cb]
   (set-sortable-items t (fxlist (into [] (map-indexed vector) (finitify coll))))
   (-> t .getColumns (.setAll [(table-column "idx" first) (table-column "val" second)]))
-  (when val-cb
-    (add-selection-listener t (fn [idx [k v]] (val-cb t idx v)))
-    (-> t .getSelectionModel .selectFirst))
-  t)
+  (add-selection-val-cb t val-cb))
 
 (defn plain-edn-viewer
   [edn]
