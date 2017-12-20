@@ -283,6 +283,17 @@ comparisons."
     (val-cb root :val val)
     root))
 
+(defn atom-vb
+  [v val-cb]
+  (let [viewer (plain-edn-viewer v)
+        val @v]
+    (val-cb viewer :val val)
+    viewer))
+
+(defn atom?
+  [x]
+  (instance? clojure.lang.IAtom x))
+
 (defn map-vb
   [amap val-cb] (set-table-map (TableView.) amap val-cb))
 
@@ -296,7 +307,6 @@ comparisons."
 
 (def Map? #(instance? java.util.Map %1))
 (def Coll? #(instance? java.util.Collection %1))
-
 (def max-cols 100)
 
 (defn tuples?
@@ -345,7 +355,8 @@ comparisons."
        :rebl/throwable-map {:ctor #'throwable-map-vb :pred #'throwable-map?}
        :rebl/throwable {:ctor #'throwable-vb :pred #'throwable?}
        :rebl/var {:ctor #'var-vb :pred #'var?}
-       :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'namespace?})
+       :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'namespace?}
+       :rebl/atom {:ctor #'atom-vb :pred atom?})
 
 (swap! rebl/registry update-in [:browsers]
        assoc
@@ -354,7 +365,8 @@ comparisons."
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
        :rebl/maps {:pred #'uniformish-maps? :ctor #'maps-vb}
-       :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'namespace?})
+       :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'namespace?}
+       :rebl/atom {:ctor #'atom-vb :pred #'atom?})
 
 (declare val-selected)
 

@@ -39,7 +39,8 @@
                         #{:rebl/edn :rebl/map :rebl/throwable-map} :rebl/throwable-map
                         #{:rebl/edn :rebl/throwable} :rebl/throwable
                         #{:rebl/edn :rebl/var} :rebl/var
-                        #{:rebl/ns-publics :rebl/edn} :rebl/ns-publics}}))
+                        #{:rebl/ns-publics :rebl/edn} :rebl/ns-publics
+                        #{:rebl/atom :rebl/edn} :rebl/atom}}))
 
 (defn update-browsers
   "Update the available browsers. browsers is a map of
