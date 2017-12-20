@@ -181,7 +181,7 @@ comparisons."
                                         ks))))
   (when val-cb
     (add-selection-listener t (fn [idx [k v]] (val-cb t idx v)))
-    (fx-later #(-> t .getSelectionModel .selectFirst)))
+    (-> t .getSelectionModel .selectFirst))
   t)
 
 (defn set-table-map
@@ -190,7 +190,7 @@ comparisons."
   (-> t .getColumns (.setAll [(table-column "key" key) (table-column "val" val)]))
   (when val-cb
     (add-selection-listener t (fn [idx [k v]] (val-cb t k v)))
-    (fx-later #(-> t .getSelectionModel .selectFirst)))
+    (-> t .getSelectionModel .selectFirst))
   t)
 
 (defn set-table-tuples
@@ -201,7 +201,7 @@ comparisons."
                                                 ks))))
   (when val-cb
     (add-selection-listener t (fn [idx [k v]] (val-cb t idx v)))
-    (fx-later #(-> t .getSelectionModel .selectFirst)))
+    (-> t .getSelectionModel .selectFirst))
   t)
 
 ;; making an explicit collection of pairs so we have a row index
@@ -214,7 +214,7 @@ comparisons."
   (-> t .getColumns (.setAll [(table-column "idx" first) (table-column "val" second)]))
   (when val-cb
     (add-selection-listener t (fn [idx [k v]] (val-cb t idx v)))
-    (fx-later #(-> t .getSelectionModel .selectFirst)))
+    (-> t .getSelectionModel .selectFirst))
   t)
 
 (defn plain-edn-viewer
@@ -280,7 +280,7 @@ comparisons."
         (set-table-map other-m nil)))
     (doto (node "ednView")
       (set-text-area-edn val))
-    (fx-later #(val-cb root :val val))
+    (val-cb root :val val)
     root))
 
 (defn map-vb
@@ -362,10 +362,11 @@ comparisons."
   "returns {:keys [view-ui view-options view-choice]}"
   [ui val]
   (let [{:keys [viewers pref]} (rebl/viewers-for val)
-        p (pref viewers)]
-    {:view-ui (if (rebl/is-browser? pref)
+        p (pref viewers)
+        vw (if (rebl/is-browser? pref)
                 ((:ctor p) val (partial val-selected ui))
-                ((:ctor p) val))
+                ((:ctor p) val))]
+    {:view-ui vw
      ;;incorporate :id for choice control
      :view-options (-> viewers vals vec)
      :view-choice p}))
@@ -387,9 +388,9 @@ comparisons."
 
 (defn val-selected
   [{:keys [view-pane state] :as ui} node path-seg val]
-  (if (identical? (current-ui view-pane) node)
-    (swap! state assoc :on-deck {:path-seg path-seg :val val})
-    (view ui path-seg val)))
+  (fx-later #(if (identical? (current-ui view-pane) node)
+               (swap! state assoc :on-deck {:path-seg path-seg :val val})
+               (view ui path-seg val))))
 
 (defn viewer-chosen [{:keys [state view-pane] :as ui} choice]
   (let [{:keys [view-choice view-val]} @state]
@@ -436,11 +437,12 @@ comparisons."
         browser {:browse-ui eval-table
                  :browse-options [bc]
                  :browse-choice bc}]
-    (-> eval-table .getItems (.setAll ehist))
     (clear-deck ui)
     (swap! state merge browser)
     (update-choice browser-choice [bc] bc)
     (update-pane browse-pane eval-table)
+    (-> eval-table .getSelectionModel .clearSelection)
+    (-> eval-table .getItems (.setAll ehist))
     ;;(set-code code-view (-> ehist first :expr))
     (.setDisable root-button true)
     (.setDisable back-button true)
@@ -475,8 +477,8 @@ comparisons."
                                    (Throwable->map ex)))}
                       msg)]
             (when (or eval? (.isSelected follow-editor-check))
-                  (swap! eval-history conj msg)
-                  (fx-later #(rtz ui)))
+              (swap! eval-history conj msg)
+              (fx-later #(rtz ui)))
             (recur)))))))
 
 (defonce ^:private ui-count (atom 0))
@@ -585,9 +587,10 @@ comparisons."
                names (.getNamespace loader)
                node (fn [id] (.get names id))
                scene (Scene. root 1200 800)
+               exprs (chan 10)
                stage (javafx.stage.Stage.)
                _ (.setScene stage scene)
-               exprs (chan 10)
+               
                vc (proxy [javafx.util.StringConverter] []
                     (toString [v] (-> v :id str)))
                ui {:scene scene
@@ -625,8 +628,10 @@ comparisons."
            (.show stage)
            (-> (:code-view ui) .getEngine (.load (str (io/resource "codeview.html"))))
            (wire-handlers ui)
-           
            (tap exprs-mult exprs)
+           (.setOnHidden stage (reify EventHandler (handle [_ _]
+                                                     (untap exprs-mult exprs)
+                                                     (async/close! exprs)))) 
            (async/thread (clojure.main/with-bindings (expr-loop ui))))
          (catch Throwable ex
            (println ex)))))
@@ -635,3 +640,4 @@ comparisons."
   (Platform/setImplicitExit false)
   (init argmap)
   nil)
+

@@ -105,7 +105,8 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
    (require 'cognitect.rebl.ui)
     ;;init javafx w/o deriving app from anything
   (javafx.embed.swing.JFXPanel.)
-  ((resolve 'cognitect.rebl.ui/create) {:exprs-mult exprs}))
+  ((resolve 'cognitect.rebl.ui/create) {:exprs-mult exprs})
+  nil)
 
 (defn submit [expr val]
   (>!! echan {:event :rebl/editor-eval
