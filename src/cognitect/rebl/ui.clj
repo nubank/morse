@@ -150,9 +150,9 @@ map's keys against the union of all keys."
   "adds val-cb as a selection listener on table, returning table.
 Assumes that the value stored in the table is a [position value]
 pair."
-  [t val-cb]
+  [data t val-cb]
   (when val-cb
-    (add-selection-listener t (fn [_ [pos val]] (val-cb t pos val)))
+    (add-selection-listener t (fn [_ [pos val]] (val-cb t pos ((or (-> data meta ::rebl/selected-val-xform) identity) val))))
     (-> t .getSelectionModel .selectFirst))
   t)
 
@@ -208,7 +208,7 @@ pair."
   (-> t .getColumns (.setAll (cons (index-column first)
                                    (map (fn [k] (table-column (finite-pr-str k) #(-> %1 second (get k))))
                                         ks))))
-  (add-selection-val-cb t val-cb))
+  (add-selection-val-cb maps t val-cb))
 
 (defn set-table-map-of-maps
   [^TableView t map-of-maps ks val-cb]
@@ -216,13 +216,13 @@ pair."
   (-> t .getColumns (.setAll (cons (table-column "key" first)
                                    (map (fn [k] (table-column (finite-pr-str k) #(-> %1 second (get k))))
                                         ks))))
-  (add-selection-val-cb t val-cb))
+  (add-selection-val-cb map-of-maps t val-cb))
 
 (defn set-table-map
   [^TableView t amap val-cb]
   (set-sortable-items t (fxlist (vec amap)))
   (-> t .getColumns (.setAll [(table-column "key" key) (table-column "val" val)]))
-  (add-selection-val-cb t val-cb))
+  (add-selection-val-cb amap t val-cb))
 
 (defn set-table-tuples
   [^TableView t tuples ks val-cb]
@@ -230,7 +230,7 @@ pair."
   (-> t .getColumns (.setAll (cons (index-column first)
                                    (map-indexed (fn [n k] (table-column (finite-pr-str k) #(-> %1 second (nth n))))
                                                 ks))))
-  (add-selection-val-cb t val-cb))
+  (add-selection-val-cb tuples t val-cb))
 
 ;; making an explicit collection of pairs so we have a row index
 ;; in hand, otherwise we get into silliness overriding concrete
@@ -240,7 +240,7 @@ pair."
   [^TableView t coll val-cb]
   (set-sortable-items t (fxlist (into [] (map-indexed vector) (finitify coll))))
   (-> t .getColumns (.setAll [(index-column first) (table-column "val" second)]))
-  (add-selection-val-cb t val-cb))
+  (add-selection-val-cb coll t val-cb))
 
 (defn plain-edn-viewer
   [edn]
