@@ -204,6 +204,14 @@ pair."
                                         ks))))
   (add-selection-val-cb t val-cb))
 
+(defn set-table-map-of-maps
+  [^TableView t map-of-maps ks val-cb]
+  (set-sortable-items t (fxlist (vec map-of-maps)))
+  (-> t .getColumns (.setAll (cons (table-column "key" first)
+                                   (map (fn [k] (table-column (finite-pr-str k) #(-> %1 second (get k))))
+                                        ks))))
+  (add-selection-val-cb t val-cb))
+
 (defn set-table-map
   [^TableView t amap val-cb]
   (set-sortable-items t (fxlist (vec amap)))
@@ -340,6 +348,10 @@ pair."
          (and (every? Map? samp)
               (uniformish? samp)))))
 
+(defn uniformish-map-of-maps?
+  [m]
+  (and (Map? m) (uniformish-maps? (vals m))))
+
 (defn maps-keys
   [maps]
   (into [] (comp (filter Map?) (map keys) cat (distinct) (take max-cols)) maps))
@@ -355,6 +367,9 @@ pair."
 (defn maps-vb
   [maps val-cb] (set-table-maps (TableView.) maps (maps-keys maps) val-cb))
 
+(defn map-of-maps-vb
+  [map-of-maps val-cb] (set-table-map-of-maps (TableView.) map-of-maps (maps-keys (vals map-of-maps)) val-cb))
+
 (swap! rebl/registry update-in [:viewers]
        assoc
        :rebl/edn {:pred #'any? :ctor #'plain-edn-viewer}
@@ -363,6 +378,7 @@ pair."
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
        :rebl/maps {:pred #'uniformish-maps? :ctor #'maps-vb}
+       :rebl/map-of-maps {:pred #'uniformish-map-of-maps? :ctor #'map-of-maps-vb}
        :rebl/throwable-map {:ctor #'throwable-map-vb :pred #'throwable-map?}
        :rebl/throwable {:ctor #'throwable-vb :pred #'throwable?}
        :rebl/var {:ctor #'var-vb :pred #'var?}
@@ -376,6 +392,7 @@ pair."
        :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
        :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
        :rebl/maps {:pred #'uniformish-maps? :ctor #'maps-vb}
+       :rebl/map-of-maps {:pred #'uniformish-map-of-maps? :ctor #'map-of-maps-vb}
        :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'namespace?}
        :rebl/atom {:ctor #'atom-vb :pred #'atom?})
 

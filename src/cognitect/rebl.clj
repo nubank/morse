@@ -30,11 +30,13 @@
          :viewers {}
          :browser-prefs {#{:rebl/coll :rebl/tuples} :rebl/tuples
                          #{:rebl/maps :rebl/tuples} :rebl/tuples
-                         #{:rebl/maps :rebl/coll} :rebl/maps}
+                         #{:rebl/maps :rebl/coll} :rebl/maps
+                         #{:rebl/map :rebl/map-of-maps} :rebl/map-of-maps}
          :viewer-prefs {#{:rebl/edn :rebl/coll} :rebl/coll
                         #{:rebl/edn :rebl/spec-edn} :rebl/spec-edn
                         #{:rebl/edn :rebl/coll :rebl/tuples} :rebl/tuples
                         #{:rebl/edn :rebl/map} :rebl/map
+                        #{:rebl/edn :rebl/map :rebl/map-of-maps} :rebl/map-of-maps
                         #{:rebl/edn :rebl/coll :rebl/maps} :rebl/maps
                         #{:rebl/edn :rebl/map :rebl/throwable-map} :rebl/throwable-map
                         #{:rebl/edn :rebl/throwable} :rebl/throwable
