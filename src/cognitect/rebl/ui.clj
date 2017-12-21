@@ -161,14 +161,20 @@ pair."
   [f]
   (reify Callback
          (call [_ cdf]
-               (ReadOnlyObjectWrapper. (finite-pr-str (f (.getValue cdf)))))))
+               (ReadOnlyObjectWrapper. (f (.getValue cdf))))))
+
+(defn index-column
+  "returns an index column based on the value of f, a fn of the row"
+  [f]
+  (doto (TableColumn. "idx")
+    (.setCellValueFactory (cell-value-callback f))))
 
 (defn table-column
   "returns a TableColumn with given name and CellValueFactory callback
   based on finitely printing the result of f, a fn of the row"
   [name f]
   (doto (TableColumn. name)
-    (.setCellValueFactory (cell-value-callback f))))
+    (.setCellValueFactory (cell-value-callback (comp finite-pr-str f)))))
 
 (defn set-webview-edn
   [wv v]
@@ -199,7 +205,7 @@ pair."
 (defn set-table-maps
   [^TableView t maps ks val-cb]
   (set-sortable-items t (fxlist (into [] (map-indexed vector) (finitify maps))))
-  (-> t .getColumns (.setAll (cons (table-column "idx" first)
+  (-> t .getColumns (.setAll (cons (index-column first)
                                    (map (fn [k] (table-column (finite-pr-str k) #(-> %1 second (get k))))
                                         ks))))
   (add-selection-val-cb t val-cb))
@@ -221,7 +227,7 @@ pair."
 (defn set-table-tuples
   [^TableView t tuples ks val-cb]
   (set-sortable-items t (fxlist (into [] (map-indexed vector) (finitify tuples))))
-  (-> t .getColumns (.setAll (cons (table-column "idx" first)
+  (-> t .getColumns (.setAll (cons (index-column first)
                                    (map-indexed (fn [n k] (table-column (finite-pr-str k) #(-> %1 second (nth n))))
                                                 ks))))
   (add-selection-val-cb t val-cb))
@@ -233,7 +239,7 @@ pair."
 (defn set-table-coll
   [^TableView t coll val-cb]
   (set-sortable-items t (fxlist (into [] (map-indexed vector) (finitify coll))))
-  (-> t .getColumns (.setAll [(table-column "idx" first) (table-column "val" second)]))
+  (-> t .getColumns (.setAll [(index-column first) (table-column "val" second)]))
   (add-selection-val-cb t val-cb))
 
 (defn plain-edn-viewer
@@ -645,9 +651,9 @@ pair."
                    :eval-table (doto (node "evalTable")
                                  (.setItems (fxlist (java.util.ArrayList.))))
                    :expr-column (doto (node "exprColumn")
-                                  (.setCellValueFactory (cell-value-callback :expr)))
+                                  (.setCellValueFactory (cell-value-callback (comp finite-pr-str :expr))))
                    :val-column (doto (node "valColumn")
-                                 (.setCellValueFactory (cell-value-callback :val)))
+                                 (.setCellValueFactory (cell-value-callback (comp finite-pr-str :val))))
                    :code-view (doto (node "codeView")
                                 #_(.setZoom 1.2))
                    :follow-editor-check (node "followEditorCheck")
