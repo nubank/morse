@@ -44,25 +44,25 @@ to get elements from throughout the collection"
         (map #(nth coll %) (take (min n ct) (iterate #(+ % step) 0)))))
     (take n coll)))
 
-(defn- jaccard-index
+(defn jaccard-index
   "Returns the Jaccard index for distance between two Clojure sets"
   [s1 s2]
   (/ (double (count (set/intersection s1 s2)))
      (count (set/union s1 s2))))
 
-(defn- maps-jaccard
-  "Given coll of n maps, return n-1 Jaccard indexes for adjacent
-comparisons."
+(defn map-keys-jaccard-indices
+  "Given coll of n maps, return a seq of jaccard indexes for each
+map's keys against the union of all keys."
   [maps]
-  (->> maps
-       (partition 2 1)
-       (map (fn [[m1 m2]] (jaccard-index (into #{} (keys m1))
-                                         (into #{} (keys m2)))))))
+  (let [keyset #(into #{} (keys %))
+        union-keys (transduce (map keyset) set/union maps)]
+    (->> maps
+         (map (fn [m] (jaccard-index union-keys (keyset m)))))))
 
 (defn uniformish?
   "Quick and dirty test for maps having mostly similar keys"
   [maps]
-  (every? #(< 0.9 %) (maps-jaccard maps)))
+  (every? #(< 0.6 %) (map-keys-jaccard-indices maps)))
 
 (defn fxlist [coll]
   (FXCollections/observableList coll))
