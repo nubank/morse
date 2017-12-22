@@ -3,404 +3,46 @@
 (ns cognitect.rebl.ui
   (:require
    [cognitect.rebl :as rebl]
+   [cognitect.rebl.fx :as fx]
+   [cognitect.rebl.renderers :as rend]
    [clojure.java.io :as io]
-   [clojure.pprint :as pp]
    [clojure.spec.alpha :as s]
-   [clojure.set :as set]
-   [clojure.string :as str]
    [clojure.core.async :as async :refer [<!! chan tap untap]])
   (:import [javafx.fxml FXMLLoader]
-           [javafx.scene Node Scene]
+           [javafx.scene Scene]
            [javafx.event EventHandler]
            [javafx.application Platform]
-           [javafx.collections FXCollections]
            [javafx.scene.input KeyEvent KeyCodeCombination KeyCode KeyCombination$Modifier]
-           [javafx.scene.control.cell MapValueFactory]
-           [javafx.scene.control TableView TableColumn TextArea Tooltip]
-           [javafx.util Callback]
-           [javafx.beans.property ReadOnlyObjectWrapper]))
-
-(def coll-check-limit 101)
+           [javafx.scene.control Tooltip]))
 
 (defn clear-deck [{:keys [state] :as ui}]
   (swap! state dissoc :on-deck))
 
-(defn fx-later [f]
-  (Platform/runLater f))
-
-(defn current-ui [pane]
-  (let [cs (.getChildren pane)]
-    (when-not (empty? cs)
-      (.get cs 0))))
-
-(defn sample
-  "Returns a seq of n items from coll. Picks the first items
-if coll not indexed?, otherwise sets a step size and uses nth
-to get elements from throughout the collection"
-  [coll n]
-  (if (indexed? coll)
-    (let [ct (count coll)]
-      (let [step (max 1 (long (/ ct n)))]
-        (map #(nth coll %) (take (min n ct) (iterate #(+ % step) 0)))))
-    (take n coll)))
-
-(defn jaccard-index
-  "Returns the Jaccard index for distance between two Clojure sets"
-  [s1 s2]
-  (/ (double (count (set/intersection s1 s2)))
-     (count (set/union s1 s2))))
-
-(defn map-keys-jaccard-indices
-  "Given coll of n maps, return a seq of jaccard indexes for each
-map's keys against the union of all keys."
-  [maps]
-  (let [keyset #(into #{} (keys %))
-        union-keys (transduce (map keyset) set/union maps)]
-    (->> maps
-         (map (fn [m] (jaccard-index union-keys (keyset m)))))))
-
-(defn uniformish?
-  "Quick and dirty test for maps having mostly similar keys"
-  [maps]
-  (every? #(< 0.6 %) (map-keys-jaccard-indices maps)))
-
-(defn fxlist [coll]
-  (FXCollections/observableList coll))
-
-;; see e.g. https://stackoverflow.com/questions/28558165/javafx-setvisible-doesnt-hide-the-element
-(defn hide-node
-  [^Node n]
-  (doto n
-    (.setManaged false)
-    (.setVisible false)))
-
-(defn finitify
-  "Turn a list into a finite indexed collection"
-  [coll]
-  (if (vector? coll)
-    coll
-    (into [] (take (or *print-length* 100000) coll))))
-
-(defn finite-pprint-str
-  "Returns a pretty printed string for e.g. an edn viewer"
-  [x]
-  (binding [pp/*print-right-margin* 72
-            *print-length* 10000
-            *print-level* 20]
-    (with-out-str (pp/pprint x))))
-
-(defn normalize-whitespace
-  "Flatten all whitespace runs to single space char."
-  [s]
-  (str/replace s #"\s+" " "))
-
-(defn ellipsize
-  "Ellipsize strings longer than n to fit into n chars"
-  [s n]
-  (if (<= (count s) n)
-    s
-    (str (subs s 0 (- n 3)) "...")))
-
-(defn finite-pr-str
-  "Returns a truncated string rep for e.g. a table cell"
-  [x]
-  (binding [*print-length* 5
-            *print-level* 5]
-    (-> x pr-str normalize-whitespace (ellipsize 40))))
-
-;; N.B. controls that have .setText do not have a common base interface
-(defn set-text
-  "Set text of a control to stringified x."
-  [control x]
-  (.setText control (str x)))
-
-(defn reset-code [code-view]
-  (-> (.getEngine code-view)
-      (.executeScript "document.cm")
-      (.call "setValue" (to-array [""]))))
-
-(defn set-code [code-view code]
-  (-> (.getEngine code-view)
-      (.executeScript "document.cm")
-      (.call "setValue" (to-array [(finite-pprint-str code)]))))
-
-(defn get-code [code-view]
-  (-> (.getEngine code-view)
-      (.executeScript "document.cm")
-      (.call "getValue" (to-array []))))
-
-(defn change-listener
-  "makes a javafx.beans.value.ChangeListener given a function of observable,oldval,newval"
-  [f]
-  (reify javafx.beans.value.ChangeListener
-         (changed [_ ob oldval newval]
-                  (f ob oldval newval))))
-
-(defn add-selection-listener
-  "adds a selection listener to table given f, a fn of the index and
-  the row value. returns table"
-  [table f]
-  (-> table .getSelectionModel .selectedIndexProperty
-      (.addListener (change-listener (fn [ob oldidx nidx]
-                                       (when (not= nidx -1)
-                                         (f nidx (-> table .getItems (.get nidx))))))))
-  table)
-
-(defn add-selection-val-cb
-  "adds val-cb as a selection listener on table, returning table.
-Assumes that the value stored in the table is a [position value]
-pair."
-  [data t val-cb]
-  (when val-cb
-    (add-selection-listener t (fn [_ [pos val]] (val-cb t pos ((or (-> data meta ::rebl/selected-val-xform) identity) val))))
-    (-> t .getSelectionModel .selectFirst))
-  t)
-
-(defn cell-value-callback
-  "Returns a Callback that applies finite-pr-str to f of cell value."
-  [f]
-  (reify Callback
-         (call [_ cdf]
-               (ReadOnlyObjectWrapper. (f (.getValue cdf))))))
-
-(defn index-column
-  "returns an index column based on the value of f, a fn of the row"
-  [f]
-  (doto (TableColumn. "idx")
-    (.setCellValueFactory (cell-value-callback f))))
-
-(defn table-column
-  "returns a TableColumn with given name and CellValueFactory callback
-  based on finitely printing the result of f, a fn of the row"
-  [name f]
-  (doto (TableColumn. name)
-    (.setCellValueFactory (cell-value-callback (comp finite-pr-str f)))))
-
-(defn set-webview-edn
-  [wv v]
-  (let [eng (.getEngine wv)]
-    (-> eng .getLoadWorker .stateProperty
-        (.addListener
-         (reify javafx.beans.value.ChangeListener
-                (changed [_ ob oldv newv]
-                         (when (= newv javafx.concurrent.Worker$State/SUCCEEDED)
-                           (set-code wv v))))))
-    (.load eng (str (io/resource "codeview.html")))
-    wv))
-
-(defn set-text-area-edn
-  [ta edn]
-  (let [s (finite-pprint-str edn)]
-    (doto ta
-      (.setFont (javafx.scene.text.Font. "Monaco" 14.0))
-      (.setText s))))
-
-;; per Sorting at https://docs.oracle.com/javase/8/javafx/api/javafx/scene/control/TableView.html
-(defn set-sortable-items
-  [^TableView t items]
-  (let [sorted (javafx.collections.transformation.SortedList. items)]
-    (-> sorted .comparatorProperty (.bind (.comparatorProperty t)))
-    (.setItems t sorted)))
-
-(defn set-table-maps
-  [^TableView t maps ks val-cb]
-  (set-sortable-items t (fxlist (into [] (map-indexed vector) (finitify maps))))
-  (-> t .getColumns (.setAll (cons (index-column first)
-                                   (map (fn [k] (table-column (finite-pr-str k) #(-> %1 second (get k))))
-                                        ks))))
-  (add-selection-val-cb maps t val-cb))
-
-(defn set-table-map-of-maps
-  [^TableView t map-of-maps ks val-cb]
-  (set-sortable-items t (fxlist (vec map-of-maps)))
-  (-> t .getColumns (.setAll (cons (table-column "key" first)
-                                   (map (fn [k] (table-column (finite-pr-str k) #(-> %1 second (get k))))
-                                        ks))))
-  (add-selection-val-cb map-of-maps t val-cb))
-
-(defn set-table-map
-  [^TableView t amap val-cb]
-  (set-sortable-items t (fxlist (vec amap)))
-  (-> t .getColumns (.setAll [(table-column "key" key) (table-column "val" val)]))
-  (add-selection-val-cb amap t val-cb))
-
-(defn set-table-tuples
-  [^TableView t tuples ks val-cb]
-  (set-sortable-items t (fxlist (into [] (map-indexed vector) (finitify tuples))))
-  (-> t .getColumns (.setAll (cons (index-column first)
-                                   (map-indexed (fn [n k] (table-column (finite-pr-str k) #(-> %1 second (nth n))))
-                                                ks))))
-  (add-selection-val-cb tuples t val-cb))
-
-;; making an explicit collection of pairs so we have a row index
-;; in hand, otherwise we get into silliness overriding concrete
-;; TableCell to recover it later.
-;; See https://stackoverflow.com/a/43102706/1456939
-(defn set-table-coll
-  [^TableView t coll val-cb]
-  (set-sortable-items t (fxlist (into [] (map-indexed vector) (finitify coll))))
-  (-> t .getColumns (.setAll [(index-column first) (table-column "val" second)]))
-  (add-selection-val-cb coll t val-cb))
-
-(defn plain-edn-viewer
-  [edn]
-  (set-text-area-edn (TextArea.) edn))
-
-(defn edn-viewer [edn]
-  (set-webview-edn (javafx.scene.web.WebView.) edn))
-
-(def spec-edn-viewer (comp edn-viewer s/form))
-
-(defn throwable-map?
-  [x]
-  (and (map? x) (:cause x) (:via x) (:trace x)))
-
-(defn throwable?
-  [x]
-  (instance? Throwable x))
-
-(defn throwable-map-vb
-  ([ex] (throwable-map-vb ex nil))
-  ([ex val-cb]
-     (let [loader (FXMLLoader. (io/resource "exception.fxml"))
-           root (.load loader)
-           names (.getNamespace loader)
-           node (fn [id] (.get names id))]
-       (doto (node "causeView")
-         (.setText (:cause ex)))
-       (if-let [data (:data ex)]
-         (doto (node "exDataTable")
-           (set-table-map data val-cb))
-         (hide-node (node "exDataBox")))
-       (doto (node "viaTable")
-         (set-table-maps (:via ex) [:type :message :at] nil))
-       (doto (node "traceTable")
-         (set-table-tuples (:trace ex) [:class :method :file] nil))
-       root)))
-
-(defn throwable-vb
-  ([ex] (throwable-vb ex nil))
-  ([ex val-cb] (throwable-map-vb (Throwable->map ex) val-cb)))
-
-(defn var-vb
-  [v val-cb]
-  (let [loader (FXMLLoader. (io/resource "var.fxml"))
-        root (.load loader)
-        names (.getNamespace loader)
-        node (fn [id] (.get names id))
-        m (meta v)
-        {:keys [ns name file column line since]} m
-        val @v]
-    (doto (node "symbol")
-      (set-text (str ns "/" name)))
-    (doto (node "location")
-      (set-text (str file ":" line ":" column)))
-    (doto (node "since")
-      (set-text since))
-    (let [d (:doc m)]
-      (doto (node "docView")
-        (set-text d)))
-    (let [other-m (dissoc m :doc :ns :name :added :file :column :line)]
-      (doto (node "metaTable")
-        (set-table-map other-m nil)))
-    (doto (node "ednView")
-      (set-text-area-edn val))
-    (val-cb root :val val)
-    root))
-
-(defn atom-vb
-  [v val-cb]
-  (let [viewer (plain-edn-viewer v)
-        val @v]
-    (val-cb viewer :val val)
-    viewer))
-
-(defn atom?
-  [x]
-  (instance? clojure.lang.IAtom x))
-
-(defn map-vb
-  [amap val-cb] (set-table-map (TableView.) amap val-cb))
-
-(defn namespace?
-  [x]
-  (instance? clojure.lang.Namespace x))
-
-(defn ns-publics-vb
-  [v val-cb]
-  (map-vb (ns-publics v) val-cb))
-
-(def Map? #(instance? java.util.Map %1))
-(def Coll? #(instance? java.util.Collection %1))
-(def max-cols 100)
-
-(defn tuples?
-  [coll]
-  (and (Coll? coll)
-       (seq coll)
-       (let [e (first coll)]
-         (and (sequential? e)
-              (let [bc (partial bounded-count max-cols)
-                    cnt (bc e)]
-                (every? #(and (sequential? %1)
-                              (= cnt (bc %1)))
-                        (take 100 coll)))))))
-
-(defn uniformish-maps?
-  [coll]
-  (and (Coll? coll)
-       (seq coll)
-       (let [samp (sample coll coll-check-limit)]
-         (and (every? Map? samp)
-              (uniformish? samp)))))
-
-(defn uniformish-map-of-maps?
-  [m]
-  (and (Map? m) (uniformish-maps? (vals m))))
-
-(defn maps-keys
-  [maps]
-  (into [] (comp (filter Map?) (map keys) cat (distinct) (take max-cols)) maps))
-
-(defn coll-vb
-  [alist val-cb] (set-table-coll (TableView.) alist val-cb))
-
-(defn tuples-vb
-  [tuples val-cb]
-  (let [ks (range (count (first tuples)))]
-    (set-table-tuples (TableView.) tuples ks val-cb)))
-
-(defn maps-vb
-  [maps val-cb] (set-table-maps (TableView.) maps (maps-keys maps) val-cb))
-
-(defn map-of-maps-vb
-  [map-of-maps val-cb] (set-table-map-of-maps (TableView.) map-of-maps (maps-keys (vals map-of-maps)) val-cb))
-
 (swap! rebl/registry update-in [:viewers]
        assoc
-       :rebl/edn {:pred #'any? :ctor #'plain-edn-viewer}
-       :rebl/spec-edn {:pred #'s/spec? :ctor #'spec-edn-viewer}
-       :rebl/map {:pred #'Map? :ctor #'map-vb}
-       :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
-       :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
-       :rebl/maps {:pred #'uniformish-maps? :ctor #'maps-vb}
-       :rebl/map-of-maps {:pred #'uniformish-map-of-maps? :ctor #'map-of-maps-vb}
-       :rebl/throwable-map {:ctor #'throwable-map-vb :pred #'throwable-map?}
-       :rebl/throwable {:ctor #'throwable-vb :pred #'throwable?}
-       :rebl/var {:ctor #'var-vb :pred #'var?}
-       :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'namespace?}
-       :rebl/atom {:ctor #'atom-vb :pred atom?})
+       :rebl/edn {:pred #'any? :ctor #'rend/plain-edn-viewer}
+       :rebl/spec-edn {:pred #'s/spec? :ctor #'rend/spec-edn-viewer}
+       :rebl/map {:pred #'fx/Map? :ctor #'rend/map-vb}
+       :rebl/coll {:pred #'fx/Coll? :ctor #'rend/coll-vb}
+       :rebl/tuples {:pred #'fx/tuples? :ctor #'rend/tuples-vb}
+       :rebl/maps {:pred #'fx/uniformish-maps? :ctor #'rend/maps-vb}
+       :rebl/map-of-maps {:pred #'fx/uniformish-map-of-maps? :ctor #'rend/map-of-maps-vb}
+       :rebl/throwable-map {:ctor #'rend/throwable-map-vb :pred #'fx/throwable-map?}
+       :rebl/throwable {:ctor #'rend/throwable-vb :pred #'fx/throwable?}
+       :rebl/var {:ctor #'rend/var-vb :pred #'var?}
+       :rebl/ns-publics {:ctor #'rend/ns-publics-vb :pred #'fx/namespace?}
+       :rebl/atom {:ctor #'rend/atom-vb :pred #'fx/atom?})
 
 (swap! rebl/registry update-in [:browsers]
        assoc
-       :rebl/map {:pred #'Map? :ctor #'map-vb}
-       :rebl/var {:ctor #'var-vb :pred #'var?}
-       :rebl/coll {:pred #'Coll? :ctor #'coll-vb}
-       :rebl/tuples {:pred #'tuples? :ctor #'tuples-vb}
-       :rebl/maps {:pred #'uniformish-maps? :ctor #'maps-vb}
-       :rebl/map-of-maps {:pred #'uniformish-map-of-maps? :ctor #'map-of-maps-vb}
-       :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'namespace?}
-       :rebl/atom {:ctor #'atom-vb :pred #'atom?})
+       :rebl/map {:pred #'fx/Map? :ctor #'rend/map-vb}
+       :rebl/var {:ctor #'rend/var-vb :pred #'var?}
+       :rebl/coll {:pred #'fx/Coll? :ctor #'rend/coll-vb}
+       :rebl/tuples {:pred #'fx/tuples? :ctor #'rend/tuples-vb}
+       :rebl/maps {:pred #'fx/uniformish-maps? :ctor #'rend/maps-vb}
+       :rebl/map-of-maps {:pred #'fx/uniformish-map-of-maps? :ctor #'rend/map-of-maps-vb}
+       :rebl/ns-publics {:ctor #'rend/ns-publics-vb :pred #'fx/namespace?}
+       :rebl/atom {:ctor #'rend/atom-vb :pred #'fx/atom?})
 
 (declare val-selected)
 
@@ -418,7 +60,7 @@ pair."
      :view-choice p}))
 
 (defn update-choice [control options choice]
-  (-> control (.setItems (fxlist options)))
+  (-> control (.setItems (fx/fxlist options)))
   (-> control (.setValue choice)))
 
 (defn update-pane [pane ui]
@@ -434,7 +76,7 @@ pair."
 
 (defn val-selected
   [{:keys [view-pane state] :as ui} node path-seg val]
-  (fx-later #(if (identical? (current-ui view-pane) node)
+  (fx/later #(if (identical? (fx/current-ui view-pane) node)
                (swap! state assoc :on-deck {:path-seg path-seg :val val})
                (view ui path-seg val))))
 
@@ -499,8 +141,8 @@ pair."
 
 (defn load-expr [{:keys [eval-history code-view] :as ui} n]
   (if (= -1 n)
-    (reset-code code-view)
-    (set-code code-view (-> @eval-history (nth n) :expr))))
+    (fx/reset-code code-view)
+    (fx/set-code code-view (-> @eval-history (nth n) :expr))))
 
 (defn next-expr [{:keys [expr-ord] :as ui}]
   (let [n (swap! expr-ord #(if (< -1 %1 ) (dec %1) %1))]
@@ -526,7 +168,7 @@ pair."
                       msg)]
             (when (or eval? (.isSelected follow-editor-check))
               (swap! eval-history conj msg)
-              (fx-later #(rtz ui)))
+              (fx/later #(rtz ui)))
             (recur)))))))
 
 (defonce ^:private ui-count (atom 0))
@@ -534,9 +176,9 @@ pair."
 (defn eval-pressed [{:keys [code-view exprs expr-ord] :as ui}]
   ;;TODO handle bad form
   (reset! expr-ord -1)
-  (let [code (get-code code-view)
+  (let [code (fx/get-code code-view)
         form (read-string code)]
-    (reset-code code-view)
+    (fx/reset-code code-view)
     (async/put! exprs {:eval form})))
 
 (defn fwd-pressed [{:keys [state state-history root-button back-button] :as ui}]
@@ -592,9 +234,9 @@ pair."
     ;;keys
     (wire-key #(eval-pressed ui) KeyCode/ENTER KeyCodeCombination/CONTROL_DOWN)
     ;;sending focus to parent pane doesn't work
-    (wire-key #(-> browse-pane current-ui .requestFocus) KeyCode/B KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(-> browse-pane fx/current-ui .requestFocus) KeyCode/B KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(.requestFocus browser-choice) KeyCode/B KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
-    (wire-key #(-> view-pane current-ui .requestFocus) KeyCode/V KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(-> view-pane fx/current-ui .requestFocus) KeyCode/V KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(.requestFocus viewer-choice) KeyCode/V KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
     (wire-key #(.requestFocus code-view) KeyCode/R KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(when-not (.isDisabled fwd-button) (fwd-pressed ui)) KeyCode/RIGHT KeyCodeCombination/CONTROL_DOWN)
@@ -609,8 +251,8 @@ pair."
     (wire-button #(back-pressed ui) back-button)
     (wire-button #(rtz ui) root-button)
     ;;choice controls
-    (-> viewer-choice .valueProperty (.addListener (change-listener (fn [ob ov nv] (viewer-chosen ui nv)))))
-    (-> browser-choice .valueProperty (.addListener (change-listener (fn [ob ov nv] (browser-chosen ui nv)))))
+    (-> viewer-choice .valueProperty (.addListener (fx/change-listener (fn [ob ov nv] (viewer-chosen ui nv)))))
+    (-> browser-choice .valueProperty (.addListener (fx/change-listener (fn [ob ov nv] (browser-chosen ui nv)))))
     ;;tooltips
     (tooltip root-button "Nav to root (eval history) ^⇧LEFT")
     (tooltip back-button "Nav back ^LEFT")
@@ -623,13 +265,13 @@ pair."
     (tooltip view-pane "viewer pane, focus with ^V")
     
     ;;this handling is special and not like other browsers
-    (add-selection-listener eval-table (fn [idx row]
-                                         (let [{:keys [expr val]} row]
-                                           ;;(set-code code-view expr)
-                                           (view ui idx val))))))
+    (fx/add-selection-listener eval-table (fn [idx row]
+                                            (let [{:keys [expr val]} row]
+                                              ;;(set-code code-view expr)
+                                              (view ui idx val))))))
 
 (defn- init [{:keys [exprs-mult]}]
-  (fx-later
+  (fx/later
    #(try (let [loader (FXMLLoader. (io/resource "rebl.fxml"))
                root (.load loader)               
                names (.getNamespace loader)
@@ -649,11 +291,11 @@ pair."
                    :state-history (atom ())
                    :eval-history (atom ())
                    :eval-table (doto (node "evalTable")
-                                 (.setItems (fxlist (java.util.ArrayList.))))
+                                 (.setItems (fx/fxlist (java.util.ArrayList.))))
                    :expr-column (doto (node "exprColumn")
-                                  (.setCellValueFactory (cell-value-callback (comp finite-pr-str :expr))))
+                                  (.setCellValueFactory (fx/cell-value-callback (comp fx/finite-pr-str :expr))))
                    :val-column (doto (node "valColumn")
-                                 (.setCellValueFactory (cell-value-callback (comp finite-pr-str :val))))
+                                 (.setCellValueFactory (fx/cell-value-callback (comp fx/finite-pr-str :val))))
                    :code-view (doto (node "codeView")
                                 #_(.setZoom 1.2))
                    :follow-editor-check (node "followEditorCheck")
