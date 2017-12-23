@@ -214,37 +214,43 @@
     (.setDisable fwd-button (-> (:view-val ostate) rebl/browsers-for :browsers empty?))
     (.requestFocus (:browse-ui ostate))))
 
+(def e->et
+  {:pressed  KeyEvent/KEY_PRESSED
+   :released KeyEvent/KEY_RELEASED})
+
 (defn wire-handlers [{:keys [root-button back-button fwd-button eval-button
                              viewer-choice browser-choice
                              scene eval-table code-view browse-pane view-pane] :as ui}]
   (let [wire-button (fn [f b]
                       (.setOnAction b (reify EventHandler (handle [_ e] (f)))))
-        wire-key (fn [f k & cs]
-                   (.addEventFilter scene KeyEvent/KEY_PRESSED
-                                    (let [kc (KeyCodeCombination. k (into-array KeyCombination$Modifier cs))]
-                                      (reify EventHandler
-                                             (handle [_ e]
-                                               (when (.match kc e)
-                                                 (.consume e)
-                                                 (f)))))))
+        wire-key (fn wire-key
+                   [f e k & cs]
+                   (.addEventFilter scene (e->et e)
+                     (let [kc (KeyCodeCombination. k (into-array KeyCombination$Modifier cs))]
+                       (reify EventHandler
+                         (handle [_ e]
+                           (when (.match kc e)
+                             (.consume e)
+                             (f)))))))
         ttfont (javafx.scene.text.Font. 14.0)
         tooltip (fn [node text] (Tooltip/install node (doto (Tooltip. text)
                                                         (.setFont ttfont)
                                                         (.setWrapText true))))]
     ;;keys
-    (wire-key #(eval-pressed ui) KeyCode/ENTER KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(eval-pressed ui) :pressed KeyCode/ENTER KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(fx/reset-code (:code-view ui)) :released KeyCode/ENTER KeyCodeCombination/CONTROL_DOWN)
     ;;sending focus to parent pane doesn't work
-    (wire-key #(-> browse-pane fx/current-ui .requestFocus) KeyCode/B KeyCodeCombination/CONTROL_DOWN)
-    (wire-key #(.requestFocus browser-choice) KeyCode/B KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
-    (wire-key #(-> view-pane fx/current-ui .requestFocus) KeyCode/V KeyCodeCombination/CONTROL_DOWN)
-    (wire-key #(.requestFocus viewer-choice) KeyCode/V KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
-    (wire-key #(.requestFocus code-view) KeyCode/R KeyCodeCombination/CONTROL_DOWN)
-    (wire-key #(when-not (.isDisabled fwd-button) (fwd-pressed ui)) KeyCode/RIGHT KeyCodeCombination/CONTROL_DOWN)
-    (wire-key #(when-not (.isDisabled back-button) (back-pressed ui)) KeyCode/LEFT KeyCodeCombination/CONTROL_DOWN)
-    (wire-key #(when-not (.isDisabled root-button) (rtz ui)) KeyCode/LEFT
+    (wire-key #(-> browse-pane fx/current-ui .requestFocus) :pressed KeyCode/B KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(.requestFocus browser-choice) :pressed KeyCode/B KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
+    (wire-key #(-> view-pane fx/current-ui .requestFocus) :pressed KeyCode/V KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(.requestFocus viewer-choice) :pressed KeyCode/V KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
+    (wire-key #(.requestFocus code-view) :pressed KeyCode/R KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(when-not (.isDisabled fwd-button) (fwd-pressed ui)) :pressed KeyCode/RIGHT KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(when-not (.isDisabled back-button) (back-pressed ui)) :pressed KeyCode/LEFT KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(when-not (.isDisabled root-button) (rtz ui)) :pressed KeyCode/LEFT
               KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
-    (wire-key #(prev-expr ui) KeyCode/UP KeyCodeCombination/CONTROL_DOWN)
-    (wire-key #(next-expr ui) KeyCode/DOWN KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(prev-expr ui) :pressed KeyCode/UP KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(next-expr ui) :pressed KeyCode/DOWN KeyCodeCombination/CONTROL_DOWN)
     ;;buttons
     (wire-button #(eval-pressed ui) eval-button)
     (wire-button #(fwd-pressed ui) fwd-button)
