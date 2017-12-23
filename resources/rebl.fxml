@@ -25,7 +25,7 @@
                         <WebView fx:id="codeView" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
                         <FlowPane alignment="CENTER_RIGHT" hgap="10.0" prefHeight="44.0" prefWidth="301.0" vgap="4.0" VBox.vgrow="NEVER">
                            <children>
-                              <CheckBox fx:id="followEditorCheck" mnemonicParsing="false" selected="true" text="Follow Editor" />
+                              <CheckBox fx:id="followEditorCheck" mnemonicParsing="false" selected="true" text="Follow REPL" />
                               <Button fx:id="evalButton" mnemonicParsing="false" text="eval">
                                  <FlowPane.margin>
                                     <Insets />
