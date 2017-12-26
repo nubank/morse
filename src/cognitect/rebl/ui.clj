@@ -109,6 +109,10 @@
 (defn browse [ui val]
   (browse-with ui (browser-for ui val) val))
 
+(defn browse-user-namespace
+  [{:keys [exprs]}]
+  (async/put! exprs {:eval '(clojure.core/ns-publics 'user)}))
+
 (defn browser-chosen [{:keys [state browse-pane] :as ui} choice]
   (let [{:keys [browse-choice browse-val]} @state]
     (when (and choice (not= browse-choice choice))
@@ -214,11 +218,25 @@
     (.setDisable fwd-button (-> (:view-val ostate) rebl/browsers-for :browsers empty?))
     (.requestFocus (:browse-ui ostate))))
 
+(defn- get-optional
+  [^java.util.Optional o]
+  (when (.isPresent o) (.get o)))
+
+(defn def-as
+  [{:keys [exprs state]}]
+  (let [v (:view-val @state)
+        dlg (doto (javafx.scene.control.TextInputDialog. "foo")
+              (.setTitle "def as")
+              (.setHeaderText "define a var")
+              (.setContentText "name"))]
+    (when-let [name (-> dlg .showAndWait get-optional)]
+      (async/put! exprs {:eval `(def ~(symbol name) (quote ~v))}))))
+
 (def e->et
   {:pressed  KeyEvent/KEY_PRESSED
    :released KeyEvent/KEY_RELEASED})
 
-(defn wire-handlers [{:keys [root-button back-button fwd-button eval-button
+(defn wire-handlers [{:keys [root-button back-button fwd-button eval-button def-button
                              viewer-choice browser-choice
                              scene eval-table code-view browse-pane view-pane] :as ui}]
   (let [wire-button (fn [f b]
@@ -251,11 +269,14 @@
               KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
     (wire-key #(prev-expr ui) :pressed KeyCode/UP KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(next-expr ui) :pressed KeyCode/DOWN KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(browse-user-namespace ui) :pressed KeyCode/U KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(def-as ui) :pressed KeyCode/D KeyCodeCombination/CONTROL_DOWN)
     ;;buttons
     (wire-button #(eval-pressed ui) eval-button)
     (wire-button #(fwd-pressed ui) fwd-button)
     (wire-button #(back-pressed ui) back-button)
     (wire-button #(rtz ui) root-button)
+    (wire-button #(def-as ui) def-button)
     ;;choice controls
     (-> viewer-choice .valueProperty (.addListener (fx/change-listener (fn [ob ov nv] (viewer-chosen ui nv)))))
     (-> browser-choice .valueProperty (.addListener (fx/change-listener (fn [ob ov nv] (browser-chosen ui nv)))))
