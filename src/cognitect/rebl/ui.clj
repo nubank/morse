@@ -109,9 +109,16 @@
 (defn browse [ui val]
   (browse-with ui (browser-for ui val) val))
 
+(defn user-vars
+  []
+  (into
+   (sorted-map-by (fn [a b] (compare (name a) (name b))))
+   (map (fn [[s v]] [s @v]))
+   (ns-publics 'user)))
+
 (defn browse-user-namespace
   [{:keys [exprs]}]
-  (async/put! exprs {:eval '(clojure.core/ns-publics 'user)}))
+  (async/put! exprs {:eval '(cognitect.rebl.ui/user-vars)}))
 
 (defn browser-chosen [{:keys [state browse-pane] :as ui} choice]
   (let [{:keys [browse-choice browse-val]} @state]
