@@ -222,6 +222,11 @@
   [^java.util.Optional o]
   (when (.isPresent o) (.get o)))
 
+(defn def-in-ns
+  [ns sym v doc]
+  (binding [*ns* (find-ns ns)]
+    (eval `(def ~sym ~doc (quote ~v)))))
+
 (defn def-as
   [{:keys [exprs state]}]
   (let [v (:view-val @state)
@@ -230,7 +235,9 @@
               (.setHeaderText "define a var")
               (.setContentText "name"))]
     (when-let [name (-> dlg .showAndWait get-optional)]
-      (async/put! exprs {:eval `(def ~(symbol name) (quote ~v))}))))
+      (def-in-ns 'user (symbol name) v "Defined by cognitect.rebl def as...")
+      ;; another option -- add the var itself to the UI history?
+      #_(async/put! exprs {:eval (find-var (symbol "user" name))}))))
 
 (def e->et
   {:pressed  KeyEvent/KEY_PRESSED
