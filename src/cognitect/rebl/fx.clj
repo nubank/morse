@@ -91,10 +91,10 @@ map's keys against the union of all keys."
   (and (Coll? coll)
        (seq coll)
        (let [e (first coll)]
-         (and (or (counted? e) (sequential? e))
+         (and (or (indexed? e) (sequential? e))
               (let [bc (partial bounded-count coll-check-limit)
                     cnt (bc e)]
-                (every? #(and (or (counted? e) (sequential? %1))
+                (every? #(and (or (indexed? e) (sequential? %1))
                               (= cnt (bc %1)))
                         (take 100 coll)))))))
 
