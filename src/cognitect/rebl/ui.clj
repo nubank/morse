@@ -198,11 +198,11 @@
   (let [{:keys [view-val view-ui view-choice on-deck] :as statev} @state]
     (swap! state-history conj (dissoc statev :on-deck))
     (if (rebl/is-browser? (:id view-choice))
-      (let [{:keys [browsers]} (rebl/browsers-for val)]
+      (let [{:keys [browsers]} (rebl/browsers-for view-val)]
         (browse-with ui
                      {:browse-options (-> browsers vals vec)
                       :browse-ui view-ui
-                      :browse-choice (browsers view-choice)}
+                      :browse-choice (browsers (:id view-choice))}
                      view-val)
         (when-let [{:keys [path-seg val]} on-deck]
           (view ui path-seg val)))
