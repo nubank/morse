@@ -106,6 +106,18 @@ map's keys against the union of all keys."
          (and (every? Map? samp)
               (uniformish? samp)))))
 
+(defn coll-of-numbers?
+  [coll]
+  (and (Coll? coll)
+       (seq coll)
+       (every? number? (sample coll coll-check-limit))))
+
+(defn seq-of-numbers?
+  [coll]
+  (and (sequential? coll)
+       (seq coll)
+       (every? number? (sample coll coll-check-limit))))
+
 (defn uniformish-map-of-maps?
   [m]
   (and (Map? m) (uniformish-maps? (vals m))))
