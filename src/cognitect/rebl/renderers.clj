@@ -63,7 +63,7 @@
 (defn throwable-map-vb
   ([ex] (throwable-map-vb ex nil))
   ([ex val-cb]
-     (let [loader (FXMLLoader. (io/resource "exception.fxml"))
+     (let [loader (FXMLLoader. (io/resource "cognitect/rebl/exception.fxml"))
            root (.load loader)
            names (.getNamespace loader)
            node (fn [id] (.get names id))]
@@ -85,7 +85,7 @@
 
 (defn var-vb
   [v val-cb]
-  (let [loader (FXMLLoader. (io/resource "var.fxml"))
+  (let [loader (FXMLLoader. (io/resource "cognitect/rebl/var.fxml"))
         root (.load loader)
         names (.getNamespace loader)
         node (fn [id] (.get names id))

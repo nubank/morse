@@ -317,7 +317,7 @@
 
 (defn- init [{:keys [exprs-mult]}]
   (fx/later
-   #(try (let [loader (FXMLLoader. (io/resource "rebl.fxml"))
+   #(try (let [loader (FXMLLoader. (io/resource "cognitect/rebl/rebl.fxml"))
                root (.load loader)               
                names (.getNamespace loader)
                node (fn [id] (.get names id))
@@ -358,10 +358,10 @@
                                   (.setDisable true))
                    :fwd-button (doto (node "fwdButton")
                                  (.setDisable true))}]
-           (-> scene .getStylesheets (.add (str (io/resource "fx.css"))))
+           (-> scene .getStylesheets (.add (str (io/resource "cognitect/rebl/fx.css"))))
            (.setTitle stage (str "REBL " (swap! ui-count inc)))
            (.show stage)
-           (-> (:code-view ui) .getEngine (.load (str (io/resource "codeview.html"))))
+           (-> (:code-view ui) .getEngine (.load (str (io/resource "cognitect/rebl/codeview.html"))))
            (wire-handlers ui)
            (tap exprs-mult exprs)
            (.setOnHidden stage (reify EventHandler (handle [_ _]
