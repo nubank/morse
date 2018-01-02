@@ -106,17 +106,36 @@ map's keys against the union of all keys."
          (and (every? Map? samp)
               (uniformish? samp)))))
 
-(defn coll-of-numbers?
-  [coll]
-  (and (Coll? coll)
-       (seq coll)
-       (every? number? (sample coll coll-check-limit))))
+(defn numbers?
+  [x]
+  (and (Coll? x)
+       (seq x)
+       (every? number? (sample x coll-check-limit))))
 
-(defn seq-of-numbers?
-  [coll]
-  (and (sequential? coll)
-       (seq coll)
-       (every? number? (sample coll coll-check-limit))))
+(defn seq-numbers?
+  [x]
+  (and (sequential? x)
+       (seq x)
+       (every? number? (sample x coll-check-limit))))
+
+(defn number-pair?
+  [x]
+  (and (Coll? x)
+       (= 2 (bounded-count 2 x))
+       (number? (first x))
+       (number? (second x))))
+
+(defn number-pairs?
+  [x]
+  (and (Coll? x)
+       (seq x)
+       (every? number-pair? (sample x coll-check-limit))))
+
+(defn keyed-number-pairs?
+  [x]
+  (and (map? x)
+       (<= (count x) 20)
+       (every? number-pairs? (vals x))))
 
 (defn uniformish-map-of-maps?
   [m]

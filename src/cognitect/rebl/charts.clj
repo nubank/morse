@@ -1,7 +1,7 @@
 ;;   Copyright (c) Cognitect, Inc. All rights reserved.
 
 (ns cognitect.rebl.charts
-  (:import [javafx.scene.chart BarChart CategoryAxis LineChart NumberAxis XYChart XYChart$Data XYChart$Series])
+  (:import [javafx.scene.chart AreaChart BarChart CategoryAxis LineChart NumberAxis ScatterChart XYChart XYChart$Data XYChart$Series])
   (:require
    [cognitect.rebl :as rebl]
    [cognitect.rebl.fx :as fx]))
@@ -28,27 +28,47 @@
     (-> bc .getData (set-all [ser]))
     bc))
 
-(defn line-chart-series
+(defn xy-series
   [name pairs]
   (let [ser (XYChart$Series.)]
-    (.setName ser name)
+    (.setName ser (fx/finite-pr-str name))
     (-> ser .getData (set-all (map xy-data pairs)))
     ser))
 
-(defn line-chart
-  [coll]
+(defn xy-chart
+  [{:keys [x-label y-label type] :or {x-label "x" y-label "y"}}
+   colls]
   (let [x (NumberAxis.)
         y (NumberAxis.)
-        lc (LineChart. x y)]
-    (.setLabel x "x")
-    (.setLabel x "y")
-    (-> lc .getData (set-all [(line-chart-series "val=fn(idx)" (map-indexed vector coll))]))
-    lc))
+        c (case type
+                :line (LineChart. x y)
+                :area (AreaChart. x y)
+                :scatter (ScatterChart. x y))]
+    (.setLabel x x-label)
+    (.setLabel y y-label)
+    (-> c .getData (set-all (map (fn [[name data]]
+                                   (xy-series name data))
+                                 colls)))
+    c))
 
-(defn coll-of-numbers-chart
+(defn seq-numbers-chart
+  [coll]
+  (xy-chart {:x-label "x" :y-label "y" :type :line} [["Index" (map-indexed vector coll)]]))
+
+(defn number-pairs-chart
+  [coll]
+  (xy-chart {:x-label "first" :y-label "second" :type :area} [["" coll]]))
+
+(defn keyed-number-pairs-chart
+  [coll]
+  (xy-chart {:x-label "first" :y-label "second" :type :scatter} coll))
+
+#_(defn coll-of-numbers-chart
   [coll]
   (histogram coll))
 
-(rebl/update-viewers {:charts/coll-of-numbers {:pred fx/coll-of-numbers? :ctor histogram}
-                      :charts/seq-of-numbers {:pred fx/seq-of-numbers? :ctor line-chart}})
+(rebl/update-viewers { ;; :charts/coll-of-numbers {:pred fx/coll-of-numbers? :ctor histogram}
+                      :charts/seq-of-numbers {:pred fx/seq-numbers? :ctor seq-numbers-chart}
+                      :charts/number-pairs {:pred fx/number-pairs? :ctor number-pairs-chart}
+                      :charts/keyed-number-pairs {:pred fx/keyed-number-pairs? :ctor keyed-number-pairs-chart}})
 
