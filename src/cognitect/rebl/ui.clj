@@ -80,9 +80,10 @@
                (swap! state assoc :on-deck {:path-seg path-seg :val val})
                (view ui path-seg val))))
 
-(defn viewer-chosen [{:keys [state view-pane] :as ui} choice]
+(defn viewer-chosen [{:keys [state view-pane] :as ui} choices choice]
   (let [{:keys [view-choice view-val]} @state]
     (when (and choice (not= view-choice choice))
+      (rebl/update-viewer-prefs (into #{} (map :id) choices) (:id choice))
       (clear-deck ui)
       (let [vw (if (rebl/is-browser? (:id choice))
                  ((:ctor choice) view-val (partial val-selected ui))
@@ -120,9 +121,10 @@
   [{:keys [exprs]}]
   (async/put! exprs {:eval '(cognitect.rebl.ui/user-vars)}))
 
-(defn browser-chosen [{:keys [state browse-pane] :as ui} choice]
+(defn browser-chosen [{:keys [state browse-pane] :as ui} choices choice]
   (let [{:keys [browse-choice browse-val]} @state]
     (when (and choice (not= browse-choice choice))
+      (rebl/update-browser-prefs (into #{} (map :id) choices) (:id choice))
       (clear-deck ui)
       (let [br ((:ctor choice) browse-val (partial val-selected ui))]
         (swap! state assoc :browse-choice choice :browse-ui br)
@@ -292,8 +294,10 @@
     (wire-button #(rtz ui) root-button)
     (wire-button #(def-as ui) def-button)
     ;;choice controls
-    (-> viewer-choice .valueProperty (.addListener (fx/change-listener (fn [ob ov nv] (viewer-chosen ui nv)))))
-    (-> browser-choice .valueProperty (.addListener (fx/change-listener (fn [ob ov nv] (browser-chosen ui nv)))))
+    (-> viewer-choice .valueProperty (.addListener (fx/change-listener (fn [ob ov nv]
+                                                                         (viewer-chosen ui (.getItems viewer-choice) nv)))))
+    (-> browser-choice .valueProperty (.addListener (fx/change-listener (fn [ob ov nv]
+                                                                          (browser-chosen ui (.getItems browser-choice) nv)))))
     ;;tooltips
     (tooltip root-button "Nav to root (eval history) ^⇧LEFT")
     (tooltip back-button "Nav back ^LEFT")

@@ -64,6 +64,16 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
   (swap! registry update :viewers merge viewers)
   nil)
 
+(defn update-browser-prefs
+  [identset pref]
+  (swap! registry update :browser-prefs assoc identset pref)
+  nil)
+
+(defn update-viewer-prefs
+  [identset pref]
+  (swap! registry update :viewer-prefs assoc identset pref)
+  nil)
+
 (defn- choices-for
   "returns map with:
   choicek - subset of the registry choices that apply to val, with :id added
