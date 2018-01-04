@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.VBox?>
 
 
-<VBox xmlns="http://javafx.com/javafx/8.0.152" xmlns:fx="http://javafx.com/fxml/1">
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <FlowPane alignment="CENTER_RIGHT" hgap="10.0" vgap="4.0">
          <children>
@@ -16,7 +16,7 @@
             <ChoiceBox fx:id="chartChoice" />
          </children>
       </FlowPane>
-      <StackPane fx:id="chartView" prefHeight="150.0" prefWidth="200.0" />
+      <StackPane fx:id="chartView" />
    </children>
    <padding>
       <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />

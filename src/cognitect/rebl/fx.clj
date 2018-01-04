@@ -60,7 +60,7 @@ map's keys against the union of all keys."
     (into [] (take (or *print-length* 100000) coll))))
 
 (defn finite-pprint-str
-  "Returns a pretty printed string for e.g. an edn viewer"
+  "Returns a finite pretty printed string for e.g. an edn viewer"
   [x]
   (binding [pp/*print-right-margin* 72
             *print-length* 10000
@@ -79,12 +79,17 @@ map's keys against the union of all keys."
     s
     (str (subs s 0 (- n 3)) "...")))
 
+(defn finite-str
+  "Returns a finite string rep for e.g. a label or header."
+  [s]
+  (-> s normalize-whitespace (ellipsize 40)))
+
 (defn finite-pr-str
-  "Returns a truncated string rep for e.g. a table cell"
+  "Returns a finite string rep for e.g. a table cell"
   [x]
   (binding [*print-length* 5
             *print-level* 5]
-    (-> x pr-str normalize-whitespace (ellipsize 40))))
+    (-> x pr-str finite-str)))
 
 (defn tuples?
   [coll]
@@ -225,7 +230,7 @@ pair."
   t)
 
 (defn cell-value-callback
-  "Returns a Callback that applies finite-pr-str to f of cell value."
+  "Returns a Callback that applies f to a cell value."
   [f]
   (reify Callback
          (call [_ cdf]

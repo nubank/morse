@@ -15,8 +15,12 @@
   (.setAll container (fx/fxlist data)))
 
 (defn- xy-data
-  [[x y]]
-  (XYChart$Data. x y))
+  [[x y extra :as v] [convx convy]]
+  (let [convx (or convx identity)
+        convy (or convy identity)]
+    (case (count v)
+          2 (XYChart$Data. (convx x) (convy y))
+          3 (XYChart$Data. (convx x) (convy y) extra))))
 
 ;; currently just a stub
 (defn histogram
@@ -33,10 +37,10 @@
     bc))
 
 (defn xy-series
-  [name pairs]
+  [{:keys [name convx convy]} tuples]
   (let [ser (XYChart$Series.)]
-    (.setName ser (fx/finite-pr-str name))
-    (-> ser .getData (set-all (map xy-data pairs)))
+    (.setName ser (fx/finite-str name))
+    (-> ser .getData (set-all (map #(xy-data % [convx convy]) tuples)))
     ser))
 
 (defn x-axis-for
@@ -44,6 +48,52 @@
   (if (get #{:bar :stacked-bar} chart)
     (CategoryAxis.)
     (NumberAxis.)))
+
+(declare xy-type)
+(defn sampled-set
+  [x f]
+  (->> (fx/sample x fx/coll-check-limit)
+       (map f)
+       frequencies
+       keys
+       (into #{})))
+
+(defn xy-type
+  [x]
+  (cond
+   (number? x) :num
+   (string? x) :category
+   (keyword? x) :category
+   (symbol? x) :category
+   (fx/Coll? x) (let [topcount (bounded-count 4 x)
+                      subtype (sampled-set x xy-type)]
+                  (if (or (= #{:coll-of-nums} subtype)
+                          (= #{:coll-of-nums :coll-of-categories} subtype))
+                    (let [subcounts (sampled-set x count)]
+                      ;; 2/3 x 2/3 colls are ambiguous, making a choice
+                      #_(prn {:topcount topcount :subtype subtype :subcounts subcounts})
+                      (cond (= #{2} subcounts) :coll-of-pairs
+                            (= #{3} subcounts) :coll-of-triples
+                            (= 2 topcount) :pair-of-colls
+                            (= 3 topcount) :triple-of-colls))
+                    (cond (= #{:num} subtype) :coll-of-nums
+                          (= #{:category} subtype) :coll-of-categories
+                          (= #{:num :category} subtype) :coll-of-vals)))))
+
+;; TODO  :coll-of-categories :pair-of-colls :triple-of-colls :coll-of-pairs :coll-of-triples
+(defn xy-chartable?
+  [x]
+  (contains? #{:coll-of-nums :coll-of-pairs} (xy-type x)))
+
+(defmulti to-xy-series-data (fn [options data] (xy-type data)))
+
+(defmethod to-xy-series-data :coll-of-nums
+  [opts x]
+  (xy-series opts (map-indexed vector x)))
+
+(defmethod to-xy-series-data :coll-of-pairs
+  [opts x]
+  (xy-series opts x))
 
 (defn series-pair-chart
   [{:keys [x-label y-label type] :or {x-label "x" y-label "y"}}
@@ -60,18 +110,13 @@
     (.setLabel x x-label)
     (.setLabel y y-label)
     (-> c .getData (set-all (map (fn [[name data]]
-                                   (xy-series name data))
+                                   (to-xy-series-data {:name name} data))
                                  serieses)))
     c))
 
-(defn series-pair-able?
-  [x]
-  (and (vector? x)
-       (every? fx/number-pair? (fx/sample x fx/coll-check-limit))))
-
 (defn chart-chosen
   [pane kw coll]
-  (ui/update-pane pane (series-pair-chart {:type kw} [["Foo" coll]])))
+  (ui/update-pane pane (series-pair-chart {:type kw} [["Data" coll]])))
 
 (defn series-pair-chart-v
   [coll]
@@ -81,11 +126,11 @@
         node (fn [id] (.get names id))
         chart-choice (node "chartChoice")
         pane (node "chartView")]
-    (ui/update-choice chart-choice [:area :line :scatter] :area)
     (-> chart-choice .valueProperty (.addListener (fx/change-listener (fn [ob ov nv] (chart-chosen pane nv coll)))))
+    (ui/update-choice chart-choice [:area :line :scatter] :scatter)
     root))
 
-(rebl/update-viewers {:charts/series-pair {:pred series-pair-able? :ctor series-pair-chart-v}})
+(rebl/update-viewers {:charts/series-pair {:pred xy-chartable? :ctor series-pair-chart-v}})
 
 
 
