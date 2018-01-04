@@ -3,6 +3,7 @@
 (ns cognitect.rebl.ui
   (:require
    [cognitect.rebl :as rebl]
+   [cognitect.rebl.config :as config]
    [cognitect.rebl.fx :as fx]
    [cognitect.rebl.renderers :as rend]
    [clojure.java.io :as io]
@@ -83,7 +84,7 @@
 (defn viewer-chosen [{:keys [state view-pane] :as ui} choices choice]
   (let [{:keys [view-choice view-val]} @state]
     (when (and choice (not= view-choice choice))
-      (rebl/update-viewer-prefs (into #{} (map :id) choices) (:id choice))
+      (config/update-viewer-prefs (into #{} (map :id) choices) (:id choice))
       (clear-deck ui)
       (let [vw (if (rebl/is-browser? (:id choice))
                  ((:ctor choice) view-val (partial val-selected ui))
@@ -124,7 +125,7 @@
 (defn browser-chosen [{:keys [state browse-pane] :as ui} choices choice]
   (let [{:keys [browse-choice browse-val]} @state]
     (when (and choice (not= browse-choice choice))
-      (rebl/update-browser-prefs (into #{} (map :id) choices) (:id choice))
+      (config/update-browser-prefs (into #{} (map :id) choices) (:id choice))
       (clear-deck ui)
       (let [br ((:ctor choice) browse-val (partial val-selected ui))]
         (swap! state assoc :browse-choice choice :browse-ui br)

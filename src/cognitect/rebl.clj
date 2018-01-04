@@ -3,7 +3,8 @@
 (ns cognitect.rebl
   (:require 
    [clojure.main :as main]
-   [clojure.core.async :as async :refer [>!! <!! chan mult]]))
+   [clojure.core.async :as async :refer [>!! <!! chan mult]]
+   [cognitect.rebl.config :as config]))
 
 #_(defn- eval-ch [exprs rets]
   (binding [*file* "user/rebl.clj"]
@@ -21,28 +22,8 @@
         (recur)))))
 
 (comment "an atom on map with keys:
-:browsers and :viewers - :identk -> {:keys [pred ctor]}
-:browser-prefs and viewer-prefs - #{:identks...} -> :preferred-identk")
-(defonce  registry
-  ;;TODO - durable prefs
-  ;;TODO - API for handler registration?
-  (atom {:browsers {}
-         :viewers {}
-         :browser-prefs {#{:rebl/coll :rebl/tuples} :rebl/tuples
-                         #{:rebl/maps :rebl/tuples} :rebl/tuples
-                         #{:rebl/maps :rebl/coll} :rebl/maps
-                         #{:rebl/map :rebl/map-of-maps} :rebl/map-of-maps}
-         :viewer-prefs {#{:rebl/edn :rebl/coll} :rebl/coll
-                        #{:rebl/edn :rebl/spec-edn} :rebl/spec-edn
-                        #{:rebl/edn :rebl/coll :rebl/tuples} :rebl/tuples
-                        #{:rebl/edn :rebl/map} :rebl/map
-                        #{:rebl/edn :rebl/map :rebl/map-of-maps} :rebl/map-of-maps
-                        #{:rebl/edn :rebl/coll :rebl/maps} :rebl/maps
-                        #{:rebl/edn :rebl/map :rebl/throwable-map} :rebl/throwable-map
-                        #{:rebl/edn :rebl/throwable} :rebl/throwable
-                        #{:rebl/edn :rebl/var} :rebl/var
-                        #{:rebl/ns-publics :rebl/edn} :rebl/ns-publics
-                        #{:rebl/atom :rebl/edn} :rebl/atom}}))
+:browsers and :viewers - :identk -> {:keys [pred ctor]}")
+(defonce  registry (atom {:browsers {} :viewers {}}))
 
 (defn update-browsers
   "Update the available browsers. browsers is a map of
@@ -64,24 +45,15 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
   (swap! registry update :viewers merge viewers)
   nil)
 
-(defn update-browser-prefs
-  [identset pref]
-  (swap! registry update :browser-prefs assoc identset pref)
-  nil)
-
-(defn update-viewer-prefs
-  [identset pref]
-  (swap! registry update :viewer-prefs assoc identset pref)
-  nil)
-
 (defn- choices-for
   "returns map with:
   choicek - subset of the registry choices that apply to val, with :id added
   :pref - the identk of preferred choice"
   [choicek prefk val]
   (let [reg @registry
+        prefs @config/prefs
         cs (choicek reg)
-        ps (prefk reg)
+        ps (prefk prefs)
         vs (reduce-kv (fn [ret k {:keys [pred] :as v}]
                         (if (and pred (pred val))
                           (assoc ret k (assoc v :id k))
