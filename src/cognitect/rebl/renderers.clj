@@ -7,6 +7,7 @@
   (:require
    [clojure.java.io :as io]
    [clojure.spec.alpha :as s]
+   [cognitect.rebl :as rebl]
    [cognitect.rebl.fx :as fx]))
 
 ;;;;;;;;;;;;;;;;; table helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -141,4 +142,44 @@
 (defn map-of-maps-vb
   [map-of-maps val-cb] (set-table-map-of-maps (TableView.) map-of-maps (maps-keys (vals map-of-maps)) val-cb))
 
+(def beanish?
+  "We'll try to bean anything."
+  (constantly true))
 
+(def ^:private bean-blacklist (atom #{}))
+
+(defn ^:private to-bean
+  [x]
+  (try
+   (bean x)
+   (catch Throwable t
+     (swap! bean-blacklist conj (class x))
+     (throw t))))
+
+(defn bean-vb
+  [beanish val-cb]
+  (set-table-map (TableView.) (to-bean beanish) val-cb))
+
+(rebl/update-viewers {:rebl/edn {:pred #'any? :ctor #'plain-edn-viewer}
+                      :rebl/spec-edn {:pred #'s/spec? :ctor #'spec-edn-viewer}
+                      :rebl/map {:pred #'fx/Map? :ctor #'map-vb}
+                      :rebl/coll {:pred #'fx/Coll? :ctor #'coll-vb}
+                      :rebl/tuples {:pred #'fx/tuples? :ctor #'tuples-vb}
+                      :rebl/maps {:pred #'fx/uniformish-maps? :ctor #'maps-vb}
+                      :rebl/map-of-maps {:pred #'fx/uniformish-map-of-maps? :ctor #'map-of-maps-vb}
+                      :rebl/throwable-map {:ctor #'throwable-map-vb :pred #'fx/throwable-map?}
+                      :rebl/throwable {:ctor #'throwable-vb :pred #'fx/throwable?}
+                      :rebl/var {:ctor #'var-vb :pred #'var?}
+                      :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'fx/namespace?}
+                      :rebl/atom {:ctor #'atom-vb :pred #'fx/atom?}
+                      :rebl/bean {:ctor #'bean-vb :pred #'beanish?}})
+
+(rebl/update-browsers {:rebl/map {:pred #'fx/Map? :ctor #'map-vb}
+                       :rebl/var {:ctor #'var-vb :pred #'var?}
+                       :rebl/coll {:pred #'fx/Coll? :ctor #'coll-vb}
+                       :rebl/tuples {:pred #'fx/tuples? :ctor #'tuples-vb}
+                       :rebl/maps {:pred #'fx/uniformish-maps? :ctor #'maps-vb}
+                       :rebl/map-of-maps {:pred #'fx/uniformish-map-of-maps? :ctor #'map-of-maps-vb}
+                       :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'fx/namespace?}
+                       :rebl/atom {:ctor #'atom-vb :pred #'fx/atom?}
+                       :rebl/bean {:ctor #'bean-vb :pred #'beanish?}})

@@ -87,8 +87,5 @@
 
 (rebl/update-viewers {:charts/series-pair {:pred series-pair-able? :ctor series-pair-chart-v}})
 
-#_(rebl/update-viewers { ;; :charts/coll-of-numbers {:pred fx/coll-of-numbers? :ctor histogram}
-                      :charts/seq-of-numbers {:pred fx/seq-numbers? :ctor seq-numbers-chart}
-                      :charts/number-pairs {:pred fx/number-pairs? :ctor number-pairs-chart}
-                      :charts/keyed-number-pairs {:pred fx/keyed-number-pairs? :ctor keyed-number-pairs-chart}})
+
 

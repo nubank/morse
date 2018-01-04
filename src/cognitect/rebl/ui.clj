@@ -19,32 +19,6 @@
 (defn clear-deck [{:keys [state] :as ui}]
   (swap! state dissoc :on-deck))
 
-(swap! rebl/registry update-in [:viewers]
-       assoc
-       :rebl/edn {:pred #'any? :ctor #'rend/plain-edn-viewer}
-       :rebl/spec-edn {:pred #'s/spec? :ctor #'rend/spec-edn-viewer}
-       :rebl/map {:pred #'fx/Map? :ctor #'rend/map-vb}
-       :rebl/coll {:pred #'fx/Coll? :ctor #'rend/coll-vb}
-       :rebl/tuples {:pred #'fx/tuples? :ctor #'rend/tuples-vb}
-       :rebl/maps {:pred #'fx/uniformish-maps? :ctor #'rend/maps-vb}
-       :rebl/map-of-maps {:pred #'fx/uniformish-map-of-maps? :ctor #'rend/map-of-maps-vb}
-       :rebl/throwable-map {:ctor #'rend/throwable-map-vb :pred #'fx/throwable-map?}
-       :rebl/throwable {:ctor #'rend/throwable-vb :pred #'fx/throwable?}
-       :rebl/var {:ctor #'rend/var-vb :pred #'var?}
-       :rebl/ns-publics {:ctor #'rend/ns-publics-vb :pred #'fx/namespace?}
-       :rebl/atom {:ctor #'rend/atom-vb :pred #'fx/atom?})
-
-(swap! rebl/registry update-in [:browsers]
-       assoc
-       :rebl/map {:pred #'fx/Map? :ctor #'rend/map-vb}
-       :rebl/var {:ctor #'rend/var-vb :pred #'var?}
-       :rebl/coll {:pred #'fx/Coll? :ctor #'rend/coll-vb}
-       :rebl/tuples {:pred #'fx/tuples? :ctor #'rend/tuples-vb}
-       :rebl/maps {:pred #'fx/uniformish-maps? :ctor #'rend/maps-vb}
-       :rebl/map-of-maps {:pred #'fx/uniformish-map-of-maps? :ctor #'rend/map-of-maps-vb}
-       :rebl/ns-publics {:ctor #'rend/ns-publics-vb :pred #'fx/namespace?}
-       :rebl/atom {:ctor #'rend/atom-vb :pred #'fx/atom?})
-
 (declare val-selected)
 
 (defn viewer-for
