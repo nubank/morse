@@ -5,7 +5,6 @@
    [cognitect.rebl :as rebl]
    [cognitect.rebl.config :as config]
    [cognitect.rebl.fx :as fx]
-   [cognitect.rebl.renderers :as rend]
    [clojure.java.io :as io]
    [clojure.spec.alpha :as s]
    [clojure.core.async :as async :refer [<!! chan tap untap]])

@@ -15,15 +15,16 @@
   (.setAll container (fx/fxlist data)))
 
 (defn- xy-data
-  [[x y extra :as v] [convx convy]]
-  (let [convx (or convx identity)
-        convy (or convy identity)]
+  [{:keys [convx convy flipped?]} [x y extra :as v]]
+  (let [x ((or convx identity) x)
+        y ((or convy identity) y)
+        [x y] (if flipped? [y x] [x y])]
     (case (count v)
-          2 (XYChart$Data. (convx x) (convy y))
-          3 (XYChart$Data. (convx x) (convy y) extra))))
+          2 (XYChart$Data. x y)
+          3 (XYChart$Data. y x extra))))
 
-;; currently just a stub
-(defn histogram
+;; TODO: update to current API and make live
+#_(defn histogram
   [coll]
   (let [x (CategoryAxis.)
         y (NumberAxis.)
@@ -37,19 +38,19 @@
     bc))
 
 (defn xy-series
-  [{:keys [name convx convy]} tuples]
+  [{:keys [name] :as opts} tuples]
   (let [ser (XYChart$Series.)]
     (.setName ser (fx/finite-str name))
-    (-> ser .getData (set-all (map #(xy-data % [convx convy]) tuples)))
+    (-> ser .getData (set-all (map #(xy-data opts %) tuples)))
     ser))
 
+;; TODO: infer from data, not from chart type
 (defn x-axis-for
   [chart]
   (if (get #{:bar :stacked-bar} chart)
     (CategoryAxis.)
     (NumberAxis.)))
 
-(declare xy-type)
 (defn sampled-set
   [x f]
   (->> (fx/sample x fx/coll-check-limit)
@@ -80,7 +81,7 @@
                           (= #{:category} subtype) :coll-of-categories
                           (= #{:num :category} subtype) :coll-of-vals)))))
 
-;; TODO  :coll-of-categories :pair-of-colls :triple-of-colls :coll-of-pairs :coll-of-triples
+;; TODO  :coll-of-categories :pair-of-colls :triple-of-colls :coll-of-triples
 (defn xy-chartable?
   [x]
   (contains? #{:coll-of-nums :coll-of-pairs} (xy-type x)))
@@ -96,10 +97,11 @@
   (xy-series opts x))
 
 (defn series-pair-chart
-  [{:keys [x-label y-label type] :or {x-label "x" y-label "y"}}
+  [{:keys [x-label y-label type flipped?] :or {x-label "x" y-label "y"}}
    serieses]
-  (let [x (x-axis-for type)
-        y (NumberAxis.)
+  (let [x (doto (x-axis-for type) (.setLabel x-label))
+        y (doto (NumberAxis.) (.setLabel y-label))
+        [x y] (if flipped? [y x] [x y])
         c (case type
                 :line (LineChart. x y)
                 :area (AreaChart. x y)
@@ -107,16 +109,19 @@
                 :bar (BarChart. x y)
                 :stacked-bar (StackedBarChart. x y)
                 :stacked-area (StackedAreaChart. x y))]
-    (.setLabel x x-label)
-    (.setLabel y y-label)
     (-> c .getData (set-all (map (fn [[name data]]
-                                   (to-xy-series-data {:name name} data))
+                                   (to-xy-series-data {:name name :flipped? flipped?} data))
                                  serieses)))
     c))
 
-(defn chart-chosen
-  [pane kw coll]
-  (ui/update-pane pane (series-pair-chart {:type kw} [["Data" coll]])))
+(defn chart-changed
+  [node coll]
+  (let [type (.getValue (node "chartChoice"))
+        flipped? (.isSelected (node "flippedButton"))
+        chart (series-pair-chart {:type type
+                                  :flipped? flipped?}
+                                 [["Data" coll]])]
+    (ui/update-pane (node "chartView") chart)))
 
 (defn series-pair-chart-v
   [coll]
@@ -125,8 +130,11 @@
         names (.getNamespace loader)
         node (fn [id] (.get names id))
         chart-choice (node "chartChoice")
-        pane (node "chartView")]
-    (-> chart-choice .valueProperty (.addListener (fx/change-listener (fn [ob ov nv] (chart-chosen pane nv coll)))))
+        flipped-button (node "flippedButton")
+        pane (node "chartView")
+        changed (fx/change-listener (fn [_ _ _] (chart-changed node coll)))]
+    (-> chart-choice .valueProperty (.addListener changed))
+    (-> flipped-button .selectedProperty (.addListener changed))
     (ui/update-choice chart-choice [:area :line :scatter] :scatter)
     root))
 
