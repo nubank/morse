@@ -142,9 +142,10 @@
 (defn map-of-maps-vb
   [map-of-maps val-cb] (set-table-map-of-maps (TableView.) map-of-maps (maps-keys (vals map-of-maps)) val-cb))
 
-(def beanish?
-  "We'll try to bean anything."
-  (constantly true))
+(defn beanish?
+  "We'll try to bean almost anything."
+  [x]
+  (instance? java.io.Serializable x))
 
 (def ^:private bean-blacklist (atom #{}))
 
