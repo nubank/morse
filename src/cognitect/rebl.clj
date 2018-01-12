@@ -4,7 +4,8 @@
   (:require 
    [clojure.main :as main]
    [clojure.core.async :as async :refer [>!! <!! chan mult]]
-   [cognitect.rebl.config :as config]))
+   [cognitect.rebl.config :as config]
+   [cognitect.rebl.eval :as e]))
 
 #_(defn- eval-ch [exprs rets]
   (binding [*file* "user/rebl.clj"]
@@ -103,6 +104,15 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
   [expr]
   `(submit '~expr ~expr))
 
+(defn repl-read
+  "main/repl-read sourdough"
+  [request-prompt request-exit]
+  (or ({:line-start request-prompt :stream-end request-exit}
+        (main/skip-whitespace *in*))
+      (let [input (read-string (e/read-form-string *in*))]
+        (main/skip-if-eol *in*)
+        input)))
+
 (defn repl
   "starts a repl on stdio and launches a REBL UI connected to it"
   []
@@ -119,6 +129,7 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
                        (in-ns 'user)
                        (apply require main/repl-requires))
                ;;TODO - we'd like to have the strings as well as the forms
+               :read repl-read
                :eval ev)))
 
 (defn -main []
