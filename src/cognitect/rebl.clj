@@ -5,22 +5,7 @@
    [clojure.main :as main]
    [clojure.core.async :as async :refer [>!! <!! chan mult]]
    [cognitect.rebl.config :as config]
-   [cognitect.rebl.eval :as e]))
-
-#_(defn- eval-ch [exprs rets]
-  (binding [*file* "user/rebl.clj"]
-    (in-ns 'user)
-    (apply require main/repl-requires)
-    (require '[cognitect.rebl :as rebl])
-    (loop []
-      (let [{:keys [source expr]} (<!! exprs)
-            ret (try (eval expr)
-                     (catch Throwable ex
-                       ex))]
-        (swap! history conj {:expr expr :val ret})
-        (when (= source :repl)
-          (>!! rets [ret]))
-        (recur)))))
+   [cognitect.rebl.eval :as eval]))
 
 (comment "an atom on map with keys:
 :browsers and :viewers - :identk -> {:keys [pred ctor]}")
@@ -96,7 +81,7 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
 
 (defn submit [expr val]
   (>!! echan {:event :rebl/editor-eval
-              :expr expr
+              :form (pr-str expr)
               :val (if (instance? Throwable val) (Throwable->map val) val)}))
 
 (defmacro inspect
@@ -104,20 +89,47 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
   [expr]
   `(submit '~expr ~expr))
 
-(defn repl-read
+(defn repl-read-string
   "main/repl-read sourdough"
   [request-prompt request-exit]
   (or ({:line-start request-prompt :stream-end request-exit}
         (main/skip-whitespace *in*))
-      (let [input (read-string (e/read-form-string *in*))]
+      (let [input (eval/read-form-string *in*)]
         (main/skip-if-eol *in*)
         input)))
+
+(def ^:private evaluator (atom :rebl))
 
 (defn repl
   "starts a repl on stdio and launches a REBL UI connected to it"
   []
-  (let [ev (fn [expr]
-             (let [ret (try (eval expr)
+  (let [ch (async/chan)
+        bindings-ref (atom nil)
+        ev (fn [form]
+             (let [evaluator @evaluator
+                   eval (get (eval/evaluators) evaluator)]
+               (eval {:form form :bindings @bindings-ref :ret-fn #(async/put! ch %1)
+                      :source "REPL" :evaluator evaluator})
+               (when-let [{:keys [val ex bindings] :as ret} (<!! ch)]
+                 (reset! bindings-ref bindings)
+                 (>!! echan ret )
+                 (if ex
+                   (throw ex)
+                   val))))]
+    (ui)
+    (main/repl :init (fn []
+                       (in-ns 'user)
+                       (apply require main/repl-requires)
+                       (reset! bindings-ref (get-thread-bindings)))
+               :read repl-read-string
+               :eval ev)))
+
+#_(defn old-repl
+  "starts a repl on stdio and launches a REBL UI connected to it"
+  []
+  (let [ev (fn [form]
+             (let [expr (read-string form)
+                   ret (try (eval expr)
                             (catch Throwable ex
                               ex))]
                (submit expr ret)
@@ -129,7 +141,7 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
                        (in-ns 'user)
                        (apply require main/repl-requires))
                ;;TODO - we'd like to have the strings as well as the forms
-               :read repl-read
+               :read repl-read-string
                :eval ev)))
 
 (defn -main []

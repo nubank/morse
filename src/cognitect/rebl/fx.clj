@@ -195,7 +195,7 @@ map's keys against the union of all keys."
 (defn set-code [code-view code]
   (-> (.getEngine code-view)
       (.executeScript "document.cm")
-      (.call "setValue" (to-array [(finite-pprint-str code)]))))
+      (.call "setValue" (to-array [code]))))
 
 (defn get-code [code-view]
   (-> (.getEngine code-view)

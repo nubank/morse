@@ -1,82 +1,73 @@
 (ns cognitect.rebl.eval
-  (:import [java.io PushbackReader ByteArrayInputStream]))
+  (:require
+   [clojure.core.async :as async :refer [<! >!]])
+  (:import
+   [java.io ByteArrayInputStream]
+   [clojure.lang LineNumberingPushbackReader]))
 
 (set! *warn-on-reflection* true)
 
+(defonce ^:private -evaluators (atom {}))
+
+(defn evaluators [] (deref -evaluators))
+
+(defn add-evaluator
+  "An evaluator is a fn of {:keys [form ret-fn bindings]}
+  :form will be a string to be read/evaled
+  :bindings will be ignored when evaluator has own (e.g. remote)
+  context. Evaluator should call ret-fn with the input map to which
+  a :val, :start and :elapsed keys has been added and (possibly) :bindings updated. If the
+  read or evaluation results in an exception, :val should be
+  a Throwable->map representation thereof, and :ex can be the original exception
+  if available"
+  [identk efn]
+  (swap! -evaluators assoc identk efn))
+
 (defn read-form-string
-  "Given a stream (java.io.PushbackReader or some derivee) reads and returns a form as string, skipping whitespace.
+  "Given a stream (clojure.lang.LineNumberingPushbackReader or some
+  derivee) reads and returns a form as string.
   Throws on parsing errors."
-  [^PushbackReader stream]
-  (let [eol #{\return \newline}
-        delims {\( \) \{ \} \[ \]}
-        ends #{\) \} \]}
-        lit-terminals (into eol (concat (keys delims) [\" \\ \;]))
-        new-buffer #(StringBuilder. 1024)]
-    (loop [state :top, stack [] ^StringBuilder sb (new-buffer)]
-      (let [c (.read stream)]
-        (if (== -1 (int c))
-          (throw (RuntimeException. "premature eos"))
-          (let [c (char c)
-                eol? (eol c)]
-            (cond
-             ;; discard top-level whitespace
-             (and (= state :top) (Character/isWhitespace c)) (recur state stack sb)
+  [^LineNumberingPushbackReader stream]
+  (try
+    (.captureString stream)
+    (binding [*reader-resolver* (reify clojure.lang.LispReader$Resolver
+                                     (currentNS [_] 'resolver)
+                                     (resolveClass [_ sym] sym)
+                                     (resolveAlias [_ sym] sym)
+                                     (resolveVar [_ sym] sym))]
+      (read stream))
+    (.getString stream)
+    (catch Throwable ex
+      (.getString stream)
+      (throw ex))))
 
-             (= state :literal) (if (or (Character/isWhitespace c) (lit-terminals c))
-                                  (do
-                                    (.unread stream (int c))
-                                    (.toString sb))
-                                  (recur state stack (.append sb c)))
+(defn do-eval
+  [{:keys [form ret-fn bindings] :as args}]
+  (push-thread-bindings bindings)
+  (try
+    (let [args (assoc args :start (java.util.Date.))
+          start (System/nanoTime)
+          expr (read-string form)
+          val (try (eval expr)
+                   (catch Throwable ex ex))
+          ret (assoc args :bindings (get-thread-bindings)
+                     :elapsed (/ (double (- (System/nanoTime) start)) 1000000.0))
+          ret (if (instance? Throwable val)
+                (assoc ret :val (Throwable->map val) :ex val)
+                (assoc ret :val val))]
+      (ret-fn ret))
+    (catch Throwable ex
+      (ret-fn (assoc args :val (Throwable->map ex) :ex ex)))
+    (finally (pop-thread-bindings))))
 
-             (= state :comment) (recur (if eol? :top :comment) stack sb)
+(defonce ^:private add-rebl-eval
+  (add-evaluator
+   :rebl
+   (let [ch (async/chan 10)]
+     (async/go-loop [args (<! ch)]
+                    (when (some? args)
+                      (future (do-eval args))
+                      (recur (<! ch))))
+     (fn [args]
+       (async/put! ch args)))))
 
-             (= c \\) (recur state stack sb)
-
-             (= state :string) (let [sb (.append sb c)]
-                                 (if (= c \")
-                                   (if (empty? stack)
-                                     (.toString sb)
-                                     (recur :sexpr stack sb))
-                                   (recur state stack sb)))
-
-             :else
-             (cond
-              (delims c)
-              (recur :sexpr (conj stack {:char c}) (.append sb c))
-              
-              (ends c)
-              (let [d (peek stack)]
-                (if (or (nil? d) (not= c (delims (:char d))))
-                  ;;unmatched delim, close?
-                  (let [msg (str "unmatched delimiter: " d)]
-                    (throw (RuntimeException. msg)))
-                  (-> sb
-                      (.append c)
-                      (.toString))))
-
-              (= \" c) (recur :string stack (.append sb c))
-
-              (= \; c) (recur :comment stack sb)
-
-              (= state :top)
-              (recur :literal stack (.append sb c))
-
-              :else
-              (recur state stack (.append sb c))))))))))
-
-(comment
-(require '[cognitect.rebl.eval :as e])
-(require '[clojure.java.io :as io])
-(def ^String s "(+ 1 2)\nabc1\ndef")
-(def is (java.io.ByteArrayInputStream. (.getBytes s)))
-(def rdr (java.io.PushbackReader. (io/reader is)))
-
-(e/read-form-string rdr)
-
-(def ^String s "foo \"bar\" (\"baz\") \"woz\"")
-(def is (java.io.ByteArrayInputStream. (.getBytes s)))
-(def rdr (java.io.PushbackReader. (io/reader is)))
-
-(e/read-form-string rdr)
-
-)
