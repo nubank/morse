@@ -33,7 +33,9 @@ add an alias to (your existing project's) deps.edn:
 ``` clj
 {:deps {}
  :aliases
- {:rebl {:extra-deps {com.cognitect/rebl {:local/root "/Users/rich/dev/rebl"}}}}}
+ {:rebl {:extra-deps {
+	org.clojure/clojure {:mvn/version "1.10.0-alpha1"}
+	com.cognitect/rebl {:local/root "/Users/rich/dev/rebl"}}}}}
 ```
 
 replace your normal repl invocation (`clj`, or `clojure` e.g. for inferior-lisp) with REBL:
