@@ -104,23 +104,24 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
   "starts a repl on stdio and launches a REBL UI connected to it"
   []
   (let [ch (async/chan)
-        bindings-ref (atom nil)
         ev (fn [form]
              (let [evaluator @evaluator
                    eval (get (eval/evaluators) evaluator)]
-               (eval {:form form :bindings @bindings-ref :ret-fn #(async/put! ch %1)
+               (eval {:form form :bindings (get-thread-bindings) :ret-fn #(async/put! ch %1)
                       :source "REPL" :evaluator evaluator})
                (when-let [{:keys [val ex bindings] :as ret} (<!! ch)]
-                 (reset! bindings-ref bindings)
                  (>!! echan ret )
                  (if ex
                    (throw ex)
-                   val))))]
+                   (do
+                     (doseq [[^clojure.lang.Var v b] bindings]
+                       (when (.getThreadBinding v)
+                         (.set v b)))
+                     val)))))]
     (ui)
     (main/repl :init (fn []
                        (in-ns 'user)
-                       (apply require main/repl-requires)
-                       (reset! bindings-ref (get-thread-bindings)))
+                       (apply require main/repl-requires))
                :read repl-read-string
                :eval ev)))
 

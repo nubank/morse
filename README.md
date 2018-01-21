@@ -34,7 +34,7 @@ add an alias to (your existing project's) deps.edn:
 {:deps {}
  :aliases
  {:rebl {:extra-deps {
-	org.clojure/clojure {:mvn/version "1.10.0-alpha1"}
+	org.clojure/clojure {:mvn/version "1.10.0-alpha2"}
 	com.cognitect/rebl {:local/root "/Users/rich/dev/rebl"}}}}}
 ```
 
