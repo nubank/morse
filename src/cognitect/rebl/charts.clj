@@ -40,7 +40,7 @@
 (defn xy-series
   [{:keys [name] :as opts} tuples]
   (let [ser (XYChart$Series.)]
-    (.setName ser (fx/finite-str name))
+    (.setName ser (fx/finite-str name 40))
     (-> ser .getData (set-all (map #(xy-data opts %) tuples)))
     ser))
 

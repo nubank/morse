@@ -81,15 +81,15 @@ map's keys against the union of all keys."
 
 (defn finite-str
   "Returns a finite string rep for e.g. a label or header."
-  [s]
-  (-> s normalize-whitespace (ellipsize 40)))
+  [s n]
+  (-> s normalize-whitespace (ellipsize n)))
 
 (defn finite-pr-str
   "Returns a finite string rep for e.g. a table cell"
   [x]
   (binding [*print-length* 5
             *print-level* 5]
-    (-> x pr-str finite-str)))
+    (-> x pr-str (finite-str 1000))))
 
 (defn tuples?
   [coll]
