@@ -12,6 +12,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 <?import javafx.scene.web.WebView?>
 
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1">
@@ -23,22 +24,30 @@
                   <VBox prefHeight="258.0" prefWidth="301.0">
                      <children>
                         <WebView fx:id="codeView" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
-                        <FlowPane alignment="CENTER_LEFT" hgap="10.0" prefHeight="44.0" prefWidth="301.0" prefWrapLength="600.0" vgap="4.0" VBox.vgrow="NEVER">
+                        <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
                            <children>
-                              <Label text="eval in:" />
-                              <ChoiceBox fx:id="evalChoice" prefWidth="120.0" />
-                              <CheckBox fx:id="followEditorCheck" mnemonicParsing="false" selected="true" text="Follow REPL" />
-                              <Button fx:id="evalButton" mnemonicParsing="false" text="eval">
-                                 <FlowPane.margin>
-                                    <Insets />
-                                 </FlowPane.margin></Button>
-                              <Label text="Browser:" />
-                              <ChoiceBox fx:id="browserChoice" prefWidth="120.0" />
+                              <Label fx:id="nsLabel" text="ns: user">
+                                 <font>
+                                    <Font size="14.0" />
+                                 </font>
+                              </Label>
+                              <FlowPane alignment="CENTER_RIGHT" hgap="10.0" prefHeight="54.0" prefWidth="453.0" prefWrapLength="600.0" vgap="4.0">
+                                 <children>
+                                    <CheckBox fx:id="followEditorCheck" mnemonicParsing="false" selected="true" text="Follow REPL" />
+                                    <Button fx:id="evalButton" mnemonicParsing="false" text="eval">
+                                       <FlowPane.margin>
+                                          <Insets />
+                                       </FlowPane.margin>
+                                    </Button>
+                                    <Label text="Browser:" />
+                                    <ChoiceBox fx:id="browserChoice" prefWidth="120.0" />
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
+                                 </padding>
+                              </FlowPane>
                            </children>
-                           <padding>
-                              <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
-                           </padding>
-                        </FlowPane>
+                        </HBox>
                      </children>
                      <padding>
                         <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
@@ -52,7 +61,6 @@
                             <TableColumn fx:id="valColumn" maxWidth="-1.0" minWidth="140.0" prefWidth="198.0" text="val" />
                               <TableColumn fx:id="startColumn" minWidth="100.0" prefWidth="20.0" text="time" />
                               <TableColumn fx:id="elapsedColumn" minWidth="100.0" prefWidth="0.0" text="msecs" />
-                              <TableColumn fx:id="evalColumn" minWidth="100.0" prefWidth="58.0" text="evaluator" />
                               <TableColumn fx:id="sourceColumn" minWidth="100.0" prefWidth="75.0" text="source" />
                           </columns>
                            <columnResizePolicy>

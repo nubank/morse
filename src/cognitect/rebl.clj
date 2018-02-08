@@ -3,9 +3,10 @@
 (ns cognitect.rebl
   (:require 
    [clojure.main :as main]
+   [clojure.core.server :as server]
+   [clojure.pprint :as pp]
    [clojure.core.async :as async :refer [>!! <!! chan mult]]
-   [cognitect.rebl.config :as config]
-   [cognitect.rebl.eval :as eval]))
+   [cognitect.rebl.config :as config]))
 
 (comment "an atom on map with keys:
 :browsers and :viewers - :identk -> {:keys [pred ctor]}")
@@ -72,15 +73,16 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
 
 (defn ui
   "Creates a new UI window"
-  []
+  [& {:keys [proc] :or {proc server/prepl}}]
    (require 'cognitect.rebl.ui 'cognitect.rebl.charts 'cognitect.rebl.renderers)
     ;;init javafx w/o deriving app from anything
   (javafx.embed.swing.JFXPanel.)
-  ((resolve 'cognitect.rebl.ui/create) {:exprs-mult exprs})
+  ((resolve 'cognitect.rebl.ui/create) {:exprs-mult exprs :proc proc})
   nil)
 
 (defn submit [expr val]
   (>!! echan {:event :rebl/editor-eval
+              :tag :ret
               :form (pr-str expr)
               :val (if (instance? Throwable val) (Throwable->map val) val)}))
 
@@ -89,64 +91,36 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
   [expr]
   `(submit '~expr ~expr))
 
-(defn repl-read-string
-  "main/repl-read sourdough"
-  [request-prompt request-exit]
-  (or ({:line-start request-prompt :stream-end request-exit}
-        (main/skip-whitespace *in*))
-      (let [input (eval/read-form-string *in*)]
-        (main/skip-if-eol *in*)
-        input)))
-
-(def ^:private evaluator (atom :rebl))
-
-(defn repl
-  "starts a repl on stdio and launches a REBL UI connected to it"
-  []
+(defn repl [proc]
+  (apply require main/repl-requires)
+  (println "Clojure" (clojure-version))
+  (printf "%s=> " (ns-name *ns*))
+  (flush)
   (let [ch (async/chan)
-        ev (fn [form]
-             (let [evaluator @evaluator
-                   eval (get (eval/evaluators) evaluator)]
-               (eval {:form form :bindings (get-thread-bindings) :ret-fn #(async/put! ch %1)
-                      :source "REPL" :evaluator evaluator})
-               (when-let [{:keys [val ex bindings] :as ret} (<!! ch)]
-                 (>!! echan ret )
-                 (if ex
-                   (throw ex)
-                   (do
-                     (doseq [[^clojure.lang.Var v b] bindings]
-                       (when (.getThreadBinding v)
-                         (.set v b)))
-                     val)))))]
-    (ui)
-    (main/repl :init (fn []
-                       (in-ns 'user)
-                       (apply require main/repl-requires))
-               :read repl-read-string
-               :eval ev)))
+        o *out*
+        ex? (every-pred :cause :via)
+        cb (fn [{:keys [tag val form ms ns] :as m}]
+             (>!! echan (assoc m :rebl/source "REPL"))
+             (binding [*out* o]
+               (case tag
+                :err (print val)
+                :out (print val)
+                :tap nil
+                :ret
+                (do
+                  (if (ex? val)
+                    (pp/pprint (dissoc val :trace))
+                    (prn val))
+                  (printf "%s=> " ns)
+                  (flush)))))]
+    (ui :proc proc)
+    (proc *in* cb)))
 
-#_(defn old-repl
-  "starts a repl on stdio and launches a REBL UI connected to it"
-  []
-  (let [ev (fn [form]
-             (let [expr (read-string form)
-                   ret (try (eval expr)
-                            (catch Throwable ex
-                              ex))]
-               (submit expr ret)
-               (if (instance? Throwable ret)
-                 (throw ret)
-                 ret)))]
-    (ui)
-    (main/repl :init (fn []
-                       (in-ns 'user)
-                       (apply require main/repl-requires))
-               ;;TODO - we'd like to have the strings as well as the forms
-               :read repl-read-string
-               :eval ev)))
-
-(defn -main []
-  (repl))
+(defn -main
+  ([] (repl server/prepl))
+  ([host port]
+     (println "Remote:" host port)
+     (repl (partial server/remote-prepl host port))))
 
 (comment
 ;;

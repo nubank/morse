@@ -8,7 +8,6 @@
    [clojure.java.io :as io]
    [clojure.spec.alpha :as s]
    [clojure.main :as main]
-   [cognitect.rebl.eval :as eval]
    [clojure.core.async :as async :refer [<!! chan tap untap]])
   (:import [javafx.fxml FXMLLoader]
            [javafx.scene Scene]
@@ -16,7 +15,8 @@
            [javafx.application Platform]
            [javafx.scene.input KeyEvent KeyCodeCombination KeyCode KeyCombination$Modifier]
            [javafx.scene.control Tooltip]
-           [java.text DateFormat]))
+           [java.text DateFormat]
+           [java.io Writer PipedReader PipedWriter]))
 
 (defn clear-deck [{:keys [state] :as ui}]
   (swap! state dissoc :on-deck))
@@ -91,12 +91,15 @@
   []
   (into
    (sorted-map-by (fn [a b] (compare (name a) (name b))))
-   (map (fn [[s v]] [s @v]))
+   (map (fn [[s v]] [s (deref v)]))
    (ns-publics 'user)))
 
+(defn do-eval [{:keys [exprs]} form-string]
+  (async/put! exprs {:tag ::eval :form form-string}))
+
 (defn browse-user-namespace
-  [{:keys [exprs]}]
-  (async/put! exprs {::eval "(cognitect.rebl.ui/user-vars)"}))
+  [ui]
+  (do-eval ui "(into (sorted-map-by (fn [a b] (compare (name a) (name b)))) (map (fn [[s v]] [s (deref v)])) (ns-publics 'user))"))
 
 (defn browser-chosen [{:keys [state browse-pane] :as ui} choices choice]
   (let [{:keys [browse-choice browse-val]} @state]
@@ -142,37 +145,29 @@
   (let [n (swap! expr-ord #(if (< %1 (-> eval-history deref count dec)) (inc %1) %1))]
     (load-expr ui n)))
 
-(defn expr-loop [{:keys [exprs eval-history follow-editor-check eval-choice title] :as ui}]
-  (binding [*file* "user/rebl.clj"]
-    (in-ns 'user)
-    (apply require clojure.main/repl-requires)
-    (let [bindings-ref (atom (main/with-bindings (get-thread-bindings)))]
-      (loop []
-        (let [msg (<!! exprs)]
-          (when msg
-            (if (contains? msg ::eval)
-              (let  [evaluator (-> eval-choice .getValue) 
-                     eval (get (eval/evaluators) evaluator)]
-                (eval {:form (::eval msg) :bindings @bindings-ref :ret-fn #(async/put! exprs %1)
-                       :source title :evaluator evaluator}))
-              ;;else presume eval result
-              (let [{:keys [source evaluator bindings]} msg]
-                (when (and (= source title)
-                           (= evaluator :rebl))
-                  (reset! bindings-ref bindings))
-                (when (or (= source title) (.isSelected follow-editor-check))
-                  (swap! eval-history conj msg)
-                  (fx/later #(rtz ui)))))
-            (recur)))))))
+(defn expr-loop [{:keys [exprs ^Writer eval-writer eval-history follow-editor-check title ns-label] :as ui}]
+  (loop []
+    (let [{:keys [tag ^String form ns rebl/source] :as msg} (<!! exprs)]
+      (when msg
+        (case tag
+              ::eval (do (.write eval-writer form) (.write eval-writer "\n") (.flush eval-writer))
+              :ret (when (or (= source title) (.isSelected follow-editor-check))
+                     (swap! eval-history conj msg)
+                     (fx/later #(do
+                                  (.setText ns-label (str "ns: " ns))
+                                  (rtz ui))))
+              ;;TODO out/err/tap
+              nil)
+        (recur)))))
 
 (defonce ^:private ui-count (atom 0))
 
-(defn eval-pressed [{:keys [code-view exprs expr-ord] :as ui}]
+(defn eval-pressed [{:keys [code-view expr-ord] :as ui}]
   ;;TODO handle bad form
   (reset! expr-ord -1)
   (let [code (fx/get-code code-view)]
     (fx/reset-code code-view)
-    (async/put! exprs {::eval code})))
+    (do-eval ui code)))
 
 (defn fwd-pressed [{:keys [state state-history root-button back-button] :as ui}]
   (let [{:keys [view-val view-ui view-choice on-deck] :as statev} @state]
@@ -212,19 +207,18 @@
   (when (.isPresent o) (.get o)))
 
 (defn def-in-ns
-  [ns sym v doc]
-  (binding [*ns* (find-ns ns)]
-    (eval `(def ~sym ~doc (quote ~v)))))
+  [ui ns sym v doc]
+  (do-eval ui (pr-str `(intern (find-ns '~ns) '~sym '~v))))
 
 (defn def-as
-  [{:keys [exprs state]}]
+  [{:keys [state] :as ui}]
   (let [v (:view-val @state)
         dlg (doto (javafx.scene.control.TextInputDialog. "foo")
               (.setTitle "def as")
               (.setHeaderText "define a var")
               (.setContentText "name"))]
     (when-let [name (-> dlg .showAndWait get-optional)]
-      (def-in-ns 'user (symbol name) v "Defined by cognitect.rebl def as...")
+      (def-in-ns ui 'user (symbol name) v "Defined by cognitect.rebl def as...")
       ;; another option -- add the var itself to the UI history?
       #_(async/put! exprs {::eval (find-var (symbol "user" name))}))))
 
@@ -295,16 +289,15 @@
                                               ;;(set-code code-view expr)
                                               (view ui idx val))))))
 
-(defn update-evaluators [{:keys [eval-choice] :as ui}]
-  (update-choice eval-choice (keys (eval/evaluators)) :rebl))
-
-(defn- init [{:keys [exprs-mult]}]
+(defn- init [{:keys [exprs-mult proc]}]
   (fx/later
    #(try (let [loader (FXMLLoader. (io/resource "cognitect/rebl/rebl.fxml"))
                root (.load loader)               
                names (.getNamespace loader)
                node (fn [id] (.get names id))
                scene (Scene. root 1200 800)
+               pwr (java.io.PipedWriter.)
+               prd (-> (java.io.PipedReader. pwr) clojure.lang.LineNumberingPushbackReader.)
                exprs (chan 100)
                stage (javafx.stage.Stage.)
                _ (.setScene stage scene)
@@ -320,6 +313,7 @@
                    :expr-ord (atom -1)
                    :state-history (atom ())
                    :eval-history (atom ())
+                   :eval-writer pwr
                    :eval-table (doto (node "evalTable")
                                  (.setItems (fx/fxlist (java.util.ArrayList.))))
                    :expr-column (doto (node "exprColumn")
@@ -327,14 +321,12 @@
                    :val-column (doto (node "valColumn")
                                  (.setCellValueFactory (fx/cell-value-callback (comp fx/finite-pr-str :val))))
                    :start-column (doto (node "startColumn")
-                                   (.setCellValueFactory (fx/cell-value-callback (fn [x] (some->> x :start (.format tf))))))
+                                   (.setCellValueFactory (fx/cell-value-callback (fn [x] (some->> x :rebl/start (.format tf))))))
                    :elapsed-column (doto (node "elapsedColumn")
-                                     (.setCellValueFactory (fx/cell-value-callback (fn [x] (some->> x :elapsed (format "%.2f"))))))
-                   :eval-column (doto (node "evalColumn")
-                                  (.setCellValueFactory (fx/cell-value-callback :evaluator)))
-                   :source-column (doto (node "sourceColumn")
-                                  (.setCellValueFactory (fx/cell-value-callback :source)))
+                                     (.setCellValueFactory (fx/cell-value-callback :ms)))
                    
+                   :source-column (doto (node "sourceColumn")
+                                    (.setCellValueFactory (fx/cell-value-callback :rebl/source)))                 
                    :code-view (doto (node "codeView")
                                 #_(.setZoom 1.2))
                    :follow-editor-check (node "followEditorCheck")
@@ -343,6 +335,7 @@
                                      (.setConverter vc))
                    :browse-pane (node "browsePane")
                    :def-button (node "defButton")
+                   :ns-label (node "nsLabel")
                    :viewer-choice (doto (node "viewerChoice")
                                     (.setConverter vc))
                    :view-pane (node "viewPane")
@@ -358,12 +351,16 @@
            (.show stage)
            (-> (:code-view ui) .getEngine (.load (str (io/resource "cognitect/rebl/codeview.html"))))
            (wire-handlers ui)
-           (update-evaluators ui)
            (tap exprs-mult exprs)
            (.setOnHidden stage (reify EventHandler (handle [_ _]
                                                      (untap exprs-mult exprs)
-                                                     (async/close! exprs)))) 
-           (async/thread (clojure.main/with-bindings (expr-loop ui))))
+                                                     (async/close! exprs)
+                                                     (.close pwr)))) 
+           (async/thread (expr-loop ui))
+           (async/thread (try
+                           (proc prd (fn [m]
+                                       (async/put! exprs (assoc m :rebl/source (:title ui)))))
+                           (catch Throwable ex (prn {:ex ex})))))
          (catch Throwable ex
            (println ex)))))
 
