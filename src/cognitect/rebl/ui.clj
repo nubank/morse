@@ -145,9 +145,10 @@
   (let [n (swap! expr-ord #(if (< %1 (-> eval-history deref count dec)) (inc %1) %1))]
     (load-expr ui n)))
 
-(defn expr-loop [{:keys [exprs ^Writer eval-writer eval-history follow-editor-check title ns-label] :as ui}]
+(defn expr-loop [{:keys [exprs ^Writer eval-writer eval-history follow-editor-check title
+                         ns-label out-text] :as ui}]
   (loop []
-    (let [{:keys [tag ^String form ns rebl/source] :as msg} (<!! exprs)]
+    (let [{:keys [tag val ^String form ns rebl/source] :as msg} (<!! exprs)]
       (when msg
         (case tag
               ::eval (do (.write eval-writer form) (.write eval-writer "\n") (.flush eval-writer))
@@ -157,6 +158,8 @@
                                   (.setText ns-label (str "ns: " ns))
                                   (rtz ui))))
               ;;TODO out/err/tap
+              (:out :err) (fx/later #(do (.appendText out-text val)
+                                         (.end out-text))) 
               nil)
         (recur)))))
 
@@ -345,7 +348,8 @@
                    :back-button (doto (node "backButton")
                                   (.setDisable true))
                    :fwd-button (doto (node "fwdButton")
-                                 (.setDisable true))}]
+                                 (.setDisable true))
+                   :out-text (node "outText")}]
            (-> scene .getStylesheets (.add (str (io/resource "cognitect/rebl/fx.css"))))
            (.setTitle stage (:title ui))
            (.show stage)
