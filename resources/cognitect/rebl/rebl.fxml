@@ -22,7 +22,7 @@
 
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <SplitPane dividerPositions="0.5" prefHeight="160.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+      <SplitPane dividerPositions="0.44240400667779634" prefHeight="160.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
         <items>
             <SplitPane dividerPositions="0.29958960328317374" minHeight="-Infinity" minWidth="-Infinity" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
               <items>
@@ -60,13 +60,13 @@
                   </VBox>
                   <StackPane maxHeight="1.7976931348623157E308" prefHeight="421.0" prefWidth="495.0">
                      <children>
-                        <TabPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" tabClosingPolicy="UNAVAILABLE">
+                        <TabPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="UNAVAILABLE">
                           <tabs>
                             <Tab text="evals">
-                              <content>
-                                <AnchorPane fx:id="browsePane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="200.0">
+                                 <content>
+                                    <StackPane fx:id="browsePane" prefHeight="101.0" prefWidth="41.0">
                                        <children>
-                                          <TableView fx:id="evalTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="476.0" prefWidth="634.0" AnchorPane.bottomAnchor="-2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                          <TableView fx:id="evalTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="476.0" prefWidth="634.0">
                                             <columns>
                                               <TableColumn fx:id="exprColumn" maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="136.0" text="expr" />
                                               <TableColumn fx:id="valColumn" maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="248.0" text="val" />
@@ -79,8 +79,8 @@
                                              </columnResizePolicy>
                                           </TableView>
                                        </children>
-                                    </AnchorPane>
-                              </content>
+                                    </StackPane>
+                                 </content>
                             </Tab>
                             <Tab text="out">
                               <content>
@@ -116,6 +116,7 @@
                <children>
                   <FlowPane alignment="CENTER_RIGHT" hgap="4.0" prefHeight="35.0" prefWidth="509.0" vgap="4.0">
                      <children>
+                        <Label prefHeight="17.0" prefWidth="262.0" text="Metadata" />
                         <Button fx:id="defButton" mnemonicParsing="false" text="def as..." />
                         <Label text="Viewer:" />
                         <ChoiceBox fx:id="viewerChoice" prefWidth="150.0" />
@@ -124,10 +125,21 @@
                         <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
                      </padding>
                   </FlowPane>
-                  <StackPane fx:id="viewPane" prefHeight="622.0" prefWidth="519.0" VBox.vgrow="ALWAYS">
-                     <VBox.margin>
-                        <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
-                     </VBox.margin></StackPane>
+                  <SplitPane dividerPositions="0.2170212765957447" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" VBox.vgrow="ALWAYS">
+                    <items>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                           <children>
+                              <TableView fx:id="metaTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="175.0" prefWidth="593.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                <columns>
+                                  <TableColumn fx:id="mkeyColumn" prefWidth="75.0" text="key" />
+                                  <TableColumn fx:id="mvalColumn" prefWidth="517.0" text="val" />
+                                </columns>
+                              </TableView>
+                           </children>
+                        </AnchorPane>
+                        <StackPane fx:id="viewPane" prefHeight="622.0" prefWidth="519.0" />
+                    </items>
+                  </SplitPane>
                </children>
             </VBox>
         </items>

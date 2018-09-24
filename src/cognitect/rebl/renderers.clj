@@ -118,7 +118,7 @@
     viewer))
 
 (defn map-vb
-  [amap val-cb] (set-table-map (TableView.) amap val-cb))
+  [amap val-cb] (set-table-map (fx/table-view) amap val-cb))
 
 (defn ns-publics-vb
   [v val-cb]
@@ -129,18 +129,18 @@
   (into [] (comp (filter fx/Map?) (map keys) cat (distinct) (take fx/coll-check-limit)) maps))
 
 (defn coll-vb
-  [alist val-cb] (set-table-coll (TableView.) alist val-cb))
+  [alist val-cb] (set-table-coll (fx/table-view) alist val-cb))
 
 (defn tuples-vb
   [tuples val-cb]
   (let [ks (range (count (first tuples)))]
-    (set-table-tuples (TableView.) tuples ks val-cb)))
+    (set-table-tuples (fx/table-view) tuples ks val-cb)))
 
 (defn maps-vb
-  [maps val-cb] (set-table-maps (TableView.) maps (maps-keys maps) val-cb))
+  [maps val-cb] (set-table-maps (fx/table-view) maps (maps-keys maps) val-cb))
 
 (defn map-of-maps-vb
-  [map-of-maps val-cb] (set-table-map-of-maps (TableView.) map-of-maps (maps-keys (vals map-of-maps)) val-cb))
+  [map-of-maps val-cb] (set-table-map-of-maps (fx/table-view) map-of-maps (maps-keys (vals map-of-maps)) val-cb))
 
 (defn beanish?
   "We'll try to bean almost anything."
@@ -159,7 +159,7 @@
 
 (defn bean-vb
   [beanish val-cb]
-  (set-table-map (TableView.) (to-bean beanish) val-cb))
+  (set-table-map (fx/table-view) (to-bean beanish) val-cb))
 
 (rebl/update-viewers {:rebl/edn {:pred #'any? :ctor #'plain-edn-viewer}
                       :rebl/spec-edn {:pred #'s/spec? :ctor #'spec-edn-viewer}
@@ -182,5 +182,4 @@
                        :rebl/maps {:pred #'fx/uniformish-maps? :ctor #'maps-vb}
                        :rebl/map-of-maps {:pred #'fx/uniformish-map-of-maps? :ctor #'map-of-maps-vb}
                        :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'fx/namespace?}
-                       :rebl/atom {:ctor #'atom-vb :pred #'fx/atom?}
-                       :rebl/bean {:ctor #'bean-vb :pred #'beanish?}})
+                       :rebl/atom {:ctor #'atom-vb :pred #'fx/atom?}})

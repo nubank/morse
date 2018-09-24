@@ -8,8 +8,13 @@
    [clojure.core.async :as async :refer [>!! <!! chan mult]]
    [cognitect.rebl.config :as config]))
 
+
+(defn foo []
+  "bar")
+
 (comment "an atom on map with keys:
 :browsers and :viewers - :identk -> {:keys [pred ctor]}")
+
 (defonce  registry (atom {:browsers {} :viewers {}}))
 
 (defn update-browsers
@@ -117,10 +122,7 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
     (proc *in* cb)))
 
 (defn -main
-  ([] (repl server/prepl))
-  ([host port]
-     (println "Remote:" host port)
-     (repl (partial server/remote-prepl host port))))
+  ([] (repl server/prepl)))
 
 (comment
 ;;

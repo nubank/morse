@@ -21,6 +21,11 @@
 (def Map? #(instance? java.util.Map %1))
 (def Coll? #(instance? java.util.Collection %1))
 
+(defn table-view []
+  (doto (TableView.)
+    (.setMaxWidth Double/MAX_VALUE)
+    (.setMaxHeight Double/MAX_VALUE)))
+
 (defn sample
   "Returns a seq of n items from coll. Picks the first items
 if coll not indexed?, otherwise sets a step size and uses nth

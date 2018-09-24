@@ -1,7 +1,7 @@
 {:deps
- {org.clojure/core.async {:mvn/version "0.3.443"}
-  org.clojure/spec.alpha {:mvn/version "0.1.143"}
-  org.clojure/clojure {:mvn/version "1.10.0-alpha3"}
+ {org.clojure/core.async {:mvn/version "0.4.474"}
+  org.clojure/spec.alpha {:mvn/version "0.2.176"}
+  org.clojure/clojure {:mvn/version "1.10.0-alpha8"}
   }
  :paths ["src" "resources"]
  }
