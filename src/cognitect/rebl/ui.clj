@@ -4,6 +4,7 @@
   (:require
    [cognitect.rebl :as rebl]
    [cognitect.rebl.config :as config]
+   [cognitect.rebl.renderers :as render]
    [cognitect.rebl.fx :as fx]
    [clojure.java.io :as io]
    [clojure.spec.alpha :as s]
@@ -43,12 +44,13 @@
 (defn update-pane [pane ui]
   (-> pane .getChildren (.setAll [ui])))
 
-(defn view [{:keys [state view-pane viewer-choice fwd-button] :as ui} path-seg val]
+(defn view [{:keys [state view-pane viewer-choice fwd-button meta-table] :as ui} path-seg val]
   (let [viewer (viewer-for ui val)]
     (clear-deck ui)
     (swap! state merge (assoc viewer :path-seg path-seg :view-val val))
     (update-choice viewer-choice (:view-options viewer) (:view-choice viewer))
     (update-pane view-pane (:view-ui viewer))
+    (render/set-table-map meta-table (merge {:rebl/class (-> val class .getName)} (meta val)) nil)
     (.setDisable fwd-button (-> val rebl/browsers-for :browsers empty?))))
 
 (defn val-selected
@@ -319,6 +321,7 @@
                    :eval-writer pwr
                    :eval-table (doto (node "evalTable")
                                  (.setItems (fx/fxlist (java.util.ArrayList.))))
+                   :meta-table (node "metaTable")
                    :expr-column (doto (node "exprColumn")
                                   (.setCellValueFactory (fx/cell-value-callback :form)))
                    :val-column (doto (node "valColumn")

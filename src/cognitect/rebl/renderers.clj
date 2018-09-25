@@ -107,14 +107,14 @@
         (set-table-map other-m nil)))
     (doto (node "ednView")
       (fx/set-text-area-edn val))
-    (val-cb root :val val)
+    ;;(val-cb root :val val)
     root))
 
 (defn atom-vb
   [v val-cb]
   (let [viewer (plain-edn-viewer v)
         val @v]
-    (val-cb viewer :val val)
+    ;;(val-cb viewer :val val)
     viewer))
 
 (defn map-vb
