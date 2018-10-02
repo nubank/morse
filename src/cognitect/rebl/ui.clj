@@ -6,6 +6,7 @@
    [cognitect.rebl.config :as config]
    [cognitect.rebl.renderers :as render]
    [cognitect.rebl.fx :as fx]
+   [cognitect.rebl.data :as data]
    [clojure.java.io :as io]
    [clojure.spec.alpha :as s]
    [clojure.main :as main]
@@ -44,20 +45,25 @@
 (defn update-pane [pane ui]
   (-> pane .getChildren (.setAll [ui])))
 
-(defn view [{:keys [state view-pane viewer-choice fwd-button meta-table] :as ui} path-seg val]
-  (let [viewer (viewer-for ui val)]
+(defn update-meta [{:keys [meta-table] :as ui} meta-map]
+  (render/set-table-map meta-table meta-map nil))
+
+(defn view [{:keys [state view-pane viewer-choice fwd-button] :as ui} path-seg val]
+  (let [viewer (viewer-for ui val)
+        meta-map (merge {:java/class (class val)} (meta val))]
     (clear-deck ui)
-    (swap! state merge (assoc viewer :path-seg path-seg :view-val val))
+    (swap! state merge (assoc viewer :path-seg path-seg :view-val val :view-meta meta-map))
     (update-choice viewer-choice (:view-options viewer) (:view-choice viewer))
     (update-pane view-pane (:view-ui viewer))
-    (render/set-table-map meta-table (merge {:rebl/class (-> val class .getName)} (meta val)) nil)
+    (update-meta ui meta-map)
     (.setDisable fwd-button (-> val rebl/browsers-for :browsers empty?))))
 
 (defn val-selected
   [{:keys [view-pane state] :as ui} node path-seg val]
-  (fx/later #(if (identical? (fx/current-ui view-pane) node)
-               (swap! state assoc :on-deck {:path-seg path-seg :val val})
-               (view ui path-seg val))))
+  (let [val (data/as-data val)]
+    (fx/later #(if (identical? (fx/current-ui view-pane) node)
+                 (swap! state assoc :on-deck {:path-seg path-seg :val val})
+                 (view ui path-seg val)))))
 
 (defn viewer-chosen [{:keys [state view-pane] :as ui} choices choice]
   (let [{:keys [view-choice view-val]} @state]
@@ -200,6 +206,7 @@
     (reset! state ostate)
     (update-pane browse-pane (:browse-ui ostate))
     (update-pane view-pane (:view-ui ostate))
+    (update-meta ui (:view-meta ostate))
     (update-choice browser-choice (:browse-options ostate) (:browse-choice ostate))
     (update-choice viewer-choice (:view-options ostate) (:view-choice ostate))
     (.setDisable root-button (empty? nhist))
@@ -292,7 +299,7 @@
     (fx/add-selection-listener eval-table (fn [idx row]
                                             (let [{:keys [expr val]} row]
                                               ;;(set-code code-view expr)
-                                              (view ui idx val))))))
+                                              (view ui idx (data/as-data val)))))))
 
 (defn- init [{:keys [exprs-mult proc]}]
   (fx/later

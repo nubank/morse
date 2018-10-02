@@ -153,7 +153,7 @@ map's keys against the union of all keys."
 
 (defn throwable-map?
   [x]
-  (and (map? x) (:cause x) (:via x) (:trace x)))
+  (and (map? x) (not (sorted? x)) (:cause x) (:via x) (:trace x)))
 
 (defn throwable?
   [x]

@@ -84,7 +84,7 @@
   ([ex] (throwable-vb ex nil))
   ([ex val-cb] (throwable-map-vb (Throwable->map ex) val-cb)))
 
-(defn var-vb
+#_(defn var-vb
   [v val-cb]
   (let [loader (FXMLLoader. (io/resource "cognitect/rebl/var.fxml"))
         root (.load loader)
@@ -110,7 +110,7 @@
     ;;(val-cb root :val val)
     root))
 
-(defn atom-vb
+#_(defn atom-vb
   [v val-cb]
   (let [viewer (plain-edn-viewer v)
         val @v]
@@ -120,7 +120,7 @@
 (defn map-vb
   [amap val-cb] (set-table-map (fx/table-view) amap val-cb))
 
-(defn ns-publics-vb
+#_(defn ns-publics-vb
   [v val-cb]
   (map-vb (ns-publics v) val-cb))
 
@@ -157,7 +157,7 @@
      (swap! bean-blacklist conj (class x))
      (throw t))))
 
-(defn bean-vb
+#_(defn bean-vb
   [beanish val-cb]
   (set-table-map (fx/table-view) (to-bean beanish) val-cb))
 
@@ -170,16 +170,18 @@
                       :rebl/map-of-maps {:pred #'fx/uniformish-map-of-maps? :ctor #'map-of-maps-vb}
                       :rebl/throwable-map {:ctor #'throwable-map-vb :pred #'fx/throwable-map?}
                       :rebl/throwable {:ctor #'throwable-vb :pred #'fx/throwable?}
-                      :rebl/var {:ctor #'var-vb :pred #'var?}
-                      :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'fx/namespace?}
-                      :rebl/atom {:ctor #'atom-vb :pred #'fx/atom?}
-                      :rebl/bean {:ctor #'bean-vb :pred #'beanish?}})
+                      ;;:rebl/var {:ctor #'var-vb :pred #'var?}
+                      ;;:rebl/ns-publics {:ctor #'ns-publics-vb :pred #'fx/namespace?}
+                      ;;:rebl/atom {:ctor #'atom-vb :pred #'fx/atom?}
+                      ;;:rebl/bean {:ctor #'bean-vb :pred #'beanish?}
+                      })
 
 (rebl/update-browsers {:rebl/map {:pred #'fx/Map? :ctor #'map-vb}
-                       :rebl/var {:ctor #'var-vb :pred #'var?}
+                       ;;:rebl/var {:ctor #'var-vb :pred #'var?}
                        :rebl/coll {:pred #'fx/Coll? :ctor #'coll-vb}
                        :rebl/tuples {:pred #'fx/tuples? :ctor #'tuples-vb}
                        :rebl/maps {:pred #'fx/uniformish-maps? :ctor #'maps-vb}
                        :rebl/map-of-maps {:pred #'fx/uniformish-map-of-maps? :ctor #'map-of-maps-vb}
-                       :rebl/ns-publics {:ctor #'ns-publics-vb :pred #'fx/namespace?}
-                       :rebl/atom {:ctor #'atom-vb :pred #'fx/atom?}})
+                       ;;:rebl/ns-publics {:ctor #'ns-publics-vb :pred #'fx/namespace?}
+                       ;;:rebl/atom {:ctor #'atom-vb :pred #'fx/atom?}
+                       })
