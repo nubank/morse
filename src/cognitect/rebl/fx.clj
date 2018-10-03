@@ -230,7 +230,7 @@ Assumes that the value stored in the table is a [position value]
 pair."
   [data t val-cb]
   (when val-cb
-    (add-selection-listener t (fn [_ [pos val]] (val-cb t pos ((or (-> data meta ::rebl/selected-val-xform) identity) val))))
+    (add-selection-listener t (fn [_ [pos val]] (val-cb t pos val)))
     (-> t .getSelectionModel .selectFirst))
   t)
 

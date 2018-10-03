@@ -7,6 +7,11 @@
 
 (set! *warn-on-reflection* true)
 
+(defn nav [coll x]
+  (if-let [nf (-> coll meta ::spi/nav-fn)]
+    (nf x)
+    x))
+
 (defn as-data [x]
   (let [v ((or (-> x meta ::spi/as-data-fn) spi/as-data) x)]
     (if (identical? v x)

@@ -31,7 +31,7 @@
   (let [{:keys [viewers pref]} (rebl/viewers-for val)
         p (pref viewers)
         vw (if (rebl/is-browser? pref)
-                ((:ctor p) val (partial val-selected ui))
+                ((:ctor p) val (partial val-selected ui val))
                 ((:ctor p) val))]
     {:view-ui vw
      ;;incorporate :id for choice control
@@ -59,8 +59,8 @@
     (.setDisable fwd-button (-> val rebl/browsers-for :browsers empty?))))
 
 (defn val-selected
-  [{:keys [view-pane state] :as ui} node path-seg val]
-  (let [val (data/as-data val)]
+  [{:keys [view-pane state] :as ui} coll node path-seg val]
+  (let [val (->> val (data/nav coll) data/as-data)]
     (fx/later #(if (identical? (fx/current-ui view-pane) node)
                  (swap! state assoc :on-deck {:path-seg path-seg :val val})
                  (view ui path-seg val)))))
@@ -71,7 +71,7 @@
       (config/update-viewer-prefs (into #{} (map :id) choices) (:id choice))
       (clear-deck ui)
       (let [vw (if (rebl/is-browser? (:id choice))
-                 ((:ctor choice) view-val (partial val-selected ui))
+                 ((:ctor choice) view-val (partial val-selected ui view-val))
                  ((:ctor choice) view-val))]
         (swap! state assoc :view-choice choice :view-ui vw)
         (update-pane view-pane vw)))))
@@ -80,7 +80,7 @@
   "returns {:keys [browse-ui browse-options browse-choice]}"
   [ui val]
   (let [{:keys [browsers pref]} (rebl/browsers-for val)]
-    {:browse-ui ((-> browsers pref :ctor) val (partial val-selected ui))
+    {:browse-ui ((-> browsers pref :ctor) val (partial val-selected ui val))
      ;;incorporate :id for choice control
      :browse-options (-> browsers vals vec)
      :browse-choice (browsers pref)}))
@@ -114,7 +114,7 @@
     (when (and choice (not= browse-choice choice))
       (config/update-browser-prefs (into #{} (map :id) choices) (:id choice))
       (clear-deck ui)
-      (let [br ((:ctor choice) browse-val (partial val-selected ui))]
+      (let [br ((:ctor choice) browse-val (partial val-selected ui browse-val))]
         (swap! state assoc :browse-choice choice :browse-ui br)
         (update-pane browse-pane br)
         (.requestFocus br)))))

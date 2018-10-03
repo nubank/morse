@@ -84,45 +84,8 @@
   ([ex] (throwable-vb ex nil))
   ([ex val-cb] (throwable-map-vb (Throwable->map ex) val-cb)))
 
-#_(defn var-vb
-  [v val-cb]
-  (let [loader (FXMLLoader. (io/resource "cognitect/rebl/var.fxml"))
-        root (.load loader)
-        names (.getNamespace loader)
-        node (fn [id] (.get names id))
-        m (meta v)
-        {:keys [ns name file column line since]} m
-        val @v]
-    (doto (node "symbol")
-      (fx/set-text (str ns "/" name)))
-    (doto (node "location")
-      (fx/set-text (str file ":" line ":" column)))
-    (doto (node "since")
-      (fx/set-text since))
-    (let [d (:doc m)]
-      (doto (node "docView")
-        (fx/set-text d)))
-    (let [other-m (dissoc m :doc :ns :name :added :file :column :line)]
-      (doto (node "metaTable")
-        (set-table-map other-m nil)))
-    (doto (node "ednView")
-      (fx/set-text-area-edn val))
-    ;;(val-cb root :val val)
-    root))
-
-#_(defn atom-vb
-  [v val-cb]
-  (let [viewer (plain-edn-viewer v)
-        val @v]
-    ;;(val-cb viewer :val val)
-    viewer))
-
 (defn map-vb
   [amap val-cb] (set-table-map (fx/table-view) amap val-cb))
-
-#_(defn ns-publics-vb
-  [v val-cb]
-  (map-vb (ns-publics v) val-cb))
 
 (defn maps-keys
   [maps]
@@ -142,24 +105,6 @@
 (defn map-of-maps-vb
   [map-of-maps val-cb] (set-table-map-of-maps (fx/table-view) map-of-maps (maps-keys (vals map-of-maps)) val-cb))
 
-(defn beanish?
-  "We'll try to bean almost anything."
-  [x]
-  (instance? java.io.Serializable x))
-
-(def ^:private bean-blacklist (atom #{}))
-
-(defn ^:private to-bean
-  [x]
-  (try
-   (bean x)
-   (catch Throwable t
-     (swap! bean-blacklist conj (class x))
-     (throw t))))
-
-#_(defn bean-vb
-  [beanish val-cb]
-  (set-table-map (fx/table-view) (to-bean beanish) val-cb))
 
 (rebl/update-viewers {:rebl/edn {:pred #'any? :ctor #'plain-edn-viewer}
                       :rebl/spec-edn {:pred #'s/spec? :ctor #'spec-edn-viewer}
@@ -170,18 +115,11 @@
                       :rebl/map-of-maps {:pred #'fx/uniformish-map-of-maps? :ctor #'map-of-maps-vb}
                       :rebl/throwable-map {:ctor #'throwable-map-vb :pred #'fx/throwable-map?}
                       :rebl/throwable {:ctor #'throwable-vb :pred #'fx/throwable?}
-                      ;;:rebl/var {:ctor #'var-vb :pred #'var?}
-                      ;;:rebl/ns-publics {:ctor #'ns-publics-vb :pred #'fx/namespace?}
-                      ;;:rebl/atom {:ctor #'atom-vb :pred #'fx/atom?}
-                      ;;:rebl/bean {:ctor #'bean-vb :pred #'beanish?}
                       })
 
 (rebl/update-browsers {:rebl/map {:pred #'fx/Map? :ctor #'map-vb}
-                       ;;:rebl/var {:ctor #'var-vb :pred #'var?}
                        :rebl/coll {:pred #'fx/Coll? :ctor #'coll-vb}
                        :rebl/tuples {:pred #'fx/tuples? :ctor #'tuples-vb}
                        :rebl/maps {:pred #'fx/uniformish-maps? :ctor #'maps-vb}
                        :rebl/map-of-maps {:pred #'fx/uniformish-map-of-maps? :ctor #'map-of-maps-vb}
-                       ;;:rebl/ns-publics {:ctor #'ns-publics-vb :pred #'fx/namespace?}
-                       ;;:rebl/atom {:ctor #'atom-vb :pred #'fx/atom?}
                        })
