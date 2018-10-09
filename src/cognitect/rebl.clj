@@ -89,7 +89,7 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
   (>!! echan {:event :rebl/editor-eval
               :tag :ret
               :form (pr-str expr)
-              :val (if (instance? Throwable val) (Throwable->map val) val)}))
+              :val val}))
 
 (defmacro inspect
   "sends the expr and its value to the REBL UI"

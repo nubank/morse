@@ -6,7 +6,7 @@
    [cognitect.rebl.config :as config]
    [cognitect.rebl.renderers :as render]
    [cognitect.rebl.fx :as fx]
-   [cognitect.rebl.data :as data]
+   [clojure.datafy :as datafy]
    [clojure.java.io :as io]
    [clojure.spec.alpha :as s]
    [clojure.main :as main]
@@ -60,7 +60,7 @@
 
 (defn val-selected
   [{:keys [view-pane state] :as ui} coll node path-seg val]
-  (let [val (->> val (data/nav coll) data/as-data)]
+  (let [val (->> val (datafy/nav coll path-seg) datafy/datafy)]
     (fx/later #(if (identical? (fx/current-ui view-pane) node)
                  (swap! state assoc :on-deck {:path-seg path-seg :val val})
                  (view ui path-seg val)))))
@@ -299,7 +299,7 @@
     (fx/add-selection-listener eval-table (fn [idx row]
                                             (let [{:keys [expr val]} row]
                                               ;;(set-code code-view expr)
-                                              (view ui idx (data/as-data val)))))))
+                                              (view ui idx (datafy/datafy val)))))))
 
 (defn- init [{:keys [exprs-mult proc]}]
   (fx/later
