@@ -50,7 +50,7 @@
 
 (defn view [{:keys [state view-pane viewer-choice fwd-button] :as ui} path-seg val]
   (let [viewer (viewer-for ui val)
-        meta-map (merge {:java/class (class val)} (meta val))]
+        meta-map (meta val)]
     (clear-deck ui)
     (swap! state merge (assoc viewer :path-seg path-seg :view-val val :view-meta meta-map))
     (update-choice viewer-choice (:view-options viewer) (:view-choice viewer))

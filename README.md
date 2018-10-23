@@ -12,6 +12,8 @@ REBL is a graphical, interactive tool for browsing Clojure data. It features:
 * when used with non-stdio repls (e.g. nREPL), can be launched a la carte and accepts values to inspect via an API call
 * the ability to capture nested values as defs in the user namespace
 * the ability to run multiple independent UI windows
+* metadata viewing
+* datafy support
 * extensibility to new browsers and viewers
 * full keyboard control via [hotkeys](https://github.com/cognitect-labs/rebl/wiki/Hotkeys)
 
@@ -34,7 +36,7 @@ add an alias to (your existing project's) deps.edn:
 {:deps {}
  :aliases
  {:rebl {:extra-deps {
-	org.clojure/clojure {:mvn/version "1.10.0-alpha3"}
+	org.clojure/clojure {:mvn/version "1.10.0-beta4"}
 	com.cognitect/rebl {:local/root "/Users/rich/dev/rebl"}}}}}
 ```
 
@@ -45,20 +47,6 @@ replace your normal repl invocation (`clj`, or `clojure` e.g. for inferior-lisp)
 Your repl should start, along with the REBL UI. Everything you type in the repl will also appear in REBL. You can also type expressions right into REBL's editor (in the upper left). REBL will maintain a history of exprs+results in the root browse table.
 
 You can start more UIs with `(cognitect.rebl/ui)`
-
-You can also connect to remote servers using socet server and io-prepl (requires Clojure 1.10.0-alpha3+). 
-
-Start your server:
-
-```
-Rich-iMac:test-rebl rich$ clj -J-Dclojure.server.repl="{:port 5555 :accept clojure.core.server/io-prepl}"
-Clojure 1.10.0-alpha3
-user=> 
-```
-
-then connect REBL:
-
-`clj -R:rebl -m cognitect.rebl localhost 5555`
 
 You can also use REBL with [boot](https://github.com/cognitect-labs/rebl/wiki/Using-REBL-with-Boot) or [lein](https://github.com/cognitect-labs/rebl/wiki/Using-REBL-with-Leiningen).
 
