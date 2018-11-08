@@ -2,6 +2,7 @@
 
 (ns cognitect.rebl.charts
   (:import
+   [javafx.collections ObservableList]
    [javafx.fxml FXMLLoader]
    [javafx.scene.chart AreaChart BarChart CategoryAxis LineChart NumberAxis ScatterChart StackedAreaChart StackedBarChart XYChart XYChart$Data XYChart$Series])
   (:require
@@ -10,8 +11,10 @@
    [cognitect.rebl.fx :as fx]
    [cognitect.rebl.ui :as ui]))
 
+(set! *warn-on-reflection* true)
+
 (defn- set-all
-  [container data]
+  [^ObservableList container data]
   (.setAll container (fx/fxlist data)))
 
 (defn distinct-values
@@ -87,10 +90,20 @@ from coll."
 (defmethod to-xy-series-data :pair-of-colls [[xs ys]] (map vector xs ys))
 
 (defn x-axis-for
-  [type]
-  (if (contains? {:bar :stacked-bar} type)
-    (CategoryAxis.)
-    (NumberAxis.)))
+  [{:keys [type x-range x-label]}]
+  (doto (if (contains? {:bar :stacked-bar} type)
+          (CategoryAxis.)
+          (if x-range
+            (NumberAxis.)  ;; TODO: this also would require tickunit
+            (NumberAxis.)))
+    (.setLabel x-label)))
+
+(defn y-axis-for
+  [{:keys [y-range y-label]}]
+  (doto (if y-range
+          (NumberAxis.)
+          (NumberAxis.))
+    (.setLabel y-label)))
 
 (defn transform-x-axis
   [type xy-series-data]
@@ -123,10 +136,10 @@ from coll."
    :y-label "Y"})
 
 (defn xy-chart
-  [{:keys [x-label y-label title type flipped?]} series]
+  [{:keys [title type flipped?] :as config} series]
   (let [xy-data (to-xy-series-data series)
-        x (doto (x-axis-for type) (.setLabel x-label))
-        y (doto (NumberAxis.) (.setLabel y-label))
+        x (x-axis-for config)
+        y (y-axis-for config)
         [x y] (if flipped? [y x] [x y])
         c (case type
                 :line (LineChart. x y)
