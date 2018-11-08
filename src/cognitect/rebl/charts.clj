@@ -116,10 +116,15 @@ from coll."
     (-> ser .getData (set-all (map #(xy-data opts %) tuples)))
     ser))
 
+(def xy-chart-defaults
+  {:type :bar
+   :title "Data"
+   :x-label "X"
+   :y-label "Y"})
+
 (defn xy-chart
-  [{:keys [x-label y-label type flipped?] :or {x-label "x" y-label "y"}}
-   serieses]
-  (let [xy-datas (map to-xy-series-data serieses)
+  [{:keys [x-label y-label title type flipped?]} series]
+  (let [xy-data (to-xy-series-data series)
         x (doto (x-axis-for type) (.setLabel x-label))
         y (doto (NumberAxis.) (.setLabel y-label))
         [x y] (if flipped? [y x] [x y])
@@ -130,11 +135,9 @@ from coll."
                 :bar (BarChart. x y)
                 :stacked-bar (StackedBarChart. x y)
                 :stacked-area (StackedAreaChart. x y))]
-    (-> c .getData (set-all (map (fn [xy-data]
-                                   (->> xy-data
-                                        (transform-x-axis type)
-                                        (xy-series {:name "Data" :flipped? flipped?})))
-                                 xy-datas)))
+    (-> c .getData (set-all [(->> xy-data
+                                  (transform-x-axis type)
+                                  (xy-series {:name title :flipped? flipped?}))]))
     c))
 
 (defn xy-chart-v
@@ -144,7 +147,8 @@ from coll."
         names (.getNamespace loader)
         node (fn [id] (.get names id))
         pane (node "chartView")
-        chart (xy-chart {:type :bar} [coll])]
+        config (merge xy-chart-defaults (-> coll meta :rebl/xy-chart))
+        chart (xy-chart config coll)]
     (ui/update-pane pane chart)
     root))
 
