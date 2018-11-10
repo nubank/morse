@@ -56,6 +56,10 @@
   [edn]
   (fx/set-text-area-edn (TextArea.) edn))
 
+(defn plain-text-viewer
+  [s]
+  (fx/set-text (TextArea.) s))
+
 (defn edn-viewer [edn]
   (fx/set-webview-edn (javafx.scene.web.WebView.) edn))
 
@@ -107,6 +111,7 @@
 
 
 (rebl/update-viewers {:rebl/edn {:pred #'any? :ctor #'plain-edn-viewer}
+                      :rebl/text {:pred #'string? :ctor #'plain-text-viewer}
                       :rebl/spec-edn {:pred #'s/spec? :ctor #'spec-edn-viewer}
                       :rebl/map {:pred #'fx/Map? :ctor #'map-vb}
                       :rebl/coll {:pred #'fx/Coll? :ctor #'coll-vb}

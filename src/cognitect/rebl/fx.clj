@@ -188,9 +188,10 @@ map's keys against the union of all keys."
 
 ;; N.B. controls that have .setText do not have a common base interface
 (defn set-text
-  "Set text of a control to stringified x."
+  "Set text of a control to stringified x. Returns control."
   [control x]
-  (.setText control (str x)))
+  (doto control
+    (.setText (str x))))
 
 (defn reset-code [code-view]
   (-> (.getEngine code-view)
