@@ -60,7 +60,8 @@
 
 (defn val-selected
   [{:keys [view-pane state] :as ui} coll node path-seg val]
-  (let [val (->> val (datafy/nav coll path-seg) datafy/datafy)]
+  (let [val (try (->> val (datafy/nav coll path-seg) datafy/datafy)
+                 (catch Throwable t t))]
     (fx/later #(if (identical? (fx/current-ui view-pane) node)
                  (swap! state assoc :on-deck {:path-seg path-seg :val val})
                  (view ui path-seg val)))))
