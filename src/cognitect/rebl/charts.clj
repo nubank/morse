@@ -11,8 +11,6 @@
    [cognitect.rebl.fx :as fx]
    [cognitect.rebl.ui :as ui]))
 
-(set! *warn-on-reflection* true)
-
 (defn- set-all
   [^ObservableList container data]
   (.setAll container (fx/fxlist data)))
