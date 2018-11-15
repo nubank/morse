@@ -110,7 +110,7 @@
   [map-of-maps val-cb] (set-table-map-of-maps (fx/table-view) map-of-maps (maps-keys (vals map-of-maps)) val-cb))
 
 
-(rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'plain-edn-viewer}
+(rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'edn-viewer}
                       :rebl/text {:pred #'string? :ctor #'plain-text-viewer}
                       :rebl/spec-edn {:pred #'s/spec? :ctor #'spec-edn-viewer}
                       :rebl/map {:pred #'fx/Map? :ctor #'map-vb}

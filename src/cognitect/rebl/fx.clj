@@ -262,8 +262,8 @@ pair."
          (reify javafx.beans.value.ChangeListener
                 (changed [_ ob oldv newv]
                          (when (= newv javafx.concurrent.Worker$State/SUCCEEDED)
-                           (set-code wv v))))))
-    (.load eng (str (io/resource "codeview.html")))
+                           (set-code wv (finite-pprint-str v)))))))
+    (.load eng (str (io/resource "cognitect/rebl/codeview.html")))
     wv))
 
 (defn set-text-area-edn
