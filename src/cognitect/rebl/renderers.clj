@@ -47,8 +47,13 @@
 ;; See https://stackoverflow.com/a/43102706/1456939
 (defn set-table-coll
   [^TableView t coll val-cb]
-  (fx/set-sortable-items t (fx/fxlist (into [] (map-indexed vector) (fx/finitify coll))))
-  (-> t .getColumns (.setAll [(fx/index-column first) (fx/table-column "val" second)]))
+  (if (instance? java.util.Set coll)
+    (do
+      (fx/set-sortable-items t (fx/fxlist (into [] (map vector) (fx/finitify coll))))
+      (-> t .getColumns (.setAll [(fx/table-column "val" first)])))
+    (do
+      (fx/set-sortable-items t (fx/fxlist (into [] (map-indexed vector) (fx/finitify coll))))
+      (-> t .getColumns (.setAll [(fx/index-column first) (fx/table-column "val" second)]))))
   (fx/add-selection-val-cb coll t val-cb))
 
 ;;;;;;;;;;;;;;;;; view/browse constructos and predicates ;;;;;;;;;;;;;;;;;;;;;;;;;;;
