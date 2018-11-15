@@ -108,13 +108,12 @@ map's keys against the union of all keys."
                               (= cnt (bc %1)))
                         (take 100 coll)))))))
 
-(defn uniformish-maps?
+(defn maps?
   [coll]
   (and (Coll? coll)
        (seq coll)
        (let [samp (sample coll coll-check-limit)]
-         (and (every? Map? samp)
-              (uniformish? samp)))))
+         (every? Map? samp))))
 
 (defn numbers?
   [x]
@@ -147,9 +146,9 @@ map's keys against the union of all keys."
        (<= (count x) 20)
        (every? number-pairs? (vals x))))
 
-(defn uniformish-map-of-maps?
+(defn map-of-maps?
   [m]
-  (and (Map? m) (uniformish-maps? (vals m))))
+  (and (Map? m) (maps? (vals m))))
 
 (defn throwable-map?
   [x]

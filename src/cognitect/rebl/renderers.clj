@@ -110,14 +110,14 @@
   [map-of-maps val-cb] (set-table-map-of-maps (fx/table-view) map-of-maps (maps-keys (vals map-of-maps)) val-cb))
 
 
-(rebl/update-viewers {:rebl/edn {:pred #'any? :ctor #'plain-edn-viewer}
+(rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'plain-edn-viewer}
                       :rebl/text {:pred #'string? :ctor #'plain-text-viewer}
                       :rebl/spec-edn {:pred #'s/spec? :ctor #'spec-edn-viewer}
                       :rebl/map {:pred #'fx/Map? :ctor #'map-vb}
                       :rebl/coll {:pred #'fx/Coll? :ctor #'coll-vb}
                       :rebl/tuples {:pred #'fx/tuples? :ctor #'tuples-vb}
-                      :rebl/maps {:pred #'fx/uniformish-maps? :ctor #'maps-vb}
-                      :rebl/map-of-maps {:pred #'fx/uniformish-map-of-maps? :ctor #'map-of-maps-vb}
+                      :rebl/maps {:pred #'fx/maps? :ctor #'maps-vb}
+                      :rebl/map-of-maps {:pred #'fx/map-of-maps? :ctor #'map-of-maps-vb}
                       :rebl/throwable-map {:ctor #'throwable-map-vb :pred #'fx/throwable-map?}
                       :rebl/throwable {:ctor #'throwable-vb :pred #'fx/throwable?}
                       })
@@ -125,6 +125,6 @@
 (rebl/update-browsers {:rebl/map {:pred #'fx/Map? :ctor #'map-vb}
                        :rebl/coll {:pred #'fx/Coll? :ctor #'coll-vb}
                        :rebl/tuples {:pred #'fx/tuples? :ctor #'tuples-vb}
-                       :rebl/maps {:pred #'fx/uniformish-maps? :ctor #'maps-vb}
-                       :rebl/map-of-maps {:pred #'fx/uniformish-map-of-maps? :ctor #'map-of-maps-vb}
+                       :rebl/maps {:pred #'fx/maps? :ctor #'maps-vb}
+                       :rebl/map-of-maps {:pred #'fx/map-of-maps? :ctor #'map-of-maps-vb}
                        })
