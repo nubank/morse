@@ -113,8 +113,10 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
                 :tap nil
                 :ret
                 (do
-                  (if (ex? val)
-                    (pp/pprint (dissoc val :trace))
+                  (if (:exception m)
+                    (binding [*out* *err*]
+                      (print (-> val main/ex-triage main/ex-str))
+                      (flush))
                     (prn val))
                   (printf "%s=> " ns)
                   (flush)))))]
