@@ -7,9 +7,9 @@
 (def project
   (project/create {:lib 'com.datomic/rebl
                    :version (str "0.9." (git/revision))
-                   :namespace 'datomic.ion.resolver
-                   :instrument? #(str/starts-with? (namespace %) "datomic")
-                   :project-class? #(str/starts-with? % "datomic/ion/resolver")}))
+                   :namespace 'cognitect.rebl
+                   :instrument? #(str/starts-with? (namespace %) "cognitect")
+                   :project-class? #(str/starts-with? % "cognitect/rebl")}))
 
 (defn local-build
   [project]
