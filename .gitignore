@@ -3,3 +3,5 @@
 rebl.iml
 .vscode
 .rebl
+target/*
+classes/*
