@@ -50,3 +50,25 @@ You can start more UIs with `(cognitect.rebl/ui)`
 
 You can also use REBL with [boot](https://github.com/cognitect-labs/rebl/wiki/Using-REBL-with-Boot) or [lein](https://github.com/cognitect-labs/rebl/wiki/Using-REBL-with-Leiningen).
 
+## Releases
+
+Public releases are sourced from `private-releases-1fc2183a` which is
+a private bucket.
+
+The REBL download page can create time limited S3 download links as
+follows:
+
+Read `s3://private-releases-1fc2183a/releases/REBL/manifest.edn`,
+which contains a map describing the current release.
+
+    {:current {:bucket "<bucket-name>"
+               :key "<KEY>"}}
+
+Create a temporary download link to that bucket and key, where the
+text name of the link is the last path element,
+e.g. "rebl-0.9.99.zip".
+
+Prior to initial release, the manifest just points to a "coming soon"
+text file, so test away. 
+
+
