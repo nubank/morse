@@ -68,7 +68,7 @@ map's keys against the union of all keys."
   "Returns a finite pretty printed string for e.g. an edn viewer"
   [x]
   (binding [pp/*print-right-margin* 72
-            *print-length* 10000
+            *print-length* 1000
             *print-level* 20]
     (with-out-str (pp/pprint x))))
 
@@ -254,24 +254,24 @@ pair."
   (doto (TableColumn. name)
     (.setCellValueFactory (cell-value-callback (comp finite-pr-str f)))))
 
-(defn set-webview-edn
-  [wv v]
+(defn set-webview-text
+  "N.B. This performs poorly with large text strings."
+  [wv text]
   (let [eng (.getEngine wv)]
     (-> eng .getLoadWorker .stateProperty
         (.addListener
          (reify javafx.beans.value.ChangeListener
                 (changed [_ ob oldv newv]
                          (when (= newv javafx.concurrent.Worker$State/SUCCEEDED)
-                           (set-code wv (finite-pprint-str v)))))))
+                           (set-code wv text))))))
     (.load eng (str (io/resource "cognitect/rebl/codeview.html")))
     wv))
 
-(defn set-text-area-edn
-  [ta edn]
-  (let [s (finite-pprint-str edn)]
-    (doto ta
-      (.setFont (javafx.scene.text.Font. "Monaco" 14.0))
-      (.setText s))))
+(defn set-text-area-text
+  [ta text]
+  (doto ta
+    (.setFont (javafx.scene.text.Font. "Monaco" 14.0))
+    (.setText text)))
 
 ;; per Sorting at https://docs.oracle.com/javase/8/javafx/api/javafx/scene/control/TableView.html
 (defn set-sortable-items

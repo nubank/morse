@@ -57,16 +57,18 @@
   (fx/add-selection-val-cb coll t val-cb))
 
 ;;;;;;;;;;;;;;;;; view/browse constructos and predicates ;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn plain-edn-viewer
-  [edn]
-  (fx/set-text-area-edn (TextArea.) edn))
-
 (defn plain-text-viewer
   [s]
   (fx/set-text (TextArea.) s))
 
-(defn edn-viewer [edn]
-  (fx/set-webview-edn (javafx.scene.web.WebView.) edn))
+(defn edn-viewer
+  "Edn viewer.  Chooses rich text control if edn is small enough
+to render efficiently, else plaintext."
+  [edn]
+  (let [text (fx/finite-pprint-str edn)]
+    (if (< (count text) 10000)
+      (fx/set-webview-text (javafx.scene.web.WebView.) text)
+      (fx/set-text-area-text (TextArea.) text))))
 
 (def spec-edn-viewer (comp edn-viewer s/form))
 
