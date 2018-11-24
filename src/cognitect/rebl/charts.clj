@@ -163,7 +163,7 @@ from coll."
     (ui/update-pane pane chart)
     root))
 
-(rebl/update-viewers {:rebl/xy-chart {:pred xy-chartable? :ctor xy-chart-v}})
+(rebl/update-viewers {:rebl/xy-chart {:pred #'xy-chartable? :ctor #'xy-chart-v}})
 
 
 
