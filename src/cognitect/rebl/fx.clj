@@ -20,6 +20,8 @@
 
 (def Map? #(instance? java.util.Map %1))
 (def Coll? #(instance? java.util.Collection %1))
+(def code? #(and (instance? java.util.List %)
+                 (symbol? (first %))))
 
 (defn table-view []
   (doto (TableView.)
@@ -253,6 +255,13 @@ pair."
   [name f]
   (doto (TableColumn. name)
     (.setCellValueFactory (cell-value-callback (comp finite-pr-str f)))))
+
+(defn set-webview-html
+  "N.B. This performs poorly with large text strings."
+  [wv text]
+  (let [eng (.getEngine wv)]
+    (.loadContent eng text)
+    wv))
 
 (defn set-webview-text
   "N.B. This performs poorly with large text strings."

@@ -70,6 +70,10 @@ to render efficiently, else plaintext."
       (fx/set-webview-text (javafx.scene.web.WebView.) text)
       (fx/set-text-area-text (TextArea.) text))))
 
+(defn html-viewer
+  [text]
+  (fx/set-webview-html (javafx.scene.web.WebView.) text))
+
 (def spec-edn-viewer (comp edn-viewer s/form))
 
 (defn throwable-map-vb
@@ -118,7 +122,9 @@ to render efficiently, else plaintext."
 
 
 (rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'edn-viewer}
+                      :rebl/code {:pred #'fx/code? :ctor #'edn-viewer}
                       :rebl/text {:pred #'string? :ctor #'plain-text-viewer}
+                      :rebl/html {:pred #'string? :ctor #'html-viewer}
                       :rebl/spec-edn {:pred #'s/spec? :ctor #'spec-edn-viewer}
                       :rebl/map {:pred #'fx/Map? :ctor #'map-vb}
                       :rebl/coll {:pred #'fx/Coll? :ctor #'coll-vb}
