@@ -335,7 +335,8 @@
                    :val-column (doto (node "valColumn")
                                  (.setCellValueFactory (fx/cell-value-callback (comp fx/finite-pr-str :val))))
                    :start-column (doto (node "startColumn")
-                                   (.setCellValueFactory (fx/cell-value-callback (fn [x] (some->> x :rebl/start (.format tf))))))
+                                   (.setVisible false)
+                                   #_(.setCellValueFactory (fx/cell-value-callback (fn [x] (some->> x :rebl/start (.format tf))))))
                    :elapsed-column (doto (node "elapsedColumn")
                                      (.setCellValueFactory (fx/cell-value-callback :ms)))
                    
