@@ -1,7 +1,7 @@
 {:deps
- {org.clojure/core.async {:mvn/version "0.4.474"}
+ {org.clojure/core.async {:mvn/version "0.4.490"}
   org.clojure/spec.alpha {:mvn/version "0.2.176"}
-  org.clojure/clojure {:mvn/version "1.10.0-beta8"}
+  org.clojure/clojure {:mvn/version "1.10.0-RC2"}
   }
  :paths ["src" "resources"]
  :aliases
