@@ -3,6 +3,9 @@
   org.clojure/spec.alpha {:mvn/version "0.2.176"}
   org.clojure/clojure {:mvn/version "1.10.0-RC2"}
   }
+
+ :mvn/repos {"cloud-maven" {:url "s3://cloud-1fc2183a-56c5-4f05-b37d-e78b6a7daffe/maven/releases"}}
+
  :paths ["src" "resources"]
  :aliases
  {:ci {:extra-paths ["build"]
