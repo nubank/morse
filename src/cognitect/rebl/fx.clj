@@ -20,6 +20,7 @@
 
 (def Map? #(instance? java.util.Map %1))
 (def Coll? #(instance? java.util.Collection %1))
+(def url? #(and (instance? java.net.URL %1)))
 (def code? #(and (instance? java.util.List %)
                  (symbol? (first %))))
 
@@ -256,12 +257,54 @@ pair."
   (doto (TableColumn. name)
     (.setCellValueFactory (cell-value-callback (comp finite-pr-str f)))))
 
-(defn set-webview-html
-  "N.B. This performs poorly with large text strings."
-  [wv text]
-  (let [eng (.getEngine wv)]
-    (.loadContent eng text)
-    wv))
+(defn- listener
+  []
+  (reify org.w3c.dom.events.EventListener
+         (handleEvent
+          [_ ev]
+          (prn {:clicked ev})
+          )))
+
+(defn- get-elements
+  [doc tag-name]
+  (let [els (.getElementsByTagName doc tag-name)]
+    (into [] (map #(.item els %) (range (.getLength els))))))
+
+(defn- load-engine-content
+  [engine stuff]
+  (cond
+   (string? stuff)
+   (.loadContent engine stuff)
+
+   (url? stuff)
+   (.load engine (str stuff))))
+
+(defn set-webview
+  ([wv stuff]
+     (set-webview wv stuff nil))
+  ([wv stuff val-cb]
+     (let [eng (.getEngine wv)]
+       (load-engine-content eng stuff)
+       (-> eng .getLoadWorker .stateProperty
+           (.addListener
+            (reify javafx.beans.value.ChangeListener
+                   (changed [_ ob oldv newv]
+                            (when (= newv javafx.concurrent.Worker$State/SUCCEEDED)
+                              (let [doc (.getDocument eng)
+                                    els (get-elements doc "a")]
+                                #_(prn {:doc doc :els (count els)})
+                                (doseq [el els]
+                                  (when-let [href (.getHref el)]
+                                    (.addEventListener el
+                                                       "click"
+                                                       (reify org.w3c.dom.events.EventListener
+                                                              (handleEvent
+                                                               [_ ev]
+                                                               (when val-cb
+                                                                 (val-cb wv href (java.net.URL. href)))
+                                                               (.preventDefault ev)))
+                                                       false)))))))))
+       wv)))
 
 (defn set-webview-text
   "N.B. This performs poorly with large text strings."

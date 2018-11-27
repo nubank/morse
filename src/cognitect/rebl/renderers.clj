@@ -70,9 +70,9 @@ to render efficiently, else plaintext."
       (fx/set-webview-text (javafx.scene.web.WebView.) text)
       (fx/set-text-area-text (TextArea.) text))))
 
-(defn html-viewer
-  [text]
-  (fx/set-webview-html (javafx.scene.web.WebView.) text))
+(defn web-vb
+  [url val-cb]
+  (fx/set-webview (javafx.scene.web.WebView.) url val-cb))
 
 (def spec-edn-viewer (comp edn-viewer s/form))
 
@@ -124,7 +124,8 @@ to render efficiently, else plaintext."
 (rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'edn-viewer}
                       :rebl/code {:pred #'fx/code? :ctor #'edn-viewer}
                       :rebl/text {:pred #'string? :ctor #'plain-text-viewer}
-                      :rebl/html {:pred #'string? :ctor #'html-viewer}
+                      :rebl/url {:pred #'fx/url? :ctor #'web-vb}
+                      :rebl/html {:pred #'string? :ctor #'web-vb}
                       :rebl/spec-edn {:pred #'s/spec? :ctor #'spec-edn-viewer}
                       :rebl/map {:pred #'fx/Map? :ctor #'map-vb}
                       :rebl/coll {:pred #'fx/Coll? :ctor #'coll-vb}
@@ -136,6 +137,8 @@ to render efficiently, else plaintext."
                       })
 
 (rebl/update-browsers {:rebl/map {:pred #'fx/Map? :ctor #'map-vb}
+                       :rebl/url {:pred #'fx/url? :ctor #'web-vb}
+                       :rebl/html {:pred #'string? :ctor #'web-vb}
                        :rebl/coll {:pred #'fx/Coll? :ctor #'coll-vb}
                        :rebl/tuples {:pred #'fx/tuples? :ctor #'tuples-vb}
                        :rebl/maps {:pred #'fx/maps? :ctor #'maps-vb}
