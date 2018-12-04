@@ -73,11 +73,13 @@ the contents of zip-static directory."
   [current-project version]
   (let [{:keys [lib install-zip-path] :as project} (create-project (assoc current-project :version version))
         zip-name (.getName (io/file install-zip-path))
-        key (str (:key releases-path) "/" zip-name)]
+        key (str (:key releases-path) "/" zip-name)
+        to {:bucket (:bucket releases-path)
+          :key key}]
     {:from {:bucket (:repo-bucket project)
             :key install-zip-path}
-     :to {:bucket (:bucket releases-path)
-          :key key}}))
+     :to to
+     :manifest {:current to}}))
 
 (defn release
   [current-project release-version]
@@ -86,10 +88,14 @@ the contents of zip-static directory."
     (pp/pprint {:releasing plan})
     (s3/copy [plan])
     (s3/write-edn (:bucket releases-path) manifest-path
-                  {:latest (:to plan)})))
+                  (:manifest plan))))
 
 (defn -main [& _] (project/main build project))
 
 (comment
   (ci/local-build ci/project)
+
+  (ci/build ci/project)
+  (ci/release ci/project "0.9.109")
+  (ci/release-plan ci/project "0.9.108")
   )
