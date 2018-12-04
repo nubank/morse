@@ -8,7 +8,13 @@ If you do not wish to accept these terms, you should not download, install, or u
 
 Cognitect Inc, a Delaware Corporation, is the owner of all copyright and intellectual property rights in REBL and grants you a personal, worldwide, royalty-free, perpetual, non-assignable, and non-exclusive license to use REBL under the terms and conditions contained in this license.
 
-You may not use REBL for commercial use.
+You may not use REBL for commercial use (e.g. at or for work) unless:
+
+   a) You are an active, paying customer of Datomic (Cloud or On-Prem)
+   
+   -- OR --
+
+   b) You are an active subscriber of the REBL Patreon (https://www.patreon.com/cognitect)
 
 You may not redistribute REBL.
 

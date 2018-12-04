@@ -23,8 +23,9 @@ REBL runs in your application JVM process, and can be used at dev-time without a
 
 ## Requirements
 
-- Clojure 1.9
+- Clojure 1.10.0-RC2 or higher
 - Java 1.8.0_151 or higher
+- core.async (tested with 0.4.490)
 
 ## Usage:
 
@@ -36,7 +37,8 @@ add an alias to (your existing project's) deps.edn with a [local dependency](htt
 {:deps {}
  :aliases
  {:rebl {:extra-deps {
-	org.clojure/clojure {:mvn/version "1.10.0-beta4"}
+	org.clojure/clojure {:mvn/version "1.10.0-RC2"}
+        org.clojure/core.async {:mvn/version "0.4.490"}
 	com.cognitect/rebl {:local/root "/path/to/rebl-VERSION.jar"}}}}}
 ```
 
@@ -47,3 +49,7 @@ replace your normal repl invocation (`clj`, or `clojure` e.g. for inferior-lisp)
 Your repl should start, along with the REBL UI. Everything you type in the repl will also appear in REBL. You can also type expressions right into REBL's editor (in the upper left). REBL will maintain a history of exprs+results in the root browse table.
 
 You can start more UIs with `(cognitect.rebl/ui)`
+
+## Feedback
+
+Please report any [issues](https://github.com/cognitect-labs/REBL-distro/issues) you encounter.
