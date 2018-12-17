@@ -6,6 +6,7 @@
    [javafx.scene.control TableView TextArea])
   (:require
    [clojure.java.io :as io]
+   [clojure.main :as main]
    [clojure.spec.alpha :as s]
    [cognitect.rebl :as rebl]
    [cognitect.rebl.fx :as fx]))
@@ -84,7 +85,7 @@ to render efficiently, else plaintext."
            names (.getNamespace loader)
            node (fn [id] (.get names id))]
        (doto (node "causeView")
-         (.setText (:cause ex)))
+         (.setText (-> ex main/ex-triage main/ex-str)))
        (if-let [data (:data ex)]
          (doto (node "exDataTable")
            (set-table-map data val-cb))
