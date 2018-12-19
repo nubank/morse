@@ -13,8 +13,11 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
@@ -26,17 +29,24 @@
         <items>
             <SplitPane dividerPositions="0.29958960328317374" minHeight="-Infinity" minWidth="-Infinity" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
               <items>
-                  <VBox prefHeight="258.0" prefWidth="301.0">
+                  <GridPane>
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints vgrow="SOMETIMES" />
+                      <RowConstraints maxHeight="40.0" minHeight="40.0" prefHeight="40.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
                      <children>
-                        <WebView fx:id="codeView" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
-                        <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
+                        <WebView fx:id="codeView" prefHeight="200.0" prefWidth="200.0" />
+                        <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" GridPane.rowIndex="1">
                            <children>
                               <Label fx:id="nsLabel" text="ns: user">
                                  <font>
                                     <Font size="14.0" />
                                  </font>
                               </Label>
-                              <FlowPane alignment="CENTER_RIGHT" hgap="10.0" prefHeight="54.0" prefWidth="453.0" prefWrapLength="600.0" vgap="4.0">
+                              <FlowPane alignment="CENTER_RIGHT" hgap="10.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="42.0" prefWidth="453.0" prefWrapLength="600.0" vgap="4.0">
                                  <children>
                                     <CheckBox fx:id="followEditorCheck" mnemonicParsing="false" selected="true" text="Follow REPL" />
                                     <Button fx:id="evalButton" mnemonicParsing="false" text="eval">
@@ -52,12 +62,12 @@
                                  </padding>
                               </FlowPane>
                            </children>
+                           <GridPane.margin>
+                              <Insets left="12.0" />
+                           </GridPane.margin>
                         </HBox>
                      </children>
-                     <padding>
-                        <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
-                     </padding>
-                  </VBox>
+                  </GridPane>
                   <StackPane maxHeight="1.7976931348623157E308" prefHeight="421.0" prefWidth="495.0">
                      <children>
                         <TabPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="UNAVAILABLE">
@@ -97,9 +107,37 @@
                             </Tab>
                               <Tab text="tap">
                                 <content>
-                                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                  <AnchorPane>
                                        <children>
-                                          <ListView fx:id="tapList" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                          <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="474.0" prefWidth="514.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                            <columnConstraints>
+                                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                              <RowConstraints vgrow="SOMETIMES" />
+                                              <RowConstraints maxHeight="40.0" minHeight="40.0" prefHeight="40.0" vgrow="ALWAYS" />
+                                            </rowConstraints>
+                                             <children>
+                                                <ListView fx:id="tapList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" />
+                                                <AnchorPane maxHeight="40.0" minHeight="40.0" prefHeight="40.0" prefWidth="200.0" GridPane.rowIndex="1">
+                                                   <children>
+                                                      <FlowPane minHeight="40.0" prefHeight="40.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
+                                                         <children>
+                                                            <Button fx:id="tapClear" mnemonicParsing="false" text="Clear">
+                                                               <FlowPane.margin>
+                                                                  <Insets right="12.0" />
+                                                               </FlowPane.margin>
+                                                            </Button>
+                                                            <CheckBox fx:id="tapLatest" contentDisplay="RIGHT" mnemonicParsing="false" text="Scroll to Latest" />
+                                                         </children>
+                                                         <padding>
+                                                            <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
+                                                         </padding>
+                                                      </FlowPane>
+                                                   </children>
+                                                </AnchorPane>
+                                             </children>
+                                          </GridPane>
                                        </children>
                                     </AnchorPane>
                                 </content>
