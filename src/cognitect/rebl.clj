@@ -73,7 +73,7 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
 (defn is-browser? [identk]
   (-> @registry :browsers (contains? identk)))
 
-(defonce ^:private echan (chan 10))
+(defonce ^:private echan (chan 1024))
 (defonce ^:private exprs (mult echan))
 
 (defn ui
@@ -105,7 +105,8 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
         o *out*
         ex? (every-pred :cause :via)
         cb (fn [{:keys [tag val form ms ns] :as m}]
-             (>!! echan (assoc m :rebl/source "REPL"))
+             (when-not (= tag :tap)
+               (>!! echan (assoc m :rebl/source "REPL")))
              (binding [*out* o]
                (case tag
                 :err (print val)
