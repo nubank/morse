@@ -8,13 +8,8 @@
    [clojure.core.async :as async :refer [>!! <!! chan mult]]
    [cognitect.rebl.config :as config]))
 
-
-(defn foo []
-  "bar")
-
 (comment "an atom on map with keys:
 :browsers and :viewers - :identk -> {:keys [pred ctor]}")
-
 (defonce  registry (atom {:browsers {} :viewers {}}))
 
 (defn update-browsers
