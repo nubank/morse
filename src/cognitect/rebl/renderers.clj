@@ -5,10 +5,12 @@
    [javafx.fxml FXMLLoader]
    [javafx.scene.control TableView TextArea])
   (:require
+   [clojure.datafy :as datafy]
    [clojure.java.io :as io]
    [clojure.main :as main]
    [clojure.spec.alpha :as s]
    [cognitect.rebl :as rebl]
+   [cognitect.rebl.impl.file :as file]
    [cognitect.rebl.fx :as fx]))
 
 ;;;;;;;;;;;;;;;;; table helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -121,6 +123,15 @@ to render efficiently, else plaintext."
 (defn map-of-maps-vb
   [map-of-maps val-cb] (set-table-map-of-maps (fx/table-view) map-of-maps (maps-keys (vals map-of-maps)) val-cb))
 
+(defn file-contents
+  [s]
+  (let [f (-> s meta ::datafy/obj)]
+    (fx/set-text (TextArea.) (file/bounded-slurp f 1000000))))
+
+(defn file-browse
+  [s]
+  (let [url (-> s meta ::datafy/obj io/as-url)]
+    (fx/set-webview (javafx.scene.web.WebView.) url)))
 
 (rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'edn-viewer}
                       :rebl/code {:pred #'fx/code? :ctor #'edn-viewer}
@@ -135,6 +146,8 @@ to render efficiently, else plaintext."
                       :rebl/map-of-maps {:pred #'fx/map-of-maps? :ctor #'map-of-maps-vb}
                       :rebl/throwable-map {:ctor #'throwable-map-vb :pred #'fx/throwable-map?}
                       :rebl/throwable {:ctor #'throwable-vb :pred #'fx/throwable?}
+                      ;; :rebl.file/contents {:ctor #'file-contents :pred #'file/datafied-file?}
+                      ;; :rebl.file/browse {:ctor #'file-browse :pred #'file/datafied-file?}
                       })
 
 (rebl/update-browsers {:rebl/map {:pred #'fx/Map? :ctor #'map-vb}
