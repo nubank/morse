@@ -1,28 +1,52 @@
 <!doctype html>
 <html>
 <head>
-  <link rel="stylesheet" href="libs/codemirror/lib/codemirror.css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
   <link rel="stylesheet" href="codeview.css">
-  <script src="libs/codemirror/lib/codemirror.js"></script>
-  <script src="libs/codemirror/mode/clojure/clojure.js"></script>
-  <script src="libs/parinfer.js"></script>
-  <script src="libs/parinfer-codemirror.js"></script>
+  <link rel="stylesheet" data-name="vs/editor/editor.main" href="libs/monaco/min/vs/editor/editor.main.css">
+  <script>var require = { paths: { 'vs': 'libs/monaco/min/vs' } };</script>
+  <script src="libs/monaco/min/vs/loader.js"></script>
+  <script src="libs/monaco/min/vs/editor/editor.main.nls.js"></script>
+  <script src="libs/monaco/min/vs/editor/editor.main.js"></script>
 </head>
 <body>
+  <!-- loading based on https://github.com/Microsoft/monaco-editor-samples/blob/3e322e5dfb7a016f6bb4fdca250c1929f3876ca9/browser-script-editor/index.html -->
+  <div id="editor"></div>
   <script>
-(function(){
+var editor = monaco.editor.create(document.getElementById('editor'), {
+        value: `"Welcome to REBL.
+Enter forms here and press the eval button or CONTROL+ENTER"`,
+    language: 'clojure',
+    scrollBeyondLastLine: false,
+    minimap: {enabled: false},
+    smoothScrolling: true
+});
+    document.editor = editor;
 
-var cm = CodeMirror(document.body);
-document.cm = cm;
+// throttle editor resize handler
+// https://developer.mozilla.org/en-US/docs/Web/Events/resize#requestAnimationFrame_customEvent
+(function() {
+  var throttle = function(type, name, obj) {
+    obj = obj || window;
+    var running = false;
+    var func = function() {
+      if (running) { return; }
+      running = true;
+      requestAnimationFrame(function() {
+        obj.dispatchEvent(new CustomEvent(name));
+        running = false;
+      });
+    };
+    obj.addEventListener(type, func);
+  };
 
-cm.setValue(`
-"Welcome to REBL.
-Enter forms here and press the eval button or CONTROL+ENTER"
-`);
-
-parinferCodeMirror.init(cm);
-
+  throttle("resize", "optimizedResize");
 })();
+
+
+window.addEventListener("optimizedResize", function() {
+    editor.layout()
+});
   </script>
 </body>
 </html>

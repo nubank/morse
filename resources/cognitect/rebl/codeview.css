@@ -21,3 +21,13 @@ html, body {
   box-sizing: border-box;
   height: 100%;
 }
+
+body {
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+#editor {
+    height:100%;
+    border: 0px solid grey;
+}
