@@ -93,6 +93,19 @@
            (repeatedly #(json-read rdr :eof-error? false :eof-value eof))))))))
  (catch java.io.FileNotFoundException _))
 
+(try
+ (let [csv-read (requiring-resolve 'clojure.data.csv/read-csv)]
+   (swap!
+    data-file-readers-ref
+    assoc
+    "csv"
+    (fn [^File f]
+      (with-open [rdr (io/reader f)]
+        (into
+         []
+         (csv-read rdr))))))
+ (catch java.io.FileNotFoundException _))
+
 (extend-protocol p/Datafiable
   java.io.File
   (datafy [f]
