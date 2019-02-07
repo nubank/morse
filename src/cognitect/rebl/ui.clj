@@ -155,9 +155,18 @@
   (let [n (swap! expr-ord #(if (< %1 (-> eval-history deref count dec)) (inc %1) %1))]
     (load-expr ui n)))
 
+(deftype Tapped
+  [v]
+  java.lang.Object
+  (toString
+   [_]
+   (binding [*print-length* 50
+             *print-level* 2]
+     (-> v pr-str (fx/finite-str 100)))))
+
 (defn append-tap
   [{:keys [^ListView tap-list-view ^ObservableList tap-list]} val]
-  (.add tap-list val)
+  (.add tap-list (->Tapped val))
   tap-list-view)
 
 (defn expr-loop [{:keys [exprs ^Writer eval-writer eval-history follow-editor-check title
