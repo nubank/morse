@@ -1,10 +1,14 @@
 ;; Copyright (c) Cognitect, Inc. All rights reserved.
 
 (ns cognitect.rebl.impl.file
-  (:import java.io.File)
-  (:require [clojure.java.io :as io]
-            [clojure.core.protocols :as p]
-            [clojure.datafy :as datafy]))
+  (:import
+   clojure.lang.LineNumberingPushbackReader
+   java.io.File)
+  (:require
+   [clojure.java.io :as io]
+   [clojure.core.protocols :as p]
+   [clojure.datafy :as datafy]
+   [clojure.edn :as edn]))
 
 (defn datafy-node
   [^File f]
@@ -51,11 +55,36 @@
       {`p/nav (fn [_ k v]
                 (io/file f v))})))
 
+(defn read-edn
+  [^File f]
+  (with-open [rdr (LineNumberingPushbackReader. (io/reader f))]
+    (let [eof (Object.)]
+      (into
+       []
+       (take-while #(not= % eof))
+       (repeatedly #(edn/read {:eof eof} rdr))))))
+
+(def data-file-readers-ref
+  (atom {"edn" read-edn}))
+
+(defn- extension
+  [s]
+  (second (re-matches #".*\.([^.]*)" s )))
+
+(defn data-file-reader
+  [^File f]
+  (and (.isFile f)
+       ;; don't try to read giant data files, for now
+       (< (.length f) 10000000) 
+       (get @data-file-readers-ref (extension (.getName f)))))
+
 (extend-protocol p/Datafiable
   java.io.File
   (datafy [f]
           (cond
-           (.isFile f) (datafy-file f)
+           (.isFile f) (if-let [rf (data-file-reader f)]
+                         (rf f)
+                         (datafy-file f))
            (.isDirectory f) (datafy-directory f)
            :default f)))
 
