@@ -156,10 +156,8 @@
     (load-expr ui n)))
 
 (defn append-tap
-  [{:keys [^ListView tap-list-view ^ObservableList tap-list ^CheckBox tap-latest]} val]
+  [{:keys [^ListView tap-list-view ^ObservableList tap-list]} val]
   (.add tap-list val)
-  (when (.isSelected tap-latest)
-    (.scrollTo tap-list-view (.size tap-list)))
   tap-list-view)
 
 (defn expr-loop [{:keys [exprs ^Writer eval-writer eval-history follow-editor-check title
@@ -257,7 +255,7 @@
 (defn wire-handlers [{:keys [root-button back-button fwd-button eval-button def-button
                              viewer-choice browser-choice
                              scene eval-table code-view browse-pane view-pane
-                             tap-list-view tap-list tap-latest tap-clear] :as ui}]
+                             tap-list-view tap-list tap-clear] :as ui}]
   (let [wire-button (fn [f b]
                       (.setOnAction b (reify EventHandler (handle [_ e] (f)))))
         wire-key (fn wire-key
@@ -304,10 +302,7 @@
     (-> browser-choice .valueProperty (.addListener (fx/change-listener (fn [ob ov nv]
                                                                           (browser-chosen ui (.getItems browser-choice) nv)))))
     ;; checkboxes
-    (-> tap-latest .selectedProperty (.addListener (fx/change-listener (fn [_ _ nv]
-                                                                         #_(prn {:nv nv :size (.size tap-list) :tap-list-view tap-list-view})
-                                                                         (when nv
-                                                                           (.scrollTo tap-list-view (.size tap-list)))))))
+
 
     ;;tooltips
     (tooltip root-button "Nav to root (eval history) ^⇧LEFT")

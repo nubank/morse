@@ -8,9 +8,19 @@
 
 (defn datafy-node
   [^File f]
-  {:name (.getName f)
-   :path (.getPath f)
-   :modified (.lastModified f)})
+  (with-meta
+    {}
+    {:rebl.file/path (.getCanonicalPath f)
+     :rebl.file/modified (.lastModified f)}))
+
+(comment
+  (defmacro time-tap
+    [context & body]
+    `(let [start# (System/currentTimeMillis)
+           result# (do
+                     ~@body)]
+       (tap> (assoc ~context :msec (- (System/currentTimeMillis) start#)))
+       result#)))
 
 (defn bounded-slurp
   "Like slurp, but only up to approximately limit chars."
@@ -27,23 +37,19 @@
                   (recur (+ n size)))))))))
     (.toString sw)))
 
-;; should use canonical path
 (defn datafy-file
   [^File f]
-  (with-meta 
-    (assoc (datafy-node f)
-      :length (.length f))
-    {`p/nav (fn [f k v]
-              (if (= :contents k)
-                (bounded-slurp (:path f) (* 1024 1024))
-                v))}))
+  (let [m (datafy-node f)]
+    (assoc m
+      :length (.length f)
+      :name (.getName f))))
 
 (defn datafy-directory
   [^File f]
-  (assoc (datafy-node f)
-    :name (.getName f)
-    :path (.getPath f)
-    :files (into [] (.listFiles f))))
+  (let [m (datafy-node f)]
+    (with-meta (map (fn [^File f] (.getName f)) (.listFiles f))
+      {`p/nav (fn [_ k v]
+                (io/file f v))})))
 
 (extend-protocol p/Datafiable
   java.io.File
@@ -55,7 +61,9 @@
 
 (defn datafied-file?
   [x]
-  (= 'java.io.File (-> x meta ::datafy/class)))
+  (let [m (meta x)]
+    (and (= 'java.io.File (::datafy/class m))
+         (:length x))))
 
 
 

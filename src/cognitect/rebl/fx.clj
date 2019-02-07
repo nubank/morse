@@ -257,14 +257,6 @@ pair."
   (doto (TableColumn. name)
     (.setCellValueFactory (cell-value-callback (comp finite-pr-str f)))))
 
-(defn- listener
-  []
-  (reify org.w3c.dom.events.EventListener
-         (handleEvent
-          [_ ev]
-          (prn {:clicked ev})
-          )))
-
 (defn- get-elements
   [doc tag-name]
   (let [els (.getElementsByTagName doc tag-name)]

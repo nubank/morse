@@ -128,7 +128,6 @@
                                                                   <Insets right="12.0" />
                                                                </FlowPane.margin>
                                                             </Button>
-                                                            <CheckBox fx:id="tapLatest" contentDisplay="RIGHT" mnemonicParsing="false" text="Scroll to Latest" />
                                                          </children>
                                                          <padding>
                                                             <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />

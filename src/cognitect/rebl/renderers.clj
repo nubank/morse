@@ -123,10 +123,10 @@ to render efficiently, else plaintext."
 (defn map-of-maps-vb
   [map-of-maps val-cb] (set-table-map-of-maps (fx/table-view) map-of-maps (maps-keys (vals map-of-maps)) val-cb))
 
-(defn file-contents
+(defn file-top
   [s]
   (let [f (-> s meta ::datafy/obj)]
-    (fx/set-text (TextArea.) (file/bounded-slurp f 1000000))))
+    (fx/set-text (TextArea.) (file/bounded-slurp f 10000))))
 
 (defn file-browse
   [s]
@@ -146,7 +146,7 @@ to render efficiently, else plaintext."
                       :rebl/map-of-maps {:pred #'fx/map-of-maps? :ctor #'map-of-maps-vb}
                       :rebl/throwable-map {:ctor #'throwable-map-vb :pred #'fx/throwable-map?}
                       :rebl/throwable {:ctor #'throwable-vb :pred #'fx/throwable?}
-                      ;; :rebl.file/contents {:ctor #'file-contents :pred #'file/datafied-file?}
+                      :rebl.file/top {:ctor #'file-top :pred #'file/datafied-file?}
                       ;; :rebl.file/browse {:ctor #'file-browse :pred #'file/datafied-file?}
                       })
 
