@@ -78,6 +78,21 @@
        (< (.length f) 10000000) 
        (get @data-file-readers-ref (extension (.getName f)))))
 
+(try
+ (let [json-read (requiring-resolve 'clojure.data.json/read)]
+   (swap!
+    data-file-readers-ref
+    assoc
+    "json"
+    (fn [^File f]
+      (with-open [rdr (LineNumberingPushbackReader. (io/reader f))]
+        (let [eof (Object.)]
+          (into
+           []
+           (take-while #(not= % eof))
+           (repeatedly #(json-read rdr :eof-error? false :eof-value eof))))))))
+ (catch java.io.FileNotFoundException _))
+
 (extend-protocol p/Datafiable
   java.io.File
   (datafy [f]
