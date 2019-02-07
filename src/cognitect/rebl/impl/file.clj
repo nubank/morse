@@ -122,5 +122,14 @@
     (and (= 'java.io.File (::datafy/class m))
          (:length x))))
 
+(def browsable-extensions-ref
+  (atom #{"html" "png"}))
 
+(defn browsable-file?
+  [x]
+  (let [m (meta x)
+        f (::datafy/obj m)]
+    (and (instance? File f)
+         (:length x)
+         (get @browsable-extensions-ref (extension (.getName f))))))
 

@@ -147,7 +147,7 @@ to render efficiently, else plaintext."
                       :rebl/throwable-map {:ctor #'throwable-map-vb :pred #'fx/throwable-map?}
                       :rebl/throwable {:ctor #'throwable-vb :pred #'fx/throwable?}
                       :rebl.file/top {:ctor #'file-top :pred #'file/datafied-file?}
-                      ;; :rebl.file/browse {:ctor #'file-browse :pred #'file/datafied-file?}
+                      :rebl.file/browse {:ctor #'file-browse :pred #'file/browsable-file?}
                       })
 
 (rebl/update-browsers {:rebl/map {:pred #'fx/Map? :ctor #'map-vb}
