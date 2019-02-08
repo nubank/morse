@@ -8,6 +8,7 @@
    [cognitect.rebl.fx :as fx]
    [clojure.datafy :as datafy]
    [clojure.java.io :as io]
+   [clojure.pprint :as pp]
    [clojure.spec.alpha :as s]
    [clojure.main :as main]
    [clojure.core.async :as async :refer [<!! chan tap untap]])
@@ -17,7 +18,9 @@
            [javafx.event EventHandler]
            [javafx.application Platform]
            [javafx.scene.input KeyEvent KeyCodeCombination KeyCode KeyCombination$Modifier]
-           [javafx.scene.control CheckBox ListView Tooltip]
+           [javafx.scene.control CheckBox ListCell ListView Tooltip]
+           [javafx.scene.control.cell TextFieldListCell]
+           [javafx.util Callback]
            [java.text DateFormat]
            [java.io Writer PipedReader PipedWriter]))
 
@@ -157,6 +160,8 @@
 
 (deftype Tapped
   [v]
+  clojure.lang.IDeref
+  (deref [_] v)
   java.lang.Object
   (toString
    [_]
@@ -330,6 +335,21 @@
                                               ;;(set-code code-view expr)
                                               (view ui idx (datafy/datafy val)))))))
 
+(defn tap-cell-factory
+  []
+  (reify
+   Callback 
+   (call
+    [this val]
+    (let [tooltip (Tooltip.)]
+      (proxy [TextFieldListCell] []
+        (updateItem
+         [item empty?]
+         (proxy-super updateItem item empty?)
+         (when-not empty?
+           (.setText tooltip (fx/finite-pprint-str @item))
+           (.setTooltip this tooltip))))))))
+
 (defn- init [{:keys [exprs-mult proc]}]
   (fx/later
    #(try (let [loader (FXMLLoader. (io/resource "cognitect/rebl/rebl.fxml"))
@@ -396,6 +416,7 @@
                    :tap-list tap-list
                    :tap-list-view tap-list-view
                    :tap-latest (node "tapLatest")}]
+           (.setCellFactory tap-list-view (tap-cell-factory))
            (-> scene .getStylesheets (.add (str (io/resource "cognitect/rebl/fx.css"))))
            (.setItems tap-list-view tap-list)
            (.setTitle stage (:title ui))
