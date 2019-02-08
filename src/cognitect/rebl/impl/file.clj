@@ -10,12 +10,16 @@
    [clojure.datafy :as datafy]
    [clojure.edn :as edn]))
 
+(defn node-meta
+  [^File f]
+  {:rebl.file/path (.getCanonicalPath f)
+   :rebl.file/modified (.lastModified f)})
+
 (defn datafy-node
   [^File f]
   (with-meta
     {}
-    {:rebl.file/path (.getCanonicalPath f)
-     :rebl.file/modified (.lastModified f)}))
+    (node-meta f)))
 
 (comment
   (defmacro time-tap
@@ -111,7 +115,7 @@
   (datafy [f]
           (cond
            (.isFile f) (if-let [rf (data-file-reader f)]
-                         (rf f)
+                         (with-meta (rf f) (node-meta f))
                          (datafy-file f))
            (.isDirectory f) (datafy-directory f)
            :default f)))
@@ -119,8 +123,9 @@
 (defn datafied-file?
   [x]
   (let [m (meta x)]
-    (and (= 'java.io.File (::datafy/class m))
-         (:length x))))
+    (-> (and (= 'java.io.File (::datafy/class m))
+             (:length x))
+        boolean)))
 
 (def browsable-extensions-ref
   (atom #{"html" "png"}))
@@ -129,7 +134,8 @@
   [x]
   (let [m (meta x)
         f (::datafy/obj m)]
-    (and (instance? File f)
-         (:length x)
-         (get @browsable-extensions-ref (extension (.getName f))))))
+    (-> (and (instance? File f)
+             (:length x)
+             (get @browsable-extensions-ref (extension (.getName f))))
+        boolean)))
 
