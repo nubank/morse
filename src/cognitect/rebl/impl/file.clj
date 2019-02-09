@@ -68,8 +68,16 @@
        (take-while #(not= % eof))
        (repeatedly #(edn/read {:eof eof} rdr))))))
 
+(defn read-properties
+  [^File f]
+  (with-open [is (io/input-stream f)]
+    (->> (doto (java.util.Properties.)
+           (.load is))
+         (into {}))))
+
 (def data-file-readers-ref
-  (atom {"edn" read-edn}))
+  (atom {"edn" read-edn
+         "properties" read-properties}))
 
 (defn- extension
   [s]
