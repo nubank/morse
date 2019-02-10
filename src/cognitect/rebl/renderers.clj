@@ -11,6 +11,8 @@
    [clojure.spec.alpha :as s]
    [cognitect.rebl :as rebl]
    [cognitect.rebl.impl.file :as file]
+   [cognitect.rebl.impl.beans :as beans]
+   [cognitect.rebl.impl.reflect :as reflect]
    [cognitect.rebl.fx :as fx]))
 
 ;;;;;;;;;;;;;;;;; table helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -133,6 +135,25 @@ to render efficiently, else plaintext."
   (let [url (-> s meta ::datafy/obj io/as-url)]
     (fx/set-webview (javafx.scene.web.WebView.) url)))
 
+(defn- class-sym
+  [x]
+  (-> x class .getName symbol))
+
+;; hm, UI uses (meta x), adding meta here is too late
+(defn bean-browse
+  [x val-cb]
+  ;; N.B. bean's map doesn't do IObj
+  (-> (into {} (bean x))
+      (vary-meta assoc :rebl.bean/obj x :rebl.bean/class (class x))
+      (map-vb val-cb)))
+
+(defn reflect-browse
+  [x val-cb]
+  (-> x
+      reflect/reflect-map
+      (vary-meta assoc :rebl.reflect/obj x :rebl.reflect/class (class x))
+      (map-vb val-cb)))
+
 (rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'edn-viewer}
                       :rebl/code {:pred #'fx/code? :ctor #'edn-viewer}
                       :rebl/text {:pred #'string? :ctor #'plain-text-viewer}
@@ -148,6 +169,8 @@ to render efficiently, else plaintext."
                       :rebl/throwable {:ctor #'throwable-vb :pred #'fx/throwable?}
                       :rebl.file/top {:ctor #'file-top :pred #'file/datafied-file?}
                       :rebl.file/browse {:ctor #'file-browse :pred #'file/browsable-file?}
+                      :rebl/bean {:ctor #'bean-browse :pred #'beans/browsable?}
+                      ;; :rebl/reflect {:ctor #'reflect-browse :pred #'reflect/browsable?}
                       })
 
 (rebl/update-browsers {:rebl/map {:pred #'fx/Map? :ctor #'map-vb}
@@ -157,4 +180,6 @@ to render efficiently, else plaintext."
                        :rebl/tuples {:pred #'fx/tuples? :ctor #'tuples-vb}
                        :rebl/maps {:pred #'fx/maps? :ctor #'maps-vb}
                        :rebl/map-of-maps {:pred #'fx/map-of-maps? :ctor #'map-of-maps-vb}
+                       :rebl/bean {:ctor #'bean-browse :pred #'beans/browsable?}
+                       ;; :rebl/reflect {:ctor #'reflect-browse :pred #'reflect/browsable?}
                        })
