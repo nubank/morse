@@ -118,6 +118,15 @@
          (csv-read rdr))))))
  (catch java.io.FileNotFoundException _))
 
+(try
+ (let [yaml-read (requiring-resolve 'cognitect.rebl.impl.yaml/load-all)]
+   (swap!
+    data-file-readers-ref
+    assoc
+    "yml" yaml-read
+    "yaml" yaml-read))
+ (catch Throwable _))
+
 (extend-protocol p/Datafiable
   java.io.File
   (datafy [f]
