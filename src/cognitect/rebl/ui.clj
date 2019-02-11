@@ -248,7 +248,18 @@
 
 (defn def-in-ns
   [ui ns sym v doc]
-  (do-eval ui (pr-str `(intern (find-ns '~ns) '~sym '~v))))
+  (intern ns sym v)
+  (let [fqs (symbol (str ns) (str sym))]
+    (do-eval ui (pr-str `(var ~fqs)))))
+
+(comment
+  ;; the original-val always reachable through metadata
+  (defn- original-val
+    [statev]
+    (let [v (:view-val statev)
+          m (:view-meta statev)]
+      (or (:clojure.datafy/obj m) v)))
+  )
 
 (defn def-as
   [{:keys [state] :as ui}]
