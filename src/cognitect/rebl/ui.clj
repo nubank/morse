@@ -347,7 +347,8 @@
          [item empty?]
          (proxy-super updateItem item empty?)
          (when-not empty?
-           (.setText tooltip (fx/finite-pprint-str @item))
+           (.setText tooltip (-> (fx/finite-pprint-str @item)
+                                 (fx/ellipsize 2048)))
            (.setTooltip this tooltip))))))))
 
 (defn- init [{:keys [exprs-mult proc]}]
