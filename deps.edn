@@ -10,7 +10,8 @@
  :aliases
  {:ci {:extra-paths ["build"]
        :extra-deps {com.cognitect/deps.build {:sha "28cc1cac133d777027f3e5a5ee7b1376bd9be14e"
-                                             :git/url "git@cognitect.git.beanstalkapp.com:/cognitect/deps-build.git"}
-                   com.datomic/deps.project {:sha "e9c38d9eeafdb863aa4d7ed259ef1dff03c3cc00"
+                                              :git/url "git@cognitect.git.beanstalkapp.com:/cognitect/deps-build.git"}
+                    ;; the maven artifacts for OpenJFX require Java 9 or later, maybe even Java 11, so cannot add them here
+                    com.datomic/deps.project {:sha "e9c38d9eeafdb863aa4d7ed259ef1dff03c3cc00"
                                              :git/url "git@cognitect.git.beanstalkapp.com:/cognitect/deps-project.git"}}}}
  }
