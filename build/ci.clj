@@ -32,7 +32,7 @@
      :aliases
      {:rebl {:extra-deps {
                           org.clojure/core.async {:mvn/version "0.4.490"}
-                          org.clojure/clojure {:mvn/version "1.10.0-RC2"}
+                          org.clojure/clojure {:mvn/version "1.10.0"}
                           com.cognitect/rebl {:local/root "<rebl-path.jar>"}}}}}
    [:aliases :rebl :extra-deps 'com.cognitect/rebl :local/root]
    jar-name))
