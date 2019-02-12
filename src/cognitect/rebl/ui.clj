@@ -252,18 +252,16 @@
   (let [fqs (symbol (str ns) (str sym))]
     (do-eval ui (pr-str `(var ~fqs)))))
 
-(comment
-  ;; the original-val always reachable through metadata
-  (defn- original-val
-    [statev]
-    (let [v (:view-val statev)
-          m (:view-meta statev)]
-      (or (:clojure.datafy/obj m) v)))
-  )
+(defn- original-val
+  [statev]
+  (let [v (:view-val statev)
+        m (:view-meta statev)]
+    (or (:clojure.datafy/obj m) v)))
+
 
 (defn def-as
   [{:keys [state] :as ui}]
-  (let [v (:view-val @state)
+  (let [v (original-val @state)
         dlg (doto (javafx.scene.control.TextInputDialog. "foo")
               (.setTitle "def as")
               (.setHeaderText "define a var")
