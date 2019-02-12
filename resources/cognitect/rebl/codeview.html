@@ -9,7 +9,6 @@
   <script src="libs/monaco/min/vs/editor/editor.main.nls.js"></script>
   <script src="libs/monaco/min/vs/editor/editor.main.js"></script>
   <script src="libs/paredit-bundle.min.js"></script>
-  <script src="reblcljs.js" type="text/javascript"> </script>
 </head>
 <body>
   <!-- loading based on https://github.com/Microsoft/monaco-editor-samples/blob/3e322e5dfb7a016f6bb4fdca250c1929f3876ca9/browser-script-editor/index.html -->
@@ -49,8 +48,6 @@ Enter forms here and press the eval button or CONTROL+ENTER"`,
 window.addEventListener("optimizedResize", function() {
     editor.layout()
 });
-
-    cognitect.monaco.paredit.register_actions(editor);
   </script>
 </body>
 </html>
