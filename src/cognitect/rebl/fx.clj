@@ -268,6 +268,24 @@ pair."
    (url? stuff)
    (.load engine (str stuff))))
 
+(defn add-webview-cb
+  [wv val-cb]
+  (let [eng (.getEngine wv)
+        doc (.getDocument eng)
+        els (get-elements doc "a")]
+    #_(prn {:doc doc :els (count els)})
+    (doseq [el els]
+      (when-let [href (.getHref el)]
+        (.addEventListener el
+                           "click"
+                           (reify org.w3c.dom.events.EventListener
+                                  (handleEvent
+                                   [_ ev]
+                                   (when val-cb
+                                     (val-cb wv href (java.net.URL. href)))
+                                   (.preventDefault ev)))
+                           false)))))
+
 (defn set-webview
   ([wv stuff]
      (set-webview wv stuff nil))
@@ -279,20 +297,7 @@ pair."
             (reify javafx.beans.value.ChangeListener
                    (changed [_ ob oldv newv]
                             (when (= newv javafx.concurrent.Worker$State/SUCCEEDED)
-                              (let [doc (.getDocument eng)
-                                    els (get-elements doc "a")]
-                                #_(prn {:doc doc :els (count els)})
-                                (doseq [el els]
-                                  (when-let [href (.getHref el)]
-                                    (.addEventListener el
-                                                       "click"
-                                                       (reify org.w3c.dom.events.EventListener
-                                                              (handleEvent
-                                                               [_ ev]
-                                                               (when val-cb
-                                                                 (val-cb wv href (java.net.URL. href)))
-                                                               (.preventDefault ev)))
-                                                       false)))))))))
+                              (add-webview-cb wv val-cb))))))
        wv)))
 
 (defn set-webview-text
