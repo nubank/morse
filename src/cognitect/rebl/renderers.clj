@@ -74,6 +74,28 @@ to render efficiently, else plaintext."
       (fx/set-webview-text (javafx.scene.web.WebView.) text)
       (fx/set-text-area-text (TextArea.) text))))
 
+(defn file-code-viewer
+  "Code viewer."
+  [df]
+  (let [f (::datafy/obj (meta df))
+        text (slurp f)]
+    (if (< (count text) 100000)
+      (fx/set-webview-text (javafx.scene.web.WebView.) text)
+      (fx/set-text-area-text (TextArea.) text))))
+
+(defn code?
+  [x]
+  (or (fx/clojure-code? x)
+      (file/code-file? x)))
+
+(defn code-viewer
+  [x]
+  (cond
+   (fx/clojure-code? x) (edn-viewer x)
+   (file/code-file? x) (file-code-viewer x)))
+
+
+
 (defn web-vb
   [url val-cb]
   (fx/set-webview (javafx.scene.web.WebView.) url val-cb))
@@ -130,9 +152,9 @@ to render efficiently, else plaintext."
     (fx/set-text (TextArea.) (file/bounded-slurp f 10000))))
 
 (defn file-browse
-  [s]
+  [s val-cb]
   (let [url (-> s meta ::datafy/obj io/as-url)]
-    (fx/set-webview (javafx.scene.web.WebView.) url)))
+    (fx/set-webview (javafx.scene.web.WebView.) url val-cb)))
 
 (defn- class-sym
   [x]
@@ -147,10 +169,9 @@ to render efficiently, else plaintext."
       (map-vb val-cb)))
 
 (rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'edn-viewer}
-                      :rebl/code {:pred #'fx/code? :ctor #'edn-viewer}
+                      :rebl/code {:pred #'code? :ctor #'code-viewer}
                       :rebl/text {:pred #'string? :ctor #'plain-text-viewer}
                       :rebl/url {:pred #'fx/url? :ctor #'web-vb}
-                      :rebl/html {:pred #'string? :ctor #'web-vb}
                       :rebl/spec-edn {:pred #'s/spec? :ctor #'spec-edn-viewer}
                       :rebl/map {:pred #'fx/Map? :ctor #'map-vb}
                       :rebl/coll {:pred #'fx/Coll? :ctor #'coll-vb}
@@ -159,17 +180,17 @@ to render efficiently, else plaintext."
                       :rebl/map-of-maps {:pred #'fx/map-of-maps? :ctor #'map-of-maps-vb}
                       :rebl/throwable-map {:ctor #'throwable-map-vb :pred #'fx/throwable-map?}
                       :rebl/throwable {:ctor #'throwable-vb :pred #'fx/throwable?}
-                      :rebl.file/top {:ctor #'file-top :pred #'file/datafied-file?}
+                      :rebl.file/top {:ctor #'file-top :pred #'file/not-empty?}
                       :rebl.file/browse {:ctor #'file-browse :pred #'file/browsable-file?}
                       :rebl/bean {:ctor #'bean-browse :pred #'beans/browsable?}
                       })
 
 (rebl/update-browsers {:rebl/map {:pred #'fx/Map? :ctor #'map-vb}
                        :rebl/url {:pred #'fx/url? :ctor #'web-vb}
-                       :rebl/html {:pred #'string? :ctor #'web-vb}
                        :rebl/coll {:pred #'fx/Coll? :ctor #'coll-vb}
                        :rebl/tuples {:pred #'fx/tuples? :ctor #'tuples-vb}
                        :rebl/maps {:pred #'fx/maps? :ctor #'maps-vb}
                        :rebl/map-of-maps {:pred #'fx/map-of-maps? :ctor #'map-of-maps-vb}
                        :rebl/bean {:ctor #'bean-browse :pred #'beans/browsable?}
+                       :rebl.file/browse {:ctor #'file-browse :pred #'file/browsable-file?}
                        })

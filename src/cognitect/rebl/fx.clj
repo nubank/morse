@@ -21,8 +21,8 @@
 (def Map? #(instance? java.util.Map %1))
 (def Coll? #(instance? java.util.Collection %1))
 (def url? #(and (instance? java.net.URL %1)))
-(def code? #(and (instance? java.util.List %)
-                 (symbol? (first %))))
+(def clojure-code? #(and (instance? java.util.List %)
+                         (symbol? (first %))))
 
 (defn table-view []
   (doto (TableView.)

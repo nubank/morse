@@ -10,6 +10,8 @@
    [clojure.datafy :as datafy]
    [clojure.edn :as edn]))
 
+(set! *warn-on-reflection* true)
+
 (defn node-meta
   [^File f]
   {:rebl.file/path (.getCanonicalPath f)
@@ -83,11 +85,13 @@
   [s]
   (second (re-matches #".*\.([^.]*)" s )))
 
+(def FILE_SIZE_LIMIT 10000000)
+
 (defn data-file-reader
   [^File f]
   (and (.isFile f)
        ;; don't try to read giant data files, for now
-       (< (.length f) 10000000) 
+       (< (.length f) FILE_SIZE_LIMIT) 
        (get @data-file-readers-ref (extension (.getName f)))))
 
 (try
@@ -135,14 +139,16 @@
                          (with-meta (rf f) (node-meta f))
                          (datafy-file f))
            (.isDirectory f) (datafy-directory f)
+           (false? (.exists f)) (assoc (datafy-file f) :exists false) 
            :default f)))
 
-(defn datafied-file?
+(defn not-empty?
+  "Returns true if x is a datafied file that is not empty"
   [x]
-  (let [m (meta x)]
-    (-> (and (= 'java.io.File (::datafy/class m))
-             (:length x))
-        boolean)))
+  (let [^File obj (-> x meta ::datafy/obj)]
+    (and (instance? java.io.File obj)
+         (.isFile obj)
+         (< 0 (.length obj)))))
 
 (def browsable-extensions-ref
   (atom #{"html" "png"}))
@@ -150,9 +156,24 @@
 (defn browsable-file?
   [x]
   (let [m (meta x)
-        f (::datafy/obj m)]
+        ^File f (::datafy/obj m)]
     (-> (and (instance? File f)
              (:length x)
+             (<= (:length x) FILE_SIZE_LIMIT) 
              (get @browsable-extensions-ref (extension (.getName f))))
+        boolean)))
+
+(def code-extensions-ref
+  (atom #{"xml" "clj" "cljx" "cljs" "css" "js"
+          "edn" "json" "java" "rb" "py"}))
+
+(defn code-file?
+  [x]
+  (let [m (meta x)
+        ^File f (::datafy/obj m)]
+    (-> (and (instance? File f)
+             (:length x)
+             (<= (:length x) FILE_SIZE_LIMIT) 
+             (get @code-extensions-ref (extension (.getName f))))
         boolean)))
 
