@@ -8,7 +8,8 @@
    [clojure.java.io :as io]
    [clojure.core.protocols :as p]
    [clojure.datafy :as datafy]
-   [clojure.edn :as edn]))
+   [clojure.edn :as edn]
+   [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
@@ -150,8 +151,13 @@
          (.isFile obj)
          (< 0 (.length obj)))))
 
-(def browsable-extensions-ref
-  (atom #{"html" "png"}))
+;; mimetable defined by "content.types.user.table" property
+;; default built-in table at lib/content-types.properties
+(defn browsable-filename?
+  [fn]
+  (when-let [type (.getContentTypeFor (java.net.URLConnection/getFileNameMap) fn)]
+    (or (str/starts-with? type "text/")
+        (str/starts-with? type "image/"))))
 
 (defn browsable-file?
   [x]
@@ -160,7 +166,7 @@
     (-> (and (instance? File f)
              (:length x)
              (<= (:length x) FILE_SIZE_LIMIT) 
-             (get @browsable-extensions-ref (extension (.getName f))))
+             (browsable-filename? (.getName f)))
         boolean)))
 
 (def code-extensions-ref
