@@ -1,1 +1,0 @@
-{:main cognitect.monaco.paredit, :output-to "resources/cognitect/rebl/reblcljs.js", :output-dir "resources/cognitect/rebl/cljsout", :asset-path "", :optimizations :simple, :aot-cache true}
