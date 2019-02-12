@@ -248,11 +248,20 @@
 
 (defn def-in-ns
   [ui ns sym v doc]
-  (do-eval ui (pr-str `(intern (find-ns '~ns) '~sym '~v))))
+  (intern ns sym v)
+  (let [fqs (symbol (str ns) (str sym))]
+    (do-eval ui (pr-str `(var ~fqs)))))
+
+(defn- original-val
+  [statev]
+  (let [v (:view-val statev)
+        m (:view-meta statev)]
+    (or (:clojure.datafy/obj m) v)))
+
 
 (defn def-as
   [{:keys [state] :as ui}]
-  (let [v (:view-val @state)
+  (let [v (original-val @state)
         dlg (doto (javafx.scene.control.TextInputDialog. "foo")
               (.setTitle "def as")
               (.setHeaderText "define a var")
@@ -347,7 +356,8 @@
          [item empty?]
          (proxy-super updateItem item empty?)
          (when-not empty?
-           (.setText tooltip (fx/finite-pprint-str @item))
+           (.setText tooltip (-> (fx/finite-pprint-str @item)
+                                 (fx/ellipsize 2048)))
            (.setTooltip this tooltip))))))))
 
 (defn- init [{:keys [exprs-mult proc]}]

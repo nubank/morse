@@ -68,8 +68,16 @@
        (take-while #(not= % eof))
        (repeatedly #(edn/read {:eof eof} rdr))))))
 
+(defn read-properties
+  [^File f]
+  (with-open [is (io/input-stream f)]
+    (->> (doto (java.util.Properties.)
+           (.load is))
+         (into {}))))
+
 (def data-file-readers-ref
-  (atom {"edn" read-edn}))
+  (atom {"edn" read-edn
+         "properties" read-properties}))
 
 (defn- extension
   [s]
@@ -109,6 +117,15 @@
          []
          (csv-read rdr))))))
  (catch java.io.FileNotFoundException _))
+
+(try
+ (let [yaml-read (requiring-resolve 'cognitect.rebl.impl.yaml/load-all)]
+   (swap!
+    data-file-readers-ref
+    assoc
+    "yml" yaml-read
+    "yaml" yaml-read))
+ (catch Throwable _))
 
 (extend-protocol p/Datafiable
   java.io.File
