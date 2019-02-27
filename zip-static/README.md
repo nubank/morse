@@ -23,7 +23,7 @@ REBL runs in your application JVM process, and can be used at dev-time without a
 
 ## Requirements
 
-- Clojure 1.10.0-RC2 or higher
+- Clojure 1.10.0 or higher
 - Java 1.8.0_151 or higher
 - core.async (tested with 0.4.490)
 
@@ -37,7 +37,7 @@ add an alias to (your existing project's) deps.edn with a [local dependency](htt
 {:deps {}
  :aliases
  {:rebl {:extra-deps {
-	org.clojure/clojure {:mvn/version "1.10.0-RC2"}
+	org.clojure/clojure {:mvn/version "1.10.0"}
         org.clojure/core.async {:mvn/version "0.4.490"}
 	com.cognitect/rebl {:local/root "/path/to/rebl-VERSION.jar"}}}}}
 ```
