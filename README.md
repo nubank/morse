@@ -23,7 +23,7 @@ REBL runs in your application JVM process, and can be used at dev-time without a
 
 ## Requirements
 
-- Clojure 1.10.0-RC2 or later
+- Clojure 1.10.0 or later
 - Java 1.8.0_151 or higher
 - core.async (tested on 0.4.490)
 
