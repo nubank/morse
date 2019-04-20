@@ -64,7 +64,7 @@
 
 (defn val-selected
   [{:keys [view-pane state] :as ui} coll node path-seg val]
-  (let [val (try (->> val (datafy/nav coll path-seg) datafy/datafy)
+  (let [val (try (->> val (datafy/nav coll path-seg) render/datafy)
                  (catch Throwable t t))]
     (fx/later #(if (identical? (fx/current-ui view-pane) node)
                  (swap! state assoc :on-deck {:path-seg path-seg :val val})
@@ -183,6 +183,7 @@
               ::eval (do (.write eval-writer form) (.write eval-writer "\n") (.flush eval-writer))
               :ret (when (or (= source title) (.isSelected follow-editor-check))
                      (swap! eval-history conj msg)
+                     (send render/deps-agent render/refresh-deps)
                      (fx/later #(do
                                   (.setText ns-label (str "ns: " ns))
                                   (rtz ui))))
@@ -342,7 +343,7 @@
     (fx/add-selection-listener eval-table (fn [idx row]
                                             (let [{:keys [expr val]} row]
                                               ;;(set-code code-view expr)
-                                              (view ui idx (datafy/datafy val)))))))
+                                              (view ui idx (render/datafy val)))))))
 
 (defn tap-cell-factory
   []

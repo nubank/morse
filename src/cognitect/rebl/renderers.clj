@@ -5,6 +5,7 @@
    [javafx.fxml FXMLLoader]
    [javafx.scene.control TableView TextArea])
   (:require
+   [clojure.set :as set]
    [clojure.datafy :as datafy]
    [clojure.java.io :as io]
    [clojure.main :as main]
@@ -53,8 +54,8 @@
   [^TableView t coll val-cb]
   (if (instance? java.util.Set coll)
     (do
-      (fx/set-sortable-items t (fx/fxlist (into [] (map vector) (fx/finitify coll))))
-      (-> t .getColumns (.setAll [(fx/table-column "val" first)])))
+      (fx/set-sortable-items t (fx/fxlist (into [] (map (partial vector '_)) (fx/finitify coll))))
+      (-> t .getColumns (.setAll [(fx/table-column "val" second)])))
     (do
       (fx/set-sortable-items t (fx/fxlist (into [] (map-indexed vector) (fx/finitify coll))))
       (-> t .getColumns (.setAll [(fx/index-column first) (fx/table-column "val" second)]))))
@@ -167,6 +168,55 @@ to render efficiently, else plaintext."
   (-> (into {} (bean x))
       (vary-meta assoc :rebl.bean/obj x :rebl.bean/class (class x))
       (map-vb val-cb)))
+
+(defn fdeps [val]
+  (set (some->> val class .getDeclaredFields
+                (keep (fn [^java.lang.reflect.Field f]
+                        (or (and (identical? clojure.lang.Var (.getType f))
+                                 (java.lang.reflect.Modifier/isPublic (.getModifiers f))
+                                 (java.lang.reflect.Modifier/isStatic (.getModifiers f))
+                                 (-> f .getName (.startsWith "const__"))                                  
+                                 (.get f val))
+                            nil))))))
+
+(defn refresh-deps [deps]
+  (let [sconj (fnil conj #{})]
+    (reduce (fn [ret ^clojure.lang.Namespace n]
+              (reduce-kv (fn [ret k v]
+                           (if (instance? clojure.lang.Var v)
+                             (let [[_ {odeps :deps oval :val} :as e] (find deps v)
+                                   nval (deref v)]
+                               (if (or (nil? e) (not (identical? oval nval)))
+                                 (let [ndeps (fdeps nval)
+                                       ret (-> (reduce (fn [ret dv]
+                                                         (update-in ret [dv :uses] dissoc v))
+                                                       ret (set/difference odeps ndeps))
+                                               (update v assoc :val nval)
+                                               (update v assoc :deps ndeps))]
+                                   (reduce (fn [ret dv]
+                                             (update-in ret [dv :uses] sconj v))
+                                           ret (set/difference ndeps odeps)))
+                                 ret))
+                             ret))
+                         ret (-> n .getMappings)))
+            deps (all-ns))))
+
+(def deps-agent (agent (refresh-deps {})))
+
+(defmulti datafy "rebl custom datafy" class)
+
+(defmethod datafy :default [x] (datafy/datafy x))
+
+(defmethod datafy clojure.lang.Var
+  [v]
+  (let [val @v
+        {uses :deps used-by :uses} (-> deps-agent deref (get v))
+        nm (symbol v)
+        src (-> nm clojure.repl/source-fn)]
+    (cond-> (with-meta #:rebl.var{:val val :name nm} (assoc (meta v) ::datafy/obj val))
+            (seq uses) (assoc :rebl.var/uses uses)
+            (seq used-by) (assoc :rebl.var/used-by used-by)
+            src (assoc :rebl.var/src src))))
 
 (rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'edn-viewer}
                       :rebl/code {:pred #'code? :ctor #'code-viewer}
