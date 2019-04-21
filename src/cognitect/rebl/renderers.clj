@@ -6,6 +6,7 @@
    [javafx.scene.control TableView TextArea])
   (:require
    [clojure.set :as set]
+   [clojure.string :as string]
    [clojure.datafy :as datafy]
    [clojure.java.io :as io]
    [clojure.main :as main]
@@ -66,36 +67,44 @@
   [s]
   (fx/set-text (TextArea.) s))
 
+(defn string-code-viewer
+  "String code viewer.  Chooses rich text control if text is small enough to
+  render efficiently, else plaintext."
+  [text]
+  (if (< (count text) 100000)
+    (fx/set-webview-text (javafx.scene.web.WebView.) text)
+    (fx/set-text-area-text (TextArea.) text)))
+
 (defn edn-viewer
-  "Edn viewer.  Chooses rich text control if edn is small enough
-to render efficiently, else plaintext."
+  "Edn viewer."
   [edn]
   (let [text (fx/finite-pprint-str edn)]
-    (if (< (count text) 10000)
-      (fx/set-webview-text (javafx.scene.web.WebView.) text)
-      (fx/set-text-area-text (TextArea.) text))))
+    (string-code-viewer text)))
 
 (defn file-code-viewer
   "Code viewer."
   [df]
   (let [f (::datafy/obj (meta df))
         text (slurp f)]
-    (if (< (count text) 100000)
-      (fx/set-webview-text (javafx.scene.web.WebView.) text)
-      (fx/set-text-area-text (TextArea.) text))))
+    (string-code-viewer text)))
+
+(defn code-string?
+  [x]
+  (and (string? x)
+       (string/includes? x "(def")))
 
 (defn code?
   [x]
   (or (fx/clojure-code? x)
-      (file/code-file? x)))
+      (file/code-file? x)
+      (code-string? x)))
 
 (defn code-viewer
   [x]
   (cond
    (fx/clojure-code? x) (edn-viewer x)
-   (file/code-file? x) (file-code-viewer x)))
-
-
+   (file/code-file? x) (file-code-viewer x)
+   (code-string? x) (string-code-viewer x)))
 
 (defn web-vb
   [url val-cb]
