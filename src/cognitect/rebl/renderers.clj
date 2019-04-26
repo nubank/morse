@@ -198,7 +198,7 @@
                                (if (or (nil? e) (not (identical? oval nval)))
                                  (let [ndeps (fdeps nval)
                                        ret (-> (reduce (fn [ret dv]
-                                                         (update-in ret [dv :uses] dissoc v))
+                                                         (update-in ret [dv :uses] disj v))
                                                        ret (set/difference odeps ndeps))
                                                (update v assoc :val nval)
                                                (update v assoc :deps ndeps))]
