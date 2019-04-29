@@ -107,8 +107,8 @@ map's keys against the union of all keys."
          (and (or (indexed? e) (sequential? e))
               (let [bc (partial bounded-count coll-check-limit)
                     cnt (bc e)]
-                (every? #(and (or (indexed? e) (sequential? %1))
-                              (= cnt (bc %1)))
+                (every? #(and (or (indexed? %) (sequential? %))
+                              (= cnt (bc %)))
                         (take 100 coll)))))))
 
 (defn maps?

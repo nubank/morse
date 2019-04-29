@@ -261,22 +261,18 @@
 
 
 (defn def-as
-  [{:keys [state] :as ui}]
+  [{:keys [state def-text] :as ui}]
   (let [v (original-val @state)
-        dlg (doto (javafx.scene.control.TextInputDialog. "foo")
-              (.setTitle "def as")
-              (.setHeaderText "define a var")
-              (.setContentText "name"))]
-    (when-let [name (-> dlg .showAndWait get-optional)]
-      (def-in-ns ui 'user (symbol name) v "Defined by cognitect.rebl def as...")
-      ;; another option -- add the var itself to the UI history?
-      #_(async/put! exprs {::eval (find-var (symbol "user" name))}))))
+        name (.getText def-text)]
+    (def-in-ns ui 'user (symbol name) v "Defined by cognitect.rebl 'def as:'")
+    ;; another option -- add the var itself to the UI history?
+    #_(async/put! exprs {::eval (find-var (symbol "user" name))})))
 
 (def e->et
   {:pressed  KeyEvent/KEY_PRESSED
    :released KeyEvent/KEY_RELEASED})
 
-(defn wire-handlers [{:keys [root-button back-button fwd-button eval-button def-button
+(defn wire-handlers [{:keys [root-button back-button fwd-button eval-button def-text
                              viewer-choice browser-choice
                              scene eval-table code-view browse-pane view-pane
                              tap-list-view tap-list tap-clear] :as ui}]
@@ -285,12 +281,12 @@
         wire-key (fn wire-key
                    [f e k & cs]
                    (.addEventFilter scene (e->et e)
-                     (let [kc (KeyCodeCombination. k (into-array KeyCombination$Modifier cs))]
-                       (reify EventHandler
-                         (handle [_ e]
-                           (when (.match kc e)
-                             (.consume e)
-                             (f)))))))
+                                    (let [kc (KeyCodeCombination. k (into-array KeyCombination$Modifier cs))]
+                                      (reify EventHandler
+                                             (handle [_ e]
+                                               (when (.match kc e)
+                                                 (.consume e)
+                                                 (f)))))))
         ttfont (javafx.scene.text.Font. 14.0)
         tooltip (fn [node text] (Tooltip/install node (doto (Tooltip. text)
                                                         (.setFont ttfont)
@@ -311,13 +307,14 @@
     (wire-key #(prev-expr ui) :pressed KeyCode/UP KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(next-expr ui) :pressed KeyCode/DOWN KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(browse-user-namespace ui) :pressed KeyCode/U KeyCodeCombination/CONTROL_DOWN)
-    (wire-key #(def-as ui) :pressed KeyCode/D KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(.requestFocus def-text) :pressed KeyCode/D KeyCodeCombination/CONTROL_DOWN)
     ;;buttons
     (wire-button #(eval-pressed ui) eval-button)
     (wire-button #(fwd-pressed ui) fwd-button)
     (wire-button #(back-pressed ui) back-button)
     (wire-button #(rtz ui) root-button)
-    (wire-button #(def-as ui) def-button)
+    ;;(wire-button #(def-as ui) def-button)
+    (wire-button #(def-as ui) def-text)
     (wire-button #(tap-clear-pressed ui) tap-clear)
     
     ;;choice controls
@@ -325,6 +322,9 @@
                                                                          (viewer-chosen ui (.getItems viewer-choice) nv)))))
     (-> browser-choice .valueProperty (.addListener (fx/change-listener (fn [ob ov nv]
                                                                           (browser-chosen ui (.getItems browser-choice) nv)))))
+
+    #_(-> def-text .textProperty (.addListener (fx/change-listener (fn [ob ov nv]
+                                                                    (.setDisable def-button (zero? (count nv)))))))
     ;; checkboxes
 
 
@@ -410,7 +410,11 @@
                    :browser-choice (doto (node "browserChoice")
                                      (.setConverter vc))
                    :browse-pane (node "browsePane")
-                   :def-button (node "defButton")
+                   ;:def-button
+                   ;;(doto (node "defButton") (.setDisable true))
+
+                   :def-text (doto (node "defText")
+                               (.setPromptText "varname"))
                    :ns-label (node "nsLabel")
                    :viewer-choice (doto (node "viewerChoice")
                                     (.setConverter vc))
