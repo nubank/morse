@@ -32,6 +32,7 @@
 (defn viewer-for
   "returns {:keys [view-ui view-options view-choice]}"
   [ui val]
+  ;;(prn {:viewer-for val})
   (let [{:keys [viewers pref]} (rebl/viewers-for val)
         p (pref viewers)
         vw (if (rebl/is-browser? pref)
@@ -53,6 +54,7 @@
   (render/set-table-map meta-table meta-map nil))
 
 (defn view [{:keys [state view-pane viewer-choice fwd-button] :as ui} path-seg val]
+  ;;(prn {:view val})
   (let [viewer (viewer-for ui val)
         meta-map (meta val)]
     (clear-deck ui)
@@ -63,12 +65,14 @@
     (.setDisable fwd-button (-> val rebl/browsers-for :browsers empty?))))
 
 (defn val-selected
-  [{:keys [view-pane state] :as ui} coll node path-seg val]
+  [{:keys [view-pane browse-pane state] :as ui} coll node path-seg val]
+  ;;(prn {:val-selected val :node node :browse-ui (:browse-ui @state)})
   (let [val (try (->> val (datafy/nav coll path-seg) render/datafy)
                  (catch Throwable t t))]
     (fx/later #(if (identical? (fx/current-ui view-pane) node)
                  (swap! state assoc :on-deck {:path-seg path-seg :val val})
-                 (view ui path-seg val)))))
+                 (when (identical? (fx/current-ui browse-pane) node)
+                   (view ui path-seg val))))))
 
 (defn viewer-chosen [{:keys [state view-pane] :as ui} choices choice]
   (let [{:keys [view-choice view-val]} @state]
