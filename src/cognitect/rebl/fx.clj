@@ -12,7 +12,7 @@
    [javafx.beans.property ReadOnlyObjectWrapper]
    [javafx.collections FXCollections]
    [javafx.scene Node]
-   [javafx.scene.control TableView TableColumn TableCell]
+   [javafx.scene.control TableView TableColumn]
    [javafx.util Callback]))
 
 ;;;;;;;;;;;;;;;;; data manipulation ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -244,39 +244,18 @@ pair."
          (call [_ cdf]
                (ReadOnlyObjectWrapper. (f (.getValue cdf))))))
 
-(defn cell-callback
-  "Returns a Callback that sets the cell's text by applying f to the cell's
-  item."
-  [f]
-  (reify Callback
-         (call [_ tc]
-               (proxy [TableCell] []
-                      (updateItem [cell-item _]
-                        (.setText this (f cell-item)))))))
-
-(defn safe-compare
-  "Returns the result of comparing x1 & x2, falling back to comparing their
-  string representations if necessary."
-  [x1 x2]
-  (try (compare x1 x2)
-       (catch Throwable t
-         (compare (str x1) (str x2)))))
-
-(defn table-column
-  "Returns a TableColumn with the given name, a CellValueFactory which sets
-  cell values by applying f to a row, and a CellFactory which displays the cell
-  values by finitely printing them."
-  ([name f] (table-column name f safe-compare))
-  ([name f comparator]
-   (doto (TableColumn. name)
-     (.setComparator comparator)
-     (.setCellValueFactory (cell-value-callback f))
-     (.setCellFactory (cell-callback finite-pr-str)))))
-
 (defn index-column
   "returns an index column based on the value of f, a fn of the row"
   [f]
-  (table-column "idx" f))
+  (doto (TableColumn. "idx")
+    (.setCellValueFactory (cell-value-callback f))))
+
+(defn table-column
+  "returns a TableColumn with given name and CellValueFactory callback
+  based on finitely printing the result of f, a fn of the row"
+  [name f]
+  (doto (TableColumn. name)
+    (.setCellValueFactory (cell-value-callback (comp finite-pr-str f)))))
 
 (defn- get-elements
   [doc tag-name]
