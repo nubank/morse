@@ -104,18 +104,18 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
                (>!! echan (assoc m :rebl/source "REPL")))
              (binding [*out* o]
                (case tag
-                :err (print val)
-                :out (print val)
-                :tap nil
-                :ret
-                (do
-                  (if (:exception m)
-                    (binding [*out* *err*]
-                      (print (-> val main/ex-triage main/ex-str))
-                      (flush))
-                    (prn val))
-                  (printf "%s=> " ns)
-                  (flush)))))]
+                     :err (do (print val) (flush))
+                     :out (do (print val) (flush))
+                     :tap nil
+                     :ret
+                     (do
+                       (if (:exception m)
+                         (binding [*out* *err*]
+                           (print (-> val main/ex-triage main/ex-str))
+                           (flush))
+                         (prn val))
+                       (printf "%s=> " ns)
+                       (flush)))))]
     (ui :proc proc)
     (proc *in* cb)))
 

@@ -430,7 +430,8 @@
                                   (.setDisable true))
                    :fwd-button (doto (node "fwdButton")
                                  (.setDisable true))
-                   :out-text (node "outText")
+                   :out-text (doto (node "outText")
+                               (.setWrapText true))
                    :tap-clear (node "tapClear")
                    :tap-list tap-list
                    :tap-list-view tap-list-view
