@@ -53,15 +53,19 @@
 (defn update-meta [{:keys [meta-table] :as ui} meta-map]
   (render/set-table-map meta-table meta-map nil))
 
-(defn view [{:keys [state view-pane viewer-choice fwd-button] :as ui} path-seg sel-val]
+(defn update-path [{:keys [path-text state] :as ui}]
+  (let [{:keys [path path-seg]} @state]
+    (.setText path-text (pr-str (conj path path-seg)))))
+
+(defn view [{:keys [state view-pane viewer-choice fwd-button path-text] :as ui} path-seg sel-val]
   ;;(prn {:view val})
-  (let [ostate @state
-        path-nav (:path-nav ostate)
+  (let [{:keys [path path-nav]} @state
         val (path-nav sel-val)
         viewer (viewer-for ui val)
         meta-map (meta val)]
     (clear-deck ui)
     (swap! state merge (assoc viewer :path-seg path-seg :sel-val sel-val :view-val val :view-meta meta-map))
+    (update-path ui)
     (update-choice viewer-choice (:view-options viewer) (:view-choice viewer))
     (update-pane view-pane (:view-ui viewer))
     (update-meta ui meta-map)
@@ -143,7 +147,7 @@
                  :browse-choice bc}]
     (clear-deck ui)
     (.setText nav-text "")
-    (swap! state merge browser {:path-nav identity})
+    (swap! state merge browser {:path-nav identity :path [] :nav-forms []})
     (update-choice browser-choice [bc] bc)
     (update-pane browse-pane eval-table)
     (-> eval-table .getSelectionModel .clearSelection)
@@ -215,10 +219,10 @@
     (do-eval ui code)))
 
 (defn fwd-pressed [{:keys [state state-history root-button back-button nav-text] :as ui}]
-  (let [{:keys [view-val view-ui view-choice on-deck] :as statev} @state]
+  (let [{:keys [view-val view-ui view-choice on-deck path path-seg nav-forms] :as statev} @state]
     (swap! state-history conj (dissoc statev :on-deck))
     (.setText nav-text "")
-    (swap! state assoc :path-nav identity)
+    (swap! state assoc :path-nav identity :path (-> path (conj path-seg) (into nav-forms)))
     (if (rebl/is-browser? (:id view-choice))
       (let [{:keys [browsers]} (rebl/browsers-for view-val)]
         (browse-with ui
@@ -229,6 +233,7 @@
         (when-let [{:keys [path-seg val]} on-deck]
           (view ui path-seg val)))
       (browse ui view-val))
+    ;;(update-path ui)
     (.setDisable root-button false)
     (.setDisable back-button false)))
 
@@ -241,6 +246,7 @@
                        (assoc :on-deck {:path-seg path-seg :val sel-val}))]
     (reset! state ostate)
     (.setText nav-text (:nav-str ostate))
+    (update-path ui)
     (update-pane browse-pane (:browse-ui ostate))
     (update-pane view-pane (:view-ui ostate))
     (update-meta ui (:view-meta ostate))
@@ -286,7 +292,7 @@
         nav-str (.getText nav-text)
         nav-forms (read-string (str "[" nav-str "]"))
         path-nav (render/path-nav nav-forms)]
-    (swap! state assoc :nav-str nav-str :path-nav path-nav)
+    (swap! state assoc :nav-str nav-str :path-nav path-nav :nav-forms nav-forms)
     (view ui path-seg sel-val)))
 
 (def e->et
@@ -406,7 +412,9 @@
                    :stage stage
                    :exprs exprs
                    :state (atom {:browse-choice {:id :rebl/eval-history}
-                                 :path-nav identity})
+                                 :path-nav identity
+                                 :nav-forms []
+                                 :path []})
                    :expr-ord (atom -1)
                    :state-history (atom ())
                    :eval-history (atom ())
@@ -439,6 +447,7 @@
                    :def-text (doto (node "defText")
                                (.setPromptText "varname"))
                    :nav-text (node "navText")
+                   :path-text (node "pathText")
                    :ns-label (node "nsLabel")
                    :viewer-choice (doto (node "viewerChoice")
                                     (.setConverter vc))

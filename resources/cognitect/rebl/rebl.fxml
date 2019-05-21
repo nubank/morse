@@ -77,6 +77,22 @@
                                  <content>
                                     <VBox prefHeight="200.0" prefWidth="100.0">
                                        <children>
+                                          <HBox prefHeight="29.0" prefWidth="514.0">
+                                             <children>
+                                                <Label text="path:">
+                                                   <HBox.margin>
+                                                      <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                                                   </HBox.margin>
+                                                </Label>
+                                                <TextField fx:id="pathText" editable="false" prefHeight="27.0" HBox.hgrow="ALWAYS" />
+                                             </children>
+                                             <opaqueInsets>
+                                                <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                                             </opaqueInsets>
+                                             <VBox.margin>
+                                                <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                                             </VBox.margin>
+                                          </HBox>
                                           <HBox prefHeight="35.0" prefWidth="514.0">
                                              <children>
                                                 <Label text="nav-&gt;">
@@ -146,6 +162,7 @@
                                                                   <Insets right="12.0" />
                                                                </FlowPane.margin>
                                                             </Button>
+                                                            <Button fx:id="tapBrowse" mnemonicParsing="false" text="Browse" />
                                                          </children>
                                                          <padding>
                                                             <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
@@ -169,18 +186,24 @@
             </SplitPane>
             <VBox alignment="TOP_RIGHT" prefHeight="200.0" prefWidth="100.0">
                <children>
-                  <FlowPane alignment="CENTER_RIGHT" hgap="4.0" prefHeight="35.0" prefWidth="509.0" vgap="4.0">
+                  <HBox alignment="CENTER_LEFT" prefHeight="36.0" prefWidth="664.0">
                      <children>
-                        <Label prefHeight="17.0" prefWidth="205.0" text="Metadata" />
-                        <Label text="def as:" />
+                        <Label prefHeight="17.0" prefWidth="258.0" text="Metadata" />
+                        <Label text="def as:">
+                           <padding>
+                              <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                           </padding></Label>
                         <TextField fx:id="defText" prefHeight="27.0" prefWidth="115.0" />
-                        <Label text="Viewer:" />
+                        <Label text="Viewer:">
+                           <padding>
+                              <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                           </padding></Label>
                         <ChoiceBox fx:id="viewerChoice" prefWidth="150.0" />
                      </children>
-                     <padding>
-                        <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
-                     </padding>
-                  </FlowPane>
+                     <VBox.margin>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </VBox.margin>
+                  </HBox>
                   <SplitPane dividerPositions="0.2170212765957447" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" VBox.vgrow="ALWAYS">
                     <items>
                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
