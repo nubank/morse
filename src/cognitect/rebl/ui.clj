@@ -53,12 +53,15 @@
 (defn update-meta [{:keys [meta-table] :as ui} meta-map]
   (render/set-table-map meta-table meta-map nil))
 
-(defn view [{:keys [state view-pane viewer-choice fwd-button] :as ui} path-seg val]
+(defn view [{:keys [state view-pane viewer-choice fwd-button] :as ui} path-seg sel-val]
   ;;(prn {:view val})
-  (let [viewer (viewer-for ui val)
+  (let [ostate @state
+        path-nav (:path-nav ostate)
+        val (path-nav sel-val)
+        viewer (viewer-for ui val)
         meta-map (meta val)]
     (clear-deck ui)
-    (swap! state merge (assoc viewer :path-seg path-seg :view-val val :view-meta meta-map))
+    (swap! state merge (assoc viewer :path-seg path-seg :sel-val sel-val :view-val val :view-meta meta-map))
     (update-choice viewer-choice (:view-options viewer) (:view-choice viewer))
     (update-pane view-pane (:view-ui viewer))
     (update-meta ui meta-map)
@@ -129,6 +132,7 @@
         (.requestFocus br)))))
 
 (defn rtz [{:keys [state state-history eval-table eval-history
+                   nav-text
                    browse-pane browser-choice code-view root-button back-button] :as ui}]
   (reset! state-history ())
   (let [ehist @eval-history
@@ -138,7 +142,8 @@
                  :browse-options [bc]
                  :browse-choice bc}]
     (clear-deck ui)
-    (swap! state merge browser)
+    (.setText nav-text "")
+    (swap! state merge browser {:path-nav identity})
     (update-choice browser-choice [bc] bc)
     (update-pane browse-pane eval-table)
     (-> eval-table .getSelectionModel .clearSelection)
@@ -209,9 +214,11 @@
     (fx/reset-code code-view)
     (do-eval ui code)))
 
-(defn fwd-pressed [{:keys [state state-history root-button back-button] :as ui}]
+(defn fwd-pressed [{:keys [state state-history root-button back-button nav-text] :as ui}]
   (let [{:keys [view-val view-ui view-choice on-deck] :as statev} @state]
     (swap! state-history conj (dissoc statev :on-deck))
+    (.setText nav-text "")
+    (swap! state assoc :path-nav identity)
     (if (rebl/is-browser? (:id view-choice))
       (let [{:keys [browsers]} (rebl/browsers-for view-val)]
         (browse-with ui
@@ -226,13 +233,14 @@
     (.setDisable back-button false)))
 
 (defn back-pressed [{:keys [state state-history root-button back-button fwd-button eval-button
-                            code-view
+                            code-view nav-text
                             browse-pane view-pane browser-choice viewer-choice] :as ui}]
-  (let [{:keys [browse-ui path-seg view-val]} @state
+  (let [{:keys [browse-ui path-seg sel-val]} @state
         [[ostate] nhist] (swap-vals! state-history pop)
         ostate (cond-> ostate (identical? browse-ui (:view-ui ostate))
-                       (assoc :on-deck {:path-seg path-seg :val view-val}))]
+                       (assoc :on-deck {:path-seg path-seg :val sel-val}))]
     (reset! state ostate)
+    (.setText nav-text (:nav-str ostate))
     (update-pane browse-pane (:browse-ui ostate))
     (update-pane view-pane (:view-ui ostate))
     (update-meta ui (:view-meta ostate))
@@ -272,11 +280,20 @@
     ;; another option -- add the var itself to the UI history?
     #_(async/put! exprs {::eval (find-var (symbol "user" name))})))
 
+(defn set-nav-path
+  [{:keys [state nav-text] :as ui}]
+  (let [{:keys [sel-val path-seg]} @state
+        nav-str (.getText nav-text)
+        nav-forms (read-string (str "[" nav-str "]"))
+        path-nav (render/path-nav nav-forms)]
+    (swap! state assoc :nav-str nav-str :path-nav path-nav)
+    (view ui path-seg sel-val)))
+
 (def e->et
   {:pressed  KeyEvent/KEY_PRESSED
    :released KeyEvent/KEY_RELEASED})
 
-(defn wire-handlers [{:keys [root-button back-button fwd-button eval-button def-text
+(defn wire-handlers [{:keys [root-button back-button fwd-button eval-button def-text nav-text
                              viewer-choice browser-choice
                              scene eval-table code-view browse-pane view-pane
                              tap-list-view tap-list tap-clear] :as ui}]
@@ -319,6 +336,7 @@
     (wire-button #(rtz ui) root-button)
     ;;(wire-button #(def-as ui) def-button)
     (wire-button #(def-as ui) def-text)
+    (wire-button #(set-nav-path ui) nav-text)
     (wire-button #(tap-clear-pressed ui) tap-clear)
     
     ;;choice controls
@@ -387,7 +405,8 @@
                    :scene scene
                    :stage stage
                    :exprs exprs
-                   :state (atom {:browse-choice {:id :rebl/eval-history}})
+                   :state (atom {:browse-choice {:id :rebl/eval-history}
+                                 :path-nav identity})
                    :expr-ord (atom -1)
                    :state-history (atom ())
                    :eval-history (atom ())
@@ -419,6 +438,7 @@
 
                    :def-text (doto (node "defText")
                                (.setPromptText "varname"))
+                   :nav-text (node "navText")
                    :ns-label (node "nsLabel")
                    :viewer-choice (doto (node "viewerChoice")
                                     (.setConverter vc))

@@ -227,6 +227,19 @@
             (seq used-by) (assoc :rebl.var/used-by used-by)
             src (assoc :rebl.var/src src))))
 
+(defn nav-step [x kf]
+  (if (fn? kf)
+    (datafy (datafy/nav x nil (kf x)))
+    (datafy (datafy/nav x kf (get x kf)))))
+
+(defn path-nav [forms]
+  (let [kf (fn [kform]
+             (if (list? kform)
+               (eval `(fn [x#] (-> x# ~kform)))
+               kform))
+        kfs (mapv kf forms)]
+    #(reduce nav-step % kfs)))
+
 (rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'edn-viewer}
                       :rebl/code {:pred #'code? :ctor #'code-viewer}
                       :rebl/text {:pred #'string? :ctor #'plain-text-viewer}
