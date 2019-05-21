@@ -55,7 +55,7 @@
   [^TableView t coll val-cb]
   (if (instance? java.util.Set coll)
     (do
-      (fx/set-sortable-items t (fx/fxlist (into [] (map (partial vector '_)) (fx/finitify coll))))
+      (fx/set-sortable-items t (fx/fxlist (into [] (map #(vector % %)) (fx/finitify coll))))
       (-> t .getColumns (.setAll [(fx/table-column "val" second)])))
     (do
       (fx/set-sortable-items t (fx/fxlist (into [] (map-indexed vector) (fx/finitify coll))))
