@@ -136,7 +136,7 @@
         (.requestFocus br)))))
 
 (defn rtz [{:keys [state state-history eval-table eval-history
-                   nav-text
+                   nav-text browse-tab-pane
                    browse-pane browser-choice code-view root-button back-button] :as ui}]
   (reset! state-history ())
   (let [ehist @eval-history
@@ -156,6 +156,7 @@
     (.setDisable root-button true)
     (.setDisable back-button true)
     (-> eval-table .getSelectionModel .selectFirst)
+    (-> browse-tab-pane .getSelectionModel .selectFirst)
     (.requestFocus eval-table)))
 
 (defn load-expr [{:keys [eval-history code-view] :as ui} n]
@@ -183,8 +184,9 @@
      (-> v pr-str (fx/finite-str 100)))))
 
 (defn append-tap
-  [{:keys [^ListView tap-list-view ^ObservableList tap-list]} val]
+  [{:keys [taps ^ListView tap-list-view ^ObservableList tap-list]} val]
   (.add tap-list (->Tapped val))
+  (swap! taps conj val)
   tap-list-view)
 
 (defn expr-loop [{:keys [exprs ^Writer eval-writer eval-history follow-editor-check title
@@ -258,8 +260,13 @@
     (.requestFocus (:browse-ui ostate))))
 
 (defn tap-clear-pressed
-  [{:keys [^ObservableList tap-list]}]
-  (.clear tap-list))
+  [{:keys [taps ^ObservableList tap-list]}]
+  (.clear tap-list)
+  (reset! taps []))
+
+(defn tap-browse-pressed
+  [{:keys [taps exprs] :as ui}]
+  (async/put! exprs {:tag :ret :form ":rebl/taps" :val @taps}))
 
 (defn- get-optional
   [^java.util.Optional o]
@@ -302,7 +309,7 @@
 (defn wire-handlers [{:keys [root-button back-button fwd-button eval-button def-text nav-text
                              viewer-choice browser-choice
                              scene eval-table code-view browse-pane view-pane
-                             tap-list-view tap-list tap-clear] :as ui}]
+                             tap-list-view tap-list tap-clear tap-browse] :as ui}]
   (let [wire-button (fn [f b]
                       (.setOnAction b (reify EventHandler (handle [_ e] (f)))))
         wire-key (fn wire-key
@@ -344,6 +351,7 @@
     (wire-button #(def-as ui) def-text)
     (wire-button #(set-nav-path ui) nav-text)
     (wire-button #(tap-clear-pressed ui) tap-clear)
+    (wire-button #(tap-browse-pressed ui) tap-browse)
     
     ;;choice controls
     (-> viewer-choice .valueProperty (.addListener (fx/change-listener (fn [ob ov nv]
@@ -418,6 +426,7 @@
                    :expr-ord (atom -1)
                    :state-history (atom ())
                    :eval-history (atom ())
+                   :taps (atom [])
                    :eval-writer pwr
                    :eval-table (doto (node "evalTable")
                                  (.setItems (fx/fxlist (java.util.ArrayList.))))
@@ -452,6 +461,8 @@
                    :viewer-choice (doto (node "viewerChoice")
                                     (.setConverter vc))
                    :view-pane (node "viewPane")
+                   :browse-tab-pane (node "browseTabPane")
+
                    :eval-choice (node "evalChoice")
                    :root-button (doto (node "rootButton")
                                   (.setDisable true))
@@ -462,6 +473,7 @@
                    :out-text (doto (node "outText")
                                (.setWrapText true))
                    :tap-clear (node "tapClear")
+                   :tap-browse (node "tapBrowse")
                    :tap-list tap-list
                    :tap-list-view tap-list-view
                    :tap-latest (node "tapLatest")}]

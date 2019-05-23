@@ -71,7 +71,7 @@
                   </GridPane>
                   <StackPane maxHeight="1.7976931348623157E308" prefHeight="421.0" prefWidth="495.0">
                      <children>
-                        <TabPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="UNAVAILABLE">
+                        <TabPane fx:id="browseTabPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="UNAVAILABLE">
                           <tabs>
                             <Tab text="browse">
                                  <content>
