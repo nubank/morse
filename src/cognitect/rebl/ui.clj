@@ -374,6 +374,7 @@
     (tooltip browser-choice "choose browser UI, focus with ^⇧B")
     (tooltip viewer-choice "choose viewer UI, focus with ^⇧V")
     (tooltip view-pane "viewer pane, focus with ^V")
+    (tooltip nav-text "nav ahead by supplying a path of keys and/or *parenthesized* forms (treated as per ->).\nThis lets you stay on a collection while viewing nested/transformed elements.\nFocus from browse with SHIFT-TAB, return to browse with TAB")
     
     ;;this handling is special and not like other browsers
     (fx/add-selection-listener eval-table (fn [idx row]
