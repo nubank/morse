@@ -228,9 +228,10 @@
             src (assoc :rebl.var/src src))))
 
 (defn nav-step [x kf]
-  (if (fn? kf)
-    (datafy (datafy/nav x nil (kf x)))
-    (datafy (datafy/nav x kf (get x kf)))))
+  (when (some? x)
+    (if (fn? kf)
+      (datafy (datafy/nav x nil (kf x)))
+      (datafy (datafy/nav x kf (get x kf))))))
 
 (defn path-nav [forms]
   (let [kf (fn [kform]
