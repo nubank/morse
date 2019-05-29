@@ -244,15 +244,17 @@ pair."
          (call [_ cdf]
                (ReadOnlyObjectWrapper. (f (.getValue cdf))))))
 
+(def table-cell-proxy (delay (eval '(fn [] (proxy [javafx.scene.control.TableCell] [])))))
+
 (defn cell-callback
   "Returns a Callback that sets the cell's text by applying f to the cell's
   item."
   [f]
   (reify Callback
          (call [_ tc]
-               (proxy [TableCell] []
-                      (updateItem [cell-item _]
-                        (.setText this (f cell-item)))))))
+               (update-proxy (@table-cell-proxy)
+                             {"updateItem" (fn [this cell-item _]
+                                             (.setText this (f cell-item)))}))))
 
 (defn safe-compare
   "Returns the result of comparing x1 & x2, falling back to comparing their
