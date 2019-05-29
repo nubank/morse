@@ -50,7 +50,15 @@ Your repl should start, along with the REBL UI. Everything you type in the repl 
 
 You can start more UIs with `(cognitect.rebl/ui)`
 
-You can also use REBL with [boot](https://github.com/cognitect-labs/rebl/wiki/Using-REBL-with-Boot) or [lein](https://github.com/cognitect-labs/rebl/wiki/Using-REBL-with-Leiningen).
+You can also use REBL with
+[boot](https://github.com/cognitect-labs/rebl/wiki/Using-REBL-with-Boot)
+or
+[lein](https://github.com/cognitect-labs/rebl/wiki/Using-REBL-with-Leiningen).
+
+## Local Builds
+
+     (require 'ci)
+     (ci/local-build cr/project)
 
 ## Releases
 
