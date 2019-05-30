@@ -382,6 +382,8 @@
                                               ;;(set-code code-view expr)
                                               (view ui idx (render/datafy val)))))))
 
+(def tap-cell-proxy (delay (eval '(fn [] (proxy [javafx.scene.control.cell.TextFieldListCell] [])))))
+
 (defn tap-cell-factory
   []
   (reify
@@ -389,14 +391,14 @@
    (call
     [this val]
     (let [tooltip (Tooltip.)]
-      (proxy [TextFieldListCell] []
-        (updateItem
-         [item empty?]
-         (proxy-super updateItem item empty?)
-         (when-not empty?
-           (.setText tooltip (-> (fx/finite-pprint-str @item)
-                                 (fx/ellipsize 2048)))
-           (.setTooltip this tooltip))))))))
+      (update-proxy (@tap-cell-proxy)
+                    {"updateItem"
+                     (fn [this item empty?]
+                       (proxy-super updateItem item empty?)
+                       (when-not empty?
+                         (.setText tooltip (-> (fx/finite-pprint-str @item)
+                                               (fx/ellipsize 2048)))
+                         (.setTooltip this tooltip)))})))))
 
 (defn- init [{:keys [exprs-mult proc]}]
   (fx/later
