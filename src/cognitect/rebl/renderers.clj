@@ -237,9 +237,27 @@
   (let [kf (fn [kform]
              (if (list? kform)
                (eval `(fn [x#] (-> x# ~kform)))
+               #_(binding [*ns* (find-ns 'cognitect.rebl.renderers)]
+                 (eval `(fn [x#] (-> x# ~kform))))
                kform))
         kfs (mapv kf forms)]
     #(reduce nav-step % kfs)))
+
+#_(defn- nav->* [x kfs]
+  (let [kf (fn [kform]
+             (cond
+              (list? kform) `(fn [x#] (-> x# ~kform))
+              (symbol? kform) `(quote ~kform)
+              :else kform))]
+    `(reduce nav-step ~x ~(mapv kf kfs))))
+
+#_(defmacro nav-> [x & forms]
+  (nav->* x forms))
+
+#_(defmacro nav-all-> [xs & forms]
+  `(let [xs# ~xs]
+     (mapv #(nav-> (nav-step xs# %) ~@forms)
+           (range (count xs#)))))
 
 (rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'edn-viewer}
                       :rebl/code {:pred #'code? :ctor #'code-viewer}
