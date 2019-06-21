@@ -89,7 +89,9 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
 (defmacro inspect
   "sends the expr and its value to the REBL UI"
   [expr]
-  `(submit '~expr ~expr))
+  `(let [ret# ~expr]
+     (submit '~expr ret#)
+     ret#))
 
 (defn repl [proc]
   (apply require main/repl-requires)
