@@ -4,6 +4,7 @@
   (:require
    [cognitect.rebl :as rebl]
    [cognitect.rebl.config :as config]
+   [cognitect.rebl.impl.monaco :as monaco]
    [cognitect.rebl.renderers :as render]
    [cognitect.rebl.fx :as fx]
    [clojure.datafy :as datafy]
@@ -433,6 +434,7 @@
            (.show stage)
            (-> (:code-view ui) .getEngine (.load (str (io/resource "cognitect/rebl/codeview.html"))))
            (wire-handlers ui)
+           (monaco/register (:code-view ui))
            (tap exprs-mult exprs)
            (.setOnHidden stage (reify EventHandler (handle [_ _]
                                                      (untap exprs-mult exprs)
