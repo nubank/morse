@@ -25,7 +25,8 @@ Enter forms here and press the eval button or CONTROL+ENTER"
     smoothScrolling: true,
     lineNumbers: "off",
     fontSize: "14px",
-    fontFamily: "Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace"
+    fontFamily: "Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace",
+    formatOnType: true
 });
     document.editor = editor;
 
@@ -55,6 +56,14 @@ window.addEventListener("optimizedResize", function() {
 });
 
     cognitect.monaco.paredit.register_actions(editor);
+
+    // wrapCljFn is used for marshalling data to the JS world.
+    function wrapCljFn(cljFn) {
+      var f = function (...args) {
+        return cljFn.invoke(args);
+      }
+      return f;
+    };
   </script>
 </body>
 </html>
