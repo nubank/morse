@@ -2,7 +2,7 @@
 
 (ns cognitect.rebl.impl.monaco
   (:require
-    [cljfmt.main :as cljfmt]
+    [cljfmt.core :as cljfmt]
     [cognitect.rebl.fx :as fx]
     [cognitect.rebl.impl.js :as js]
     [cognitect.rebl.impl.js-object :as jso])
@@ -49,7 +49,7 @@
     (try
       (let [{:keys [getFullModelRange getValue] :as text-model} (->map :text-model (.getSlot args 0))
             range (->map :range getFullModelRange)
-            formatted (#'cljfmt/reformat-string {} getValue)]
+            formatted (cljfmt/reformat-string getValue {})]
         (jso/->js engine [{:range range
                          :text formatted}]))
       (catch Throwable t
