@@ -1,9 +1,9 @@
 {:deps
- {cljfmt {:mvn/version "0.6.4"}
+ {cljfmt {:mvn/version "0.6.4"
+          :exclusions [org.clojure/clojurescript]}
   org.clojure/core.async {:mvn/version "0.4.490"}
   org.clojure/spec.alpha {:mvn/version "0.2.176"}
-  org.clojure/clojure {:mvn/version "1.10.0"}
-  org.clojure/clojurescript {:mvn/version "1.10.439"}}
+  org.clojure/clojure {:mvn/version "1.10.0"}}
 
  :mvn/repos {"cloud-maven" {:url "s3://cloud-1fc2183a-56c5-4f05-b37d-e78b6a7daffe/maven/releases"}}
 
