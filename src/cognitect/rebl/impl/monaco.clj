@@ -30,7 +30,7 @@
 (defn- ->map
   "model is the lookup in the models map.
   From the keys in models, retrieves values and returns map"
-  [model ^JSObject js]
+  [engine model ^JSObject js]
   (let [properties (reduce
                      (fn [m k]
                        (assoc m k (.getMember js (name k))))
@@ -38,46 +38,47 @@
                      (get-in models [model :properties]))]
     (reduce
       (fn [m k]
-        (assoc m k (.call js (name k) (object-array []))))
+        (assoc m k (js/call engine js k)))
       properties
       (get-in models [model :methods]))))
 
 (defn provide-on-type-formatting-edits-fn
   "returns function for callback for OnTypeFormattingEditProvider"
-  [^WebEngine engine]
-  (fn [^JSObject args]
+  [^WebEngine engine {:keys [cljfmt-options]}]
+  (fn [^JSObject edit-params]
     (try
-      (let [{:keys [getFullModelRange getValue] :as text-model} (->map :text-model (.getSlot args 0))
-            range (->map :range getFullModelRange)
-            formatted (cljfmt/reformat-string getValue {})]
+      (let [^JSObject text-model-obj (.getSlot edit-params 0)
+            {:keys [getFullModelRange getValue] :as text-model} (->map engine :text-model text-model-obj)
+            range (->map engine :range getFullModelRange)
+            formatted (cljfmt/reformat-string getValue cljfmt-options)]
         (jso/->js engine [{:range range
                          :text formatted}]))
       (catch Throwable t
         (.printStackTrace t)))))
 
 (defn register-callbacks
-  "Registers the langage providers"
-  [^WebEngine engine]
+  "Registers the language providers"
+  [^WebEngine engine options]
   (js/call engine "monaco.languages"
            :registerOnTypeFormattingEditProvider
            :clojure {:autoFormatTriggerCharacters ["\n" "\r"]
-                     :provideOnTypeFormattingEdits (provide-on-type-formatting-edits-fn engine)}))
+                     :provideOnTypeFormattingEdits (provide-on-type-formatting-edits-fn engine options)}))
 
 (defn register-callback-listener
   "Returns listener that registers callbacks on success."
-  ^ChangeListener [^WebEngine engine]
+  ^ChangeListener [^WebEngine engine options]
   (fn [ob ov nv]
     (when (= nv Worker$State/SUCCEEDED)
       (try
-        (register-callbacks engine)
+        (register-callbacks engine options)
         (catch Throwable t
           (.printStackTrace t)
           nil)))))
 
 (defn register
-  [^WebView codeview]
+  [^WebView codeview options]
   (let [^WebEngine engine (.getEngine codeview)]
-    (-> engine .getLoadWorker .stateProperty (.addListener ^ChangeListener (fx/change-listener (register-callback-listener engine))))))
+    (-> engine .getLoadWorker .stateProperty (.addListener ^ChangeListener (fx/change-listener (register-callback-listener engine options))))))
 
 (comment
   (do
@@ -111,5 +112,4 @@
                               (let [r (js/call engine "monaco.languages" :getEncodedLanguageId :clojure)]
                                 (prn :js-call r))))))
         (catch Throwable t
-          (.printStackTrace t)))))
-  )
+          (.printStackTrace t))))))

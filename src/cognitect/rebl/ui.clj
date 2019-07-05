@@ -434,7 +434,7 @@
            (.show stage)
            (-> (:code-view ui) .getEngine (.load (str (io/resource "cognitect/rebl/codeview.html"))))
            (wire-handlers ui)
-           (monaco/register (:code-view ui))
+           (monaco/register (:code-view ui) {:cljfmt-options {:remove-surrounding-whitespace? false}})
            (tap exprs-mult exprs)
            (.setOnHidden stage (reify EventHandler (handle [_ _]
                                                      (untap exprs-mult exprs)
