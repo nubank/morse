@@ -195,20 +195,17 @@ map's keys against the union of all keys."
   (doto control
     (.setText (str x))))
 
-(defn reset-code [code-view]
+(defn get-code [code-view]
   (-> (.getEngine code-view)
-      (.executeScript "document.cm")
-      (.call "setValue" (to-array [""]))))
+      (.executeScript "document.editor.getModel().getValue()")))
 
 (defn set-code [code-view code]
   (-> (.getEngine code-view)
-      (.executeScript "document.cm")
+      (.executeScript "document.editor.getModel()")
       (.call "setValue" (to-array [code]))))
 
-(defn get-code [code-view]
-  (-> (.getEngine code-view)
-      (.executeScript "document.cm")
-      (.call "getValue" (to-array []))))
+(defn reset-code [code-view]
+  (set-code code-view ""))
 
 (defn change-listener
   "makes a javafx.beans.value.ChangeListener given a function of observable,oldval,newval"
