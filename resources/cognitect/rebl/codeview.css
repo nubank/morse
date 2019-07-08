@@ -3,15 +3,6 @@ html, body {
   margin: 0;
 }
 
-.parinfer-error {
-  background: #FFBEBE;
-  color: black !important;
-}
-
-.parinfer-paren-trail {
-  opacity: 0.4;
-}
-
 .CodeMirror {
   font-family: Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   font-size: 14px;

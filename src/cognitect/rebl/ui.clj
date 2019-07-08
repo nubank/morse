@@ -370,7 +370,7 @@
     (tooltip back-button "Nav back ^LEFT")
     (tooltip fwd-button "Nav forward (browse the currently viewed value) ^RIGHT")
     (tooltip eval-button "eval code (in editor above) ^ENTER")
-    (tooltip code-view "edit code for evaluation here, with parinfer support. eval with ^ENTER, load prev/next exprs with ^UP/^DOWN")
+    (tooltip code-view "edit code for evaluation here, with paredit support. eval with ^ENTER, load prev/next exprs with ^UP/^DOWN")
     (tooltip eval-table "browser pane, focus with ^B")
     (tooltip browser-choice "choose browser UI, focus with ^⇧B")
     (tooltip viewer-choice "choose viewer UI, focus with ^⇧V")
