@@ -52,7 +52,7 @@
      :range range
      :text text}))
 
-(defn provide-on-type-formatting-edits
+(defn provide-on-type-formatting-edits-fn
   "returns function for callback for OnTypeFormattingEditProvider"
   [^WebEngine engine {:keys [cljfmt-options]}]
   (fn [^JSObject text-model ^JSObject position ch ^JSObject options ^JSObject token]
@@ -63,10 +63,6 @@
                            :text formatted}]))
       (catch Throwable t
         (.printStackTrace t)))))
-
-(def provide-on-type-formatting-edits-fn
-  "Memoized, to hold on to function that is being marshaled to JS"
-  (memoize provide-on-type-formatting-edits))
 
 (defn register-callbacks
   "Registers the language providers"

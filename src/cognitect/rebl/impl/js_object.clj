@@ -1,8 +1,6 @@
 ;;   Copyright (c) Cognitect, Inc. All rights reserved.
 
 (ns cognitect.rebl.impl.js-object
-  (:require
-    [clojure.string :as str])
   (:import
     netscape.javascript.JSObject
     [javafx.scene.web WebEngine]
@@ -14,6 +12,12 @@
 ;; See https://www.oracle.com/technetwork/java/javase/documentation/liveconnect-docs-349790.html#JAVA_JS_CONVERSIONS
 (defprotocol ToJs
   (->js* [x we]))
+
+(defmacro def-js-fn
+  "Defines a var to hold on to js-marshaled fns; avoids GC on marshaled Java objects"
+  [f]
+  `(def f#
+     ~f))
 
 ;; maybe need to box everything because JS doesn't look inside JSObject?
 (extend-protocol ToJs
@@ -52,7 +56,7 @@
     [f ^WebEngine we]
     (let [^JSObject window (.executeScript we "window")
           wrap-clj-fn ^JSObject (.getMember window "wrapCljFn")]
-      (.call wrap-clj-fn "call" (object-array [window f])))))
+      (.call wrap-clj-fn "call" (object-array [window @(def-js-fn f)])))))
 
 (defn ->js
   "To convert functions, WebEngine must have a global wrapCljFn function, which returns a function that calls invoke on f"
