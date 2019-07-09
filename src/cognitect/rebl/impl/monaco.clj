@@ -42,15 +42,23 @@
       properties
       (get-in models [model :methods]))))
 
+(defmulti js->clj "Convert JS object to Clojure" (fn [x _ _] x))
+
+(defmethod js->clj :text-model
+  [model engine js]
+  (let [{full-model-range :getFullModelRange text :getValue} (->map engine model js)
+        range (->map engine :range full-model-range)]
+    {:fullModelRange full-model-range
+     :range range
+     :text text}))
+
 (defn provide-on-type-formatting-edits
   "returns function for callback for OnTypeFormattingEditProvider"
   [^WebEngine engine {:keys [cljfmt-options]}]
-  (fn [^JSObject edit-params]
+  (fn [^JSObject text-model ^JSObject position ch ^JSObject options ^JSObject token]
     (try
-      (let [^JSObject text-model-obj (.getSlot edit-params 0)
-            {:keys [getFullModelRange getValue] :as text-model} (->map engine :text-model text-model-obj)
-            range (->map engine :range getFullModelRange)
-            formatted (cljfmt/reformat-string getValue cljfmt-options)]
+      (let [{:keys [range text]} (js->clj :text-model engine text-model)
+            formatted (cljfmt/reformat-string text cljfmt-options)]
         (jso/->js engine [{:range range
                            :text formatted}]))
       (catch Throwable t
