@@ -52,7 +52,7 @@
     [f ^WebEngine we]
     (let [^JSObject window (.executeScript we "window")
           wrap-clj-fn ^JSObject (.getMember window "wrapCljFn")]
-      (.call wrap-clj-fn "call" (object-array [window (fn [args] (f args))])))))
+      (.call wrap-clj-fn "call" (object-array [window f])))))
 
 (defn ->js
   "To convert functions, WebEngine must have a global wrapCljFn function, which returns a function that calls invoke on f"
