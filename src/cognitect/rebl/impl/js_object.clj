@@ -4,7 +4,7 @@
   (:import
     netscape.javascript.JSObject
     [javafx.scene.web WebEngine]
-    [clojure.lang IFn Keyword]
+    [clojure.lang Keyword Fn]
     [java.util Map List]))
 
 (set! *warn-on-reflection* true)
@@ -51,7 +51,7 @@
         (.setMember ^JSObject result (->js* k we) (->js* v we)))
       result))
 
-  IFn
+  Fn
   (->js*
     [f ^WebEngine we]
     (let [^JSObject window (.executeScript we "window")
