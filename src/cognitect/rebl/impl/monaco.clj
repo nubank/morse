@@ -61,8 +61,8 @@
             formatted (cljfmt/reformat-string text cljfmt-options)]
         (jso/->js engine [{:range range
                            :text formatted}]))
-      (catch Throwable t
-        (.printStackTrace t)))))
+      (catch Throwable _
+        nil))))
 
 (defn register-callbacks
   "Registers the language providers"
