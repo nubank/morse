@@ -138,4 +138,6 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
                            (.show stage))
                          (catch Throwable ex
                            (println ex))))
+
+(-main)
 )

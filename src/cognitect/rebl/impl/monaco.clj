@@ -52,17 +52,47 @@
      :range range
      :text text}))
 
+(defn- monaco-key*
+  [^WebEngine engine key-mod-or-code key]
+  (.executeScript engine (str "monaco." (name key-mod-or-code) "." (name key))))
+
+(def monaco-key
+  (memoize monaco-key*))
+
+(defn reformat-text
+  [engine text-model cljfmt-options]
+  (try
+    (let [{:keys [range text]} (js->clj :text-model engine text-model)
+          formatted (cljfmt/reformat-string text cljfmt-options)]
+      (jso/->js engine [{:range range
+                         :text formatted}]))
+    (catch Throwable _
+      nil)))
+
+(defn add-reindent-command
+  [^WebEngine engine ^JSObject editor]
+  ;; TODO hoist keybindings to config
+  (let [keybindings (bit-or
+                      (monaco-key engine :KeyMod :Alt)
+                      (monaco-key engine :KeyCode :KEY_Q))]
+    (js/call engine editor :addAction {:id "paredit-reindent-defun"
+                                       :label "Reindent"
+                                       :keybindings [keybindings]
+                                       :run (fn [x]
+                                              (let [action (js/call engine editor :getAction "editor.action.formatDocument")]
+                                                (js/call engine action :run)))})))
+
+(defn provide-document-formatting-edits-fn
+  "returns function for callback for DocumentFormattingEditProvider"
+  [^WebEngine engine {:keys [cljfmt-options]}]
+  (fn [^JSObject text-model ^JSObject options ^JSObject token]
+    (reformat-text engine text-model cljfmt-options)))
+
 (defn provide-on-type-formatting-edits-fn
   "returns function for callback for OnTypeFormattingEditProvider"
   [^WebEngine engine {:keys [cljfmt-options]}]
   (fn [^JSObject text-model ^JSObject position ch ^JSObject options ^JSObject token]
-    (try
-      (let [{:keys [range text]} (js->clj :text-model engine text-model)
-            formatted (cljfmt/reformat-string text cljfmt-options)]
-        (jso/->js engine [{:range range
-                           :text formatted}]))
-      (catch Throwable _
-        nil))))
+    (reformat-text engine text-model cljfmt-options)))
 
 (defn register-callbacks
   "Registers the language providers"
@@ -71,7 +101,17 @@
            :registerOnTypeFormattingEditProvider
            :clojure {:autoFormatTriggerCharacters ["\n" "\r"]
                      :provideOnTypeFormattingEdits
-                     (provide-on-type-formatting-edits-fn engine options)}))
+                     ;; Override cljfmt-options for more-sane on-type formatting
+                     (provide-on-type-formatting-edits-fn engine (merge {:cljfmt-options {:remove-surrounding-whitespace? false
+                                                                                          :remove-trailing-whitespace? false
+                                                                                          :remove-consecutive-blank-lines? false}}
+                                                                        options))})
+  (js/call engine "monaco.languages"
+           :registerDocumentFormattingEditProvider
+           :clojure {:provideDocumentFormattingEdits
+                     (provide-document-formatting-edits-fn engine options)})
+  (let [editor (js/callable engine "editor")]
+    (add-reindent-command engine editor)))
 
 (defn register-callback-listener
   "Returns listener that registers callbacks on success."
