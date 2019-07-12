@@ -335,10 +335,10 @@
     (wire-key #(-> view-pane fx/current-ui .requestFocus) :pressed KeyCode/V KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(.requestFocus viewer-choice) :pressed KeyCode/V KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
     (wire-key #(.requestFocus code-view) :pressed KeyCode/R KeyCodeCombination/CONTROL_DOWN)
-    (wire-key #(when-not (.isDisabled fwd-button) (fwd-pressed ui)) :pressed KeyCode/RIGHT KeyCodeCombination/CONTROL_DOWN)
-    (wire-key #(when-not (.isDisabled back-button) (back-pressed ui)) :pressed KeyCode/LEFT KeyCodeCombination/CONTROL_DOWN)
+    (wire-key #(when-not (.isDisabled fwd-button) (fwd-pressed ui)) :pressed KeyCode/RIGHT KeyCodeCombination/SHORTCUT_DOWN)
+    (wire-key #(when-not (.isDisabled back-button) (back-pressed ui)) :pressed KeyCode/LEFT KeyCodeCombination/SHORTCUT_DOWN)
     (wire-key #(when-not (.isDisabled root-button) (rtz ui)) :pressed KeyCode/LEFT
-              KeyCodeCombination/CONTROL_DOWN KeyCodeCombination/SHIFT_DOWN)
+              KeyCodeCombination/SHORTCUT_DOWN KeyCodeCombination/SHIFT_DOWN)
     (wire-key #(prev-expr ui) :pressed KeyCode/UP KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(next-expr ui) :pressed KeyCode/DOWN KeyCodeCombination/CONTROL_DOWN)
     (wire-key #(browse-user-namespace ui) :pressed KeyCode/U KeyCodeCombination/CONTROL_DOWN)
