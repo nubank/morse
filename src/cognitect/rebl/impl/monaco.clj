@@ -69,15 +69,16 @@
     (catch Throwable _
       nil)))
 
-(defn add-reindent-command
+(defn add-reindent-action
   [^WebEngine engine ^JSObject editor]
   ;; TODO hoist keybindings to config
-  (let [keybindings (bit-or
-                      (monaco-key engine :KeyMod :Alt)
-                      (monaco-key engine :KeyCode :KEY_Q))]
+  (let [keybindings [(bit-or
+                       (monaco-key engine :KeyMod :Alt)
+                       (monaco-key engine :KeyCode :KEY_Q))
+                     (monaco-key engine :KeyCode :Tab)]]
     (js/call engine editor :addAction {:id "paredit-reindent-defun"
                                        :label "Reindent"
-                                       :keybindings [keybindings]
+                                       :keybindings keybindings
                                        :run (fn [x]
                                               (let [action (js/call engine editor :getAction "editor.action.formatDocument")]
                                                 (js/call engine action :run)))})))
@@ -111,7 +112,7 @@
            :clojure {:provideDocumentFormattingEdits
                      (provide-document-formatting-edits-fn engine options)})
   (let [editor (js/callable engine "editor")]
-    (add-reindent-command engine editor)))
+    (add-reindent-action engine editor)))
 
 (defn register-callback-listener
   "Returns listener that registers callbacks on success."
