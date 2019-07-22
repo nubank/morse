@@ -3,16 +3,6 @@ html, body {
   margin: 0;
 }
 
-.CodeMirror {
-  font-family: Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace;
-  font-size: 14px;
-  background: #FEFEFE;
-  border: 1px solid #EEE;
-  padding: 2px;
-  box-sizing: border-box;
-  height: 100%;
-}
-
 body {
     overflow-x: hidden;
     overflow-y: hidden;
