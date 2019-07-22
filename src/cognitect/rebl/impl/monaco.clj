@@ -97,7 +97,7 @@
 
 (defn register-callbacks
   "Registers the language providers"
-  [^WebEngine engine options]
+  [^WebEngine engine editor options]
   (js/call engine "monaco.languages"
            :registerOnTypeFormattingEditProvider
            :clojure {:autoFormatTriggerCharacters ["\n" "\r"]
@@ -111,16 +111,17 @@
            :registerDocumentFormattingEditProvider
            :clojure {:provideDocumentFormattingEdits
                      (provide-document-formatting-edits-fn engine options)})
-  (let [editor (js/callable engine "editor")]
-    (add-reindent-action engine editor)))
+  (add-reindent-action engine editor))
 
-(defn register-callback-listener
+(defn init-listener
   "Returns listener that registers callbacks on success."
   ^ChangeListener [^WebEngine engine options]
   (fn [ob ov nv]
     (when (= nv Worker$State/SUCCEEDED)
       (try
-        (register-callbacks engine options)
+        (let [editor (js/callable engine "editor")]
+          (js/call engine editor :setValue "\"Welcome to REBL.\nEnter forms here and press the eval button or CONTROL+ENTER\"")
+          (register-callbacks engine editor options))
         (catch Throwable t
           (.printStackTrace t)
           nil)))))
@@ -128,7 +129,7 @@
 (defn register
   [^WebView codeview options]
   (let [^WebEngine engine (.getEngine codeview)]
-    (-> engine .getLoadWorker .stateProperty (.addListener ^ChangeListener (fx/change-listener (register-callback-listener engine options))))))
+    (-> engine .getLoadWorker .stateProperty (.addListener ^ChangeListener (fx/change-listener (init-listener engine options))))))
 
 (comment
   (do
