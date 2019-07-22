@@ -82,3 +82,17 @@ Prior to initial release, the manifest just points to a "coming soon"
 text file, so test away. 
 
 
+## Adding an extension
+
+    cognitect.rebl.impl.monaco/init-listener
+
+is a listener that is configured to run when the editor is successfully loaded.
+
+From `init-listener` (or `register-callbacks` in the same ns), call
+ 
+    cognitect.rebl.impl.js/call
+    
+to call Javascript functions from Java. This function will handle marshaling of data between Java and Javascript.
+
+See https://docs.oracle.com/javase/8/javafx/api/javafx/scene/web/WebEngine.html for details about marshaling objects.
+See https://microsoft.github.io/monaco-editor/api/modules/monaco.languages.html for the list of providers available through Monaco.

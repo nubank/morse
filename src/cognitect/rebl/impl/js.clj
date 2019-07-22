@@ -15,7 +15,7 @@
   (.executeScript engine (str "window." obj)))
 
 (defn call
-  "Calls js-function w/args against js-callable
+  "Calls js-function (keyword or string) w/args against js-callable
   if js-callable is a string, will be automatically converted to a callable JSObject.
 
   Returns the result of the js-function call."
