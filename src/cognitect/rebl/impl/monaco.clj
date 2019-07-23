@@ -10,7 +10,8 @@
     [javafx.scene.web WebEngine WebView]
     [javafx.beans.value ChangeListener]
     [javafx.concurrent Worker$State]
-    [netscape.javascript JSObject]))
+    [netscape.javascript JSObject]
+    [javafx.scene.input Clipboard ClipboardContent]))
 
 (set! *warn-on-reflection* true)
 
@@ -69,6 +70,42 @@
     (catch Throwable _
       nil)))
 
+(defn- copy-to-clipboard
+  [^WebEngine engine ^JSObject editor]
+  (let [clipboard (Clipboard/getSystemClipboard)
+        content (ClipboardContent.)
+        selection (js/call engine editor :getSelection)
+        model (js/call engine editor :getModel)
+        text (js/call engine model :getValueInRange selection)]
+    (.putString content text)
+    (.setContent clipboard content)))
+
+(defn- cut-to-clipboard
+  [^WebEngine engine ^JSObject editor]
+  (let [selection (js/call engine editor :getSelection)]
+    (copy-to-clipboard engine editor)
+    (js/call engine editor :executeEdits "REBL" [{:range selection
+                                                  :text nil}])))
+
+(defn add-cut-copy-keys
+  [^WebEngine engine ^JSObject editor]
+  (let [cut-keys [(bit-or
+                       (monaco-key engine :KeyMod :CtrlCmd)
+                       (monaco-key engine :KeyCode :KEY_X))]
+        copy-keys [(bit-or
+                    (monaco-key engine :KeyMod :CtrlCmd)
+                    (monaco-key engine :KeyCode :KEY_C))]]
+    (js/call engine editor :addAction {:id "Copy"
+                                       :label "Copy"
+                                       :keybindings copy-keys
+                                       :run (fn [x]
+                                              (copy-to-clipboard engine editor))})
+    (js/call engine editor :addAction {:id "Cut"
+                                       :label "Cut"
+                                       :keybindings cut-keys
+                                       :run (fn [x]
+                                              (cut-to-clipboard engine editor))})))
+
 (defn add-reindent-action
   [^WebEngine engine ^JSObject editor]
   ;; TODO hoist keybindings to config
@@ -111,7 +148,8 @@
            :registerDocumentFormattingEditProvider
            :clojure {:provideDocumentFormattingEdits
                      (provide-document-formatting-edits-fn engine options)})
-  (add-reindent-action engine editor))
+  (add-reindent-action engine editor)
+  (add-cut-copy-keys engine editor))
 
 (defn init-listener
   "Returns listener that registers callbacks on success."
