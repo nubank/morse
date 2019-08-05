@@ -49,7 +49,7 @@ the contents of zip-static directory."
     (zip/add-file-entry zo (str zip-base "/" jar-name) local-jar-path)
     (zip/add-dir zo zip-base "zip-static")))
 
-(defn local-build
+(defn build
   [project]
   (project/clean project)
   (project/test project)
@@ -58,9 +58,9 @@ the contents of zip-static directory."
   (project/write-jar project)
   (write-zip project))
 
-(defn build
+(defn deploy
   [project]
-  (local-build project)
+  (build project)
   (project/deploy project))
 
 (def releases-path
@@ -93,9 +93,10 @@ the contents of zip-static directory."
 (defn -main [& _] (project/main build project))
 
 (comment
-  (ci/local-build ci/project)
-
   (ci/build ci/project)
   (ci/release ci/project "0.9.109")
+
+  (ci/release ci/project "0.9.170")
+  
   (ci/release-plan ci/project "0.9.108")
   )
