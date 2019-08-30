@@ -6,7 +6,8 @@
    [clojure.pprint :as pp]
    [clojure.set :as set]
    [clojure.string :as str]
-   [cognitect.rebl :as rebl])
+   [cognitect.rebl.impl.monaco :as monaco]
+   [cognitect.rebl.impl.js :as js])
   (:import
    [javafx.application Platform]
    [javafx.beans.property ReadOnlyObjectWrapper]
@@ -329,10 +330,12 @@ pair."
   (let [eng (.getEngine wv)]
     (-> eng .getLoadWorker .stateProperty
         (.addListener
-         (reify javafx.beans.value.ChangeListener
+          (reify javafx.beans.value.ChangeListener
                 (changed [_ ob oldv newv]
                          (when (= newv javafx.concurrent.Worker$State/SUCCEEDED)
-                           (set-code wv text))))))
+                           (set-code wv text)
+                           (let [editor (js/callable eng "editor")]
+                             (monaco/add-cut-copy-keys eng editor)))))))
     (.load eng (str (io/resource "cognitect/rebl/codeview.html")))
     wv))
 

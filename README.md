@@ -58,7 +58,7 @@ or
 ## Local Builds
 
      (require 'ci)
-     (ci/local-build cr/project)
+     (ci/build cr/project)
 
 ## Releases
 

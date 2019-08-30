@@ -3,7 +3,6 @@
 (ns cognitect.rebl.impl.monaco
   (:require
     [cljfmt.core :as cljfmt]
-    [cognitect.rebl.fx :as fx]
     [cognitect.rebl.impl.js :as js]
     [cognitect.rebl.impl.js-object :as jso])
   (:import
@@ -164,10 +163,17 @@
           (.printStackTrace t)
           nil)))))
 
+(defn change-listener
+  "makes a javafx.beans.value.ChangeListener given a function of observable,oldval,newval"
+  [f]
+  (reify ChangeListener
+    (changed [_ ob oldval newval]
+      (f ob oldval newval))))
+
 (defn register
   [^WebView codeview options]
   (let [^WebEngine engine (.getEngine codeview)]
-    (-> engine .getLoadWorker .stateProperty (.addListener ^ChangeListener (fx/change-listener (init-listener engine options))))))
+    (-> engine .getLoadWorker .stateProperty (.addListener ^ChangeListener (change-listener (init-listener engine options))))))
 
 (comment
   (do
