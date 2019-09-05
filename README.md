@@ -60,7 +60,34 @@ or
      (require 'ci)
      (ci/build cr/project)
 
-## Releases
+## Releasing
+
+"CI" must be done locally until we have CI server support.
+
+     (require 'ci)
+     (ci/deploy ci/project)
+
+Test the release you built locally.
+
+Read the version number from the deploy output, and then review the
+release plan:
+
+     (ci/release-plan ci/project <version number like "0.9.220" here>)
+
+Then release!
+
+     (ci/release ci/project <version number like "0.9.220" here>)
+
+Verify that the download works at http://rebl.cognitect.com/download.html.
+
+Add release notes to the wiki at
+https://github.com/cognitect-labs/REBL-distro/wiki/ReleaseHistory.
+
+Post on patreon https://www.patreon.com. Copy the previous post and
+change the links.
+
+
+## How Releases Work
 
 Public releases are sourced from `private-releases-1fc2183a` which is
 a private bucket.
@@ -73,14 +100,6 @@ which contains a map describing the current release.
 
     {:current {:bucket "<bucket-name>"
                :key "<KEY>"}}
-
-Create a temporary download link to that bucket and key, where the
-text name of the link is the last path element,
-e.g. "rebl-0.9.99.zip".
-
-Prior to initial release, the manifest just points to a "coming soon"
-text file, so test away. 
-
 
 ## Adding an extension
 
