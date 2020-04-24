@@ -5,6 +5,7 @@
    [javafx.fxml FXMLLoader]
    [javafx.scene.control TableView TextArea])
   (:require
+   [clojure.repl]
    [clojure.set :as set]
    [clojure.string :as string]
    [clojure.datafy :as datafy]
