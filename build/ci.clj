@@ -30,13 +30,6 @@
   {:paths []
    :deps {'com.cognitect/rebl-core {:local/root (str "../" jar-name)}}})
 
-(def javafx14-deps
-  '{org.openjfx/javafx-fxml     {:mvn/version "14.0.1"}
-    org.openjfx/javafx-controls {:mvn/version "14.0.1"}
-    org.openjfx/javafx-swing    {:mvn/version "14.0.1"}
-    org.openjfx/javafx-base     {:mvn/version "14.0.1"}
-    org.openjfx/javafx-web      {:mvn/version "14.0.1"}})
-
 (def javafx15-deps
   '{org.openjfx/javafx-fxml     {:mvn/version "15-ea+6"}
     org.openjfx/javafx-controls {:mvn/version "15-ea+6"}
@@ -54,9 +47,6 @@ the contents of zip-static directory."
         (zip/add-entry zo
           (str zip-base "/java8/deps.edn")
           (with-out-str (pp/pprint base-deps)))
-        (zip/add-entry zo
-          (str zip-base "/openjfx14/deps.edn")
-          (with-out-str (pp/pprint (update base-deps :deps merge javafx14-deps))))
         (zip/add-entry zo
           (str zip-base "/openjfx15ea/deps.edn")
           (with-out-str (pp/pprint (update base-deps :deps merge javafx15-deps))))
