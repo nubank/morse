@@ -23,28 +23,41 @@ REBL runs in your application JVM process, and can be used at dev-time without a
 
 ## Requirements
 
-- Clojure 1.10.0 or higher
-- Java 1.8.0_151 or higher
-- core.async (tested with 0.4.490)
+* Clojure, 1.10.0 or higher
+* Java
+  * Java 8 1.8.0_151 or higher, with embedded JavaFX or OpenJavaFX
+    * Distributions include: Oracle, Azul, BellSoft Liberica, Amazon Coretto
+    * AdoptOpenJDK DOES NOT include OpenJavaFX and is not supported
+      * Either use Java 11+ or see these [suggestions](https://github.com/AdoptOpenJDK/openjdk-build/issues/577#issuecomment-557496591) (unupported)
+  * Java 11 or higher with external OpenJavaFX (see below)
 
 ## Usage:
 
 [Download REBL](http://rebl.cognitect.com/download.html) and unzip it to your local drive.
 
-add an alias to (your existing project's) deps.edn with a [local dependency](https://clojure.org/guides/deps_and_cli#local_jar) on the rebl jar file:
+Add an alias in your ~/.clojure/deps.edn (to enable for all projects) or an individual project's deps.edn with a [local dependency](https://clojure.org/guides/deps_and_cli#local_jar) on REBL.
+
+For Java 8 with embedded JavaFX:
 
 ``` clj
-{:deps {}
- :aliases
- {:rebl {:extra-deps {
-	org.clojure/clojure {:mvn/version "1.10.0"}
-        org.clojure/core.async {:mvn/version "0.4.490"}
-	com.cognitect/rebl {:local/root "/path/to/rebl-VERSION.jar"}}}}}
+{:aliases
+ {:rebl
+  {:extra-deps {com.cognitect/rebl {:local/root "path/to/REBL-VERSION/java8"}}
+   :main-opts ["-m" "cognitect.rebl"]}}}
+```
+
+For Java 11+:
+
+``` clj
+{:aliases
+ {:rebl
+  {:extra-deps {com.cognitect/rebl {:local/root "path/to/REBL-VERSION/openjfx15ea"}}
+   :main-opts ["-m" "cognitect.rebl"]}}}
 ```
 
 replace your normal repl invocation (`clj`, or `clojure` e.g. for inferior-lisp) with REBL:
 
-`clj -R:rebl -m cognitect.rebl`
+`clj -A:rebl`
 
 Your repl should start, along with the REBL UI. Everything you type in the repl will also appear in REBL. You can also type expressions right into REBL's editor (in the upper left). REBL will maintain a history of exprs+results in the root browse table.
 
