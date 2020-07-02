@@ -1,6 +1,6 @@
 .cpcache
 .idea
-rebl.iml
+*.iml
 .vscode
 .rebl
 target/*
