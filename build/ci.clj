@@ -27,27 +27,41 @@
 
 (defn example-deps
   [jar-name]
-  (assoc-in
-   '{:deps {}
-     :aliases
-     {:rebl {:extra-deps {
-                          org.clojure/core.async {:mvn/version "0.4.490"}
-                          org.clojure/clojure {:mvn/version "1.10.0"}
-                          com.cognitect/rebl {:local/root "<rebl-path.jar>"}}}}}
-   [:aliases :rebl :extra-deps 'com.cognitect/rebl :local/root]
-   jar-name))
+  {:paths []
+   :deps {'com.cognitect/rebl-core {:local/root (str "../" jar-name)}}})
+
+(def javafx14-deps
+  '{org.openjfx/javafx-fxml     {:mvn/version "14.0.1"}
+    org.openjfx/javafx-controls {:mvn/version "14.0.1"}
+    org.openjfx/javafx-swing    {:mvn/version "14.0.1"}
+    org.openjfx/javafx-base     {:mvn/version "14.0.1"}
+    org.openjfx/javafx-web      {:mvn/version "14.0.1"}})
+
+(def javafx15-deps
+  '{org.openjfx/javafx-fxml     {:mvn/version "15-ea+6"}
+    org.openjfx/javafx-controls {:mvn/version "15-ea+6"}
+    org.openjfx/javafx-swing    {:mvn/version "15-ea+6"}
+    org.openjfx/javafx-base     {:mvn/version "15-ea+6"}
+    org.openjfx/javafx-web      {:mvn/version "15-ea+6"}})
 
 (defn write-zip
   "Write a zip file next to local-jar-path, containing the jar plus
 the contents of zip-static directory."
   [{:keys [local-jar-path jar-name local-zip-path zip-base]}]
-  (with-open [zo (zip/output-stream local-zip-path)]
-    (zip/add-entry zo
-                   (str zip-base "/deps.edn")
-                   (with-out-str
-                     (pp/pprint (example-deps jar-name))))
-    (zip/add-file-entry zo (str zip-base "/" jar-name) local-jar-path)
-    (zip/add-dir zo zip-base "zip-static")))
+  (let [base-deps (example-deps jar-name)]
+    (binding [*print-namespace-maps* false]
+      (with-open [zo (zip/output-stream local-zip-path)]
+        (zip/add-entry zo
+          (str zip-base "/java8/deps.edn")
+          (with-out-str (pp/pprint base-deps)))
+        (zip/add-entry zo
+          (str zip-base "/openjfx14/deps.edn")
+          (with-out-str (pp/pprint (update base-deps :deps merge javafx14-deps))))
+        (zip/add-entry zo
+          (str zip-base "/openjfx15ea/deps.edn")
+          (with-out-str (pp/pprint (update base-deps :deps merge javafx15-deps))))
+        (zip/add-file-entry zo (str zip-base "/" jar-name) local-jar-path)
+        (zip/add-dir zo zip-base "zip-static")))))
 
 (defn build
   [project]
