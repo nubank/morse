@@ -8,7 +8,9 @@
 
  :paths ["src" "resources"]
  :aliases
- {:dev {:extra-deps {org.yaml/snakeyaml {:mvn/version "1.23"}}}
+ {:dev {:extra-deps {com.datomic/dev-local-distro {:git/url "git@cognitect.git.beanstalkapp.com:/cognitect/dev-local-distro.git"
+                                                   :sha "243529a4e6fed3a89d4c04c228981a8af0ab4be8"}
+                     org.yaml/snakeyaml {:mvn/version "1.23"}}}
   :ci {:extra-paths ["build"]
        :extra-deps {com.cognitect/deps.build {:sha "9472a9b0e0f4d49e4cab47109caccaab0d162ffb"
                                               :git/url "git@cognitect.git.beanstalkapp.com:/cognitect/deps-build.git"}
