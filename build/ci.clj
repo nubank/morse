@@ -52,7 +52,7 @@ the contents of zip-static directory."
           (with-out-str (pp/pprint (update base-deps :deps merge javafx15-deps))))
         (zip/add-file-entry zo (str zip-base "/" jar-name) local-jar-path)
         (zip/add-dir zo zip-base "zip-static")
-        (zip/add-file-entry zo "LICENSE.txt" (.getPath (io/resource "datomic/dev-local-distro/LICENSE")))))))
+        (zip/add-file-entry zo (str zip-base "/LICENSE.txt") (.getPath (io/resource "datomic/dev-local-distro/LICENSE")))))))
 
 (defn build
   [project]
@@ -99,6 +99,7 @@ the contents of zip-static directory."
 
 (comment
   (ci/build ci/project)
+  (ci/deploy ci/project)
   (ci/release ci/project "0.9.109")
 
   (ci/release ci/project "0.9.170")
