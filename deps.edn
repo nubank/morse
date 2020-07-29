@@ -10,7 +10,7 @@
  :aliases
  {:dev {:extra-deps {;; Shared LICENSE file is in dev-local-distro
                      com.datomic/dev-local-distro {:git/url "git@cognitect.git.beanstalkapp.com:/cognitect/dev-local-distro.git"
-                                                   :sha "fb28552ba53788041897a30c0101125413b4b5f6"}
+                                                   :sha "b6b84726214108b14c75c119f24cdc1dbf051917"}
                      org.yaml/snakeyaml {:mvn/version "1.23"}}}
   :ci {:extra-paths ["build"]
        :extra-deps {com.cognitect/deps.build {:sha "9472a9b0e0f4d49e4cab47109caccaab0d162ffb"
