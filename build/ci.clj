@@ -97,7 +97,7 @@ the contents of zip-static directory."
 
 (defn print-version
   []
-  (:version ci/project))
+  (print (:version ci/project) "\n"))
 
 
 (defn -main [& _] (project/main build project))
