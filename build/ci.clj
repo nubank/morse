@@ -95,6 +95,11 @@ the contents of zip-static directory."
     (s3/write-edn (:bucket releases-path) manifest-path
                   (:manifest plan))))
 
+(defn print-version
+  []
+  (:version ci/project))
+
+
 (defn -main [& _] (project/main build project))
 
 (comment
