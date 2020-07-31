@@ -100,7 +100,7 @@ the contents of zip-static directory."
   (print (:version ci/project) "\n"))
 
 
-(defn -main [& _] (project/main build project))
+(defn -main [& _] (project/main deploy project))
 
 (comment
   (ci/build ci/project)
