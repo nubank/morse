@@ -33,31 +33,35 @@ REBL runs in your application JVM process, and can be used at dev-time without a
 
 ## Usage:
 
-[Download REBL](http://rebl.cognitect.com/download.html) and unzip it to your local drive.
+[Get the Cognitect dev-tools](https://cognitect.com/dev-tools) and
+[configure the dev-tools maven repository](https://cognitect.com/dev-tools/maven.html).
 
-Add an alias in your ~/.clojure/deps.edn (to enable for all projects) or an individual project's deps.edn with a [local dependency](https://clojure.org/guides/deps_and_cli#local_jar) on REBL.
-
-For Java 8 with embedded JavaFX:
-
-``` clj
-{:aliases
- {:rebl
-  {:extra-deps {com.cognitect/rebl {:local/root "path/to/REBL-VERSION/java8"}}
-   :main-opts ["-m" "cognitect.rebl"]}}}
-```
-
-For Java 11+:
+Add an alias to your `~/.clojure/deps.edn` (to enable for all
+projects) or to an individual project's `deps.edn`:
 
 ``` clj
 {:aliases
- {:rebl
-  {:extra-deps {com.cognitect/rebl {:local/root "path/to/REBL-VERSION/openjfx15ea"}}
+ {:rebl        ;; for JDK 11+
+  {:extra-deps {com.cognitect/rebl          {:mvn/version "${REBL-VERSION}"}
+                org.openjfx/javafx-fxml     {:mvn/version "15-ea+6"}
+                org.openjfx/javafx-controls {:mvn/version "15-ea+6"}
+                org.openjfx/javafx-swing    {:mvn/version "15-ea+6"}
+                org.openjfx/javafx-base     {:mvn/version "15-ea+6"}
+                org.openjfx/javafx-web      {:mvn/version "15-ea+6"}}
+   :main-opts ["-m" "cognitect.rebl"]}
+  :rebl-jdk8   ;; for JDK 8
+  {:extra-deps {com.cognitect/rebl {:mvn/version "${REBL-VERSION}"}}
    :main-opts ["-m" "cognitect.rebl"]}}}
 ```
 
-replace your normal repl invocation (`clj`, or `clojure` e.g. for inferior-lisp) with REBL:
+Replace your normal repl invocation (`clj`, or `clojure` e.g. for
+inferior-lisp) with the appropriate alias for your JDK version:
 
-`clj -A:rebl`
+    # for JDK 11+
+    clj -A:rebl
+
+    # for JDK 8
+    clj -A:rebl-jdk8`
 
 Your repl should start, along with the REBL UI. Everything you type in the repl will also appear in REBL. You can also type expressions right into REBL's editor (in the upper left). REBL will maintain a history of exprs+results in the root browse table.
 

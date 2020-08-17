@@ -25,34 +25,33 @@
                    :instrument? #(str/starts-with? (namespace %) "cognitect")
                    :project-class? #(str/starts-with? % "cognitect/rebl")}))
 
-(defn example-deps
-  [jar-name]
-  {:paths []
-   :deps {'com.cognitect/rebl-core {:local/root (str "../" jar-name)}}})
-
-(def javafx15-deps
-  '{org.openjfx/javafx-fxml     {:mvn/version "15-ea+6"}
-    org.openjfx/javafx-controls {:mvn/version "15-ea+6"}
-    org.openjfx/javafx-swing    {:mvn/version "15-ea+6"}
-    org.openjfx/javafx-base     {:mvn/version "15-ea+6"}
-    org.openjfx/javafx-web      {:mvn/version "15-ea+6"}})
+(defn write-jar
+  "Write the jar. Does *not* include source code"
+  [{:keys [pom local-jar-path project-class? target-jar-path copyright] :as args}]
+  (io/make-parents target-jar-path)
+  (project/log {:writing target-jar-path})
+  (binding [*print-length* nil
+            *print-level* nil]
+    (with-open [zo (zip/output-stream target-jar-path)]
+      (zip/add-entry zo (project/pom-path args) pom)
+      ;; add LICENSE etc. under META-INF. This is idiomatic
+      (zip/add-entry zo "META-INF/COPYRIGHT.txt" copyright)
+      (zip/add-file-entry zo "META-INF/LICENSE.txt" (.getPath (io/resource "datomic/dev-local-distro/LICENSE")))
+      (zip/add-entry zo (project/manifest-path args) (pr-str (project/manifest args)))
+      (zip/add-dir zo nil "target/classes" project-class?)))
+  (io/make-parents local-jar-path)
+  (io/copy (io/file target-jar-path) (io/file local-jar-path))
+  (maven/add-sha local-jar-path))
 
 (defn write-zip
   "Write a zip file next to local-jar-path, containing the jar plus
 the contents of zip-static directory."
   [{:keys [local-jar-path jar-name local-zip-path zip-base]}]
-  (let [base-deps (example-deps jar-name)]
-    (binding [*print-namespace-maps* false]
-      (with-open [zo (zip/output-stream local-zip-path)]
-        (zip/add-entry zo
-          (str zip-base "/java8/deps.edn")
-          (with-out-str (pp/pprint base-deps)))
-        (zip/add-entry zo
-          (str zip-base "/openjfx15ea/deps.edn")
-          (with-out-str (pp/pprint (update base-deps :deps merge javafx15-deps))))
-        (zip/add-file-entry zo (str zip-base "/" jar-name) local-jar-path)
-        (zip/add-dir zo zip-base "zip-static")
-        (zip/add-file-entry zo (str zip-base "/LICENSE.txt") (.getPath (io/resource "datomic/dev-local-distro/LICENSE")))))))
+  (binding [*print-namespace-maps* false]
+    (with-open [zo (zip/output-stream local-zip-path)]
+      (zip/add-file-entry zo (str zip-base "/" jar-name) local-jar-path)
+      (zip/add-dir zo zip-base "zip-static")
+      (zip/add-file-entry zo (str zip-base "/LICENSE.txt") (.getPath (io/resource "datomic/dev-local-distro/LICENSE"))))))
 
 (defn build
   [project]
@@ -60,7 +59,7 @@ the contents of zip-static directory."
   (project/test project)
   (project/compile-clj project)
   (project/write-pom project)
-  (project/write-jar project)
+  (write-jar project)
   (write-zip project))
 
 (defn deploy
