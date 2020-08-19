@@ -33,8 +33,12 @@ REBL runs in your application JVM process, and can be used at dev-time without a
 
 ## Usage:
 
-[Get the Cognitect dev-tools](https://cognitect.com/dev-tools) and
-[configure the dev-tools maven repository](https://cognitect.com/dev-tools/maven.html).
+REBL is part of the Cognitect dev-tools. [Get the latest version of
+Cognitect dev-tools](https://cognitect.com/dev-tools/index.html) and unzip
+it. From the unzip directory, install the dev-tools with the
+`install` script:
+
+    bash ./install
 
 Add an alias to your `~/.clojure/deps.edn` (to enable for all
 projects) or to an individual project's `deps.edn`:
