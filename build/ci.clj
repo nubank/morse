@@ -19,7 +19,7 @@
                                        (str/replace jar-name ".jar" ".zip")]))))
 
 (def project
-  (create-project {:lib 'com.cognitect/REBL
+  (create-project {:lib 'com.cognitect/rebl
                    :version (str "0.9." (git/revision))
                    :namespace 'cognitect.rebl
                    :instrument? #(str/starts-with? (namespace %) "cognitect")
@@ -70,9 +70,9 @@ the contents of zip-static directory."
 
 (def releases-path
   {:bucket "private-releases-1fc2183a"
-   :key "releases/REBL"})
+   :key "releases/rebl"})
 
-(def manifest-path "releases/REBL/manifest.edn")
+(def manifest-path "releases/rebl/manifest.edn")
 
 (defn release-plan
   [current-project version]

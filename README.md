@@ -46,7 +46,7 @@ projects) or to an individual project's `deps.edn`:
 ``` clj
 {:aliases
  {:rebl        ;; for JDK 11+
-  {:extra-deps {com.cognitect/rebl          {:mvn/version "${REBL-VERSION}"}
+  {:extra-deps {com.cognitect/rebl          {:mvn/version "0.9.241"}
                 org.openjfx/javafx-fxml     {:mvn/version "15-ea+6"}
                 org.openjfx/javafx-controls {:mvn/version "15-ea+6"}
                 org.openjfx/javafx-swing    {:mvn/version "15-ea+6"}
@@ -54,7 +54,7 @@ projects) or to an individual project's `deps.edn`:
                 org.openjfx/javafx-web      {:mvn/version "15-ea+6"}}
    :main-opts ["-m" "cognitect.rebl"]}
   :rebl-jdk8   ;; for JDK 8
-  {:extra-deps {com.cognitect/rebl {:mvn/version "${REBL-VERSION}"}}
+  {:extra-deps {com.cognitect/rebl {:mvn/version "0.9.241"}}
    :main-opts ["-m" "cognitect.rebl"]}}}
 ```
 
