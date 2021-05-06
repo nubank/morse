@@ -9,12 +9,11 @@
      :build/filter-nses [cognitect.rebl]                        ;; compile-clj
      :build/copy-specs [{:from ["resources"]}]                  ;; copy
      :build/src-pom "pom.xml"                                   ;; sync-pom
-     :build/version "???"                                       ;; sync-pom, Q: where to get version?
      :build/lib com.cognitect/REBL                              ;; sync-pom
      :git-version/template "0.9.%s"                             ;; git-version
      :build/zip-dir "target1/zip"}                              ;; WiP
     :tasks [[clean]  ;; :target-dir
-            [clojure.tools.build.extra/git-version]
+            [git-version] ;; :git-version/template
             [compile-clj {:build/opts {:elide-meta [:doc :file :line]}}] ;; :clj-paths, :compile-dir?, :filter-nses
             [copy] ;; :compile-dir?
             [sync-pom] ;; :src-pom, :lib, :version, :compile-dir?
