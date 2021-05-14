@@ -16,8 +16,6 @@
             :src-pom "pom.xml"                                   ;; sync-pom
             :jar-file (format "target1/REBL-%s.jar" version)     ;; jar
             :copy-specs [{:from "resources" :include "**"}]      ;; copy
-            :zip-file (format "target1/REBL-%s.zip" version)     ;; zip
-            :zip-paths ["deps.edn" "zip-static/**" "target1/REBL-*.jar"] ;; zip
             :build/basis (build/load-basis)}))
 
 (defn clean [args]
@@ -29,11 +27,17 @@
     build/compile-clj))
 
 (defn dist [args]
-  (doto (merge params args)
-    prep
-    build/sync-pom
-    build/copy
-    build/jar
-    ;;build/copy
-    build/zip))
-
+  (let [merged (merge params args)]
+    (doto merged
+      prep
+      build/sync-pom
+      build/copy
+      build/jar)
+    (doto (merge merged
+            #:build{:build/compile-dir "target1/zip"
+                    :copy-specs [{:from "target1" :include "REBL-*.jar"}
+                                 {:from "zip-static" :include "**"}]
+                    :zip-paths ["target1/zip"]
+                    :zip-file (format "target1/REBL-%s.zip" (:build/version merged))})
+      build/copy
+      build/zip)))
