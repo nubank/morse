@@ -10,7 +10,6 @@
      :build/filter-nses '[cognitect.rebl]                       ;; compile-clj
      :build/copy-specs [{:from ["resources"]}]                  ;; copy
      :build/src-pom "pom.xml"                                   ;; sync-pom
-     :build/zip-dir "target1/zip"
      :build/opts {:elide-meta [:doc :file :line]}
      :build/zip-file  (format "target1/REBL-%s.zip" version)
      :build/zip-paths ["deps.edn" "zip-static/**" "target1/REBL-*.jar"]
