@@ -20,6 +20,6 @@
                                               :git/url "git@cognitect.git.beanstalkapp.com:/cognitect/deps-project.git"}}}
   :build {:extra-paths ["."]
           :replace-deps {io.github.clojure/tools.build {:git/url "git@github.com:clojure/tools.build.git"
-                                                        :sha "004a1926f906d3eabdff1183e462bf0ec14da03f"}}
+                                                        :sha "9b00ecca279f6df40cf72db99ecc621c129281ed"}}
           :ns-default build}}
  }
