@@ -1,43 +1,44 @@
 (ns build
-  (:require [clojure.tools.build.api :as build]))
+  (:refer-clojure :exclude [compile])
+  (:require [clojure.tools.build.api :as b]))
 
-(def params
-  (let [version (build/git-version "1.2.%s")]
-    #:build{:dir "target1"                                       ;; clean
-            :lib 'cognitect/REBL
-            :version version
-            :compile-dir "target1/classes"
-            :clj-paths ["src"]                                   ;; compile-clj
-            :ns-compile '[cognitect.rebl.ui
-                          cognitect.rebl.fx
-                          cognitect.rebl.charts]
-            :filter-nses '[cognitect.rebl]                       ;; compile-clj
-            :opts {:elide-meta [:doc :file :line]}               ;; compile-clj
-            :src-pom "pom.xml"                                   ;; sync-pom
-            :jar-file (format "target1/REBL-%s.jar" version)     ;; jar
-            :copy-specs [{:from "resources" :include "**"}]      ;; copy
-            :build/basis (build/load-basis)}))
+(def lib 'cognitect/REBL)
+(def version (format "1.2.%s" (b/git-count-revs nil)))
+(def jar-file (format "target1/REBL-%s.jar" version))
+(def class-dir "target1/classes")
+(def basis (b/load-basis nil))
 
 (defn clean [args]
-  (doto (merge params args) build/clean))
+  (b/clean {:dir "target1"}))
 
-(defn prep [args]
-  (doto (merge params args)
-    build/clean
-    build/compile-clj))
+(defn compile [args]
+  (clean args)
+  (b/compile-clj {:basis basis
+                  :src-dirs ["src"]
+                  :class-dir class-dir
+                  :compiler-opts (merge {:elide-meta [:doc :file :line]}
+                                   (:compiler-opts args))
+                  :ns-compile '[cognitect.rebl.ui
+                                cognitect.rebl.fx
+                                cognitect.rebl.charts]
+                  :filter-nses '[cognitect.rebl]})
+  (b/copy {:target-dir class-dir
+           :src-specs [{:src-dir "resources" :include "**"}]}))
 
+(defn jar [args]
+  (compile args)
+  (b/sync-pom {:lib lib
+               :version version
+               :basis basis
+               :class-dir class-dir})
+  (b/jar {:class-dir class-dir
+          :jar-file jar-file}))
+
+;; clj -X:build dist
 (defn dist [args]
-  (let [merged (merge params args)]
-    (doto merged
-      prep
-      build/sync-pom
-      build/copy
-      build/jar)
-    (doto (merge merged
-            #:build{:build/compile-dir "target1/zip"
-                    :copy-specs [{:from "target1" :include "REBL-*.jar"}
-                                 {:from "zip-static" :include "**"}]
-                    :zip-paths ["target1/zip"]
-                    :zip-file (format "target1/REBL-%s.zip" (:build/version merged))})
-      build/copy
-      build/zip)))
+  (jar args)
+  (b/copy {:target-dir "target1/zip"
+           :src-specs [{:src-dir "target1" :include "REBL-*.jar"}
+                       {:src-dir "zip-static" :include "**"}]})
+  (b/zip {:src-dirs ["target1/zip"]
+          :zip-file (format "target1/REBL-%s.zip" version)}))
