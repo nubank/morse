@@ -19,7 +19,8 @@
                     com.datomic/deps.project {:sha "03021b50349df1d740f1ace0cd5813c6f436ae38"
                                               :git/url "git@cognitect.git.beanstalkapp.com:/cognitect/deps-project.git"}}}
   :build {:extra-paths ["."]
-          :replace-deps {io.github.clojure/tools.build {:git/url "git@github.com:clojure/tools.build.git"
-                                                        :sha "9b00ecca279f6df40cf72db99ecc621c129281ed"}}
+          :replace-deps {io.github.clojure/tools.build {:local/root "../tools.build"}}
+          ;;                                             {:git/url "git@github.com:clojure/tools.build.git"
+          ;;                                              :sha "634ff46a17ee0a97d8ce7d4b3a016d75275992d7"}}
           :ns-default build}}
  }
