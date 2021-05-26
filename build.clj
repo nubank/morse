@@ -9,12 +9,12 @@
 (def basis (b/load-basis nil))
 
 (defn clean [args]
-  (b/clean {:dir "target1"}))
+  (b/delete {:path "target1"}))
 
 (defn compile [args]
   (clean args)
   (b/compile-clj {:basis basis
-                  :src-dirs ["src"]
+                  :clj-dirs ["src"]
                   :class-dir class-dir
                   :compiler-opts (merge {:elide-meta [:doc :file :line]}
                                    (:compiler-opts args))
