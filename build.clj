@@ -14,7 +14,7 @@
 (defn compile [args]
   (clean args)
   (b/compile-clj {:basis basis
-                  :clj-dirs ["src"]
+                  :src-dirs ["src"]
                   :class-dir class-dir
                   :compiler-opts (merge {:elide-meta [:doc :file :line]}
                                    (:compiler-opts args))
@@ -23,7 +23,7 @@
                                 cognitect.rebl.charts]
                   :filter-nses '[cognitect.rebl]})
   (b/copy {:target-dir class-dir
-           :src-specs [{:src-dir "resources" :include "**"}]}))
+           :src-dirs ["resources"]}))
 
 (defn jar [args]
   (compile args)
@@ -38,7 +38,9 @@
 (defn dist [args]
   (jar args)
   (b/copy {:target-dir "target1/zip"
-           :src-specs [{:src-dir "target1" :include "REBL-*.jar"}
-                       {:src-dir "zip-static" :include "**"}]})
+           :src-dirs ["target1"]
+           :include "REBL-*.jar"})
+  (b/copy {:target-dir "target1/zip"
+           :src-dirs ["zip-static"]})
   (b/zip {:src-dirs ["target1/zip"]
           :zip-file (format "target1/REBL-%s.zip" version)}))
