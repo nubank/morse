@@ -1,8 +1,8 @@
 {:deps
- {cljfmt/cljfmt {:mvn/version "0.6.8"
+ {cljfmt/cljfmt {:mvn/version "0.8.0"
                  :exclusions [org.clojure/clojurescript]}
-  org.clojure/core.async {:mvn/version "1.2.603"}
-  org.clojure/clojure {:mvn/version "1.10.0"}}
+  org.clojure/core.async {:mvn/version "1.5.644"}
+  org.clojure/clojure {:mvn/version "1.10.3"}}
 
  :mvn/repos {"cloud-maven" {:url "s3://cloud-1fc2183a-56c5-4f05-b37d-e78b6a7daffe/maven/releases"}}
 
@@ -11,11 +11,11 @@
  {:dev {:extra-deps {;; Shared LICENSE file is in dev-local-distro
                      com.datomic/dev-local-distro {:git/url "git@cognitect.git.beanstalkapp.com:/cognitect/dev-local-distro.git"
                                                    :sha "5d2082ef58b3e372fcb1c53052ae7e31142eb308"}
-                     org.yaml/snakeyaml {:mvn/version "1.23"}}}
+                     org.yaml/snakeyaml {:mvn/version "1.29"}}}
   :ci {:extra-paths ["build"]
-       :extra-deps {com.cognitect/deps.build {:sha "781218834406d92a5ec8e546f46ff5111537c796"
+       :extra-deps {com.cognitect/deps.build {:sha "eb91cbb57d0231dda74ebc81487030b0651df2b9"
                                               :git/url "git@cognitect.git.beanstalkapp.com:/cognitect/deps-build.git"}
                     ;; the maven artifacts for OpenJFX require Java 9 or later, maybe even Java 11, so cannot add them here
-                    com.datomic/deps.project {:sha "03021b50349df1d740f1ace0cd5813c6f436ae38"
-                                             :git/url "git@cognitect.git.beanstalkapp.com:/cognitect/deps-project.git"}}}}
+                    com.datomic/deps.project {:sha "a4e31bb277e659d6f65cc992a067efd37c6ba226"
+                                              :git/url "git@cognitect.git.beanstalkapp.com:/cognitect/deps-project.git"}}}}
  }
