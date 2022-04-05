@@ -2,7 +2,7 @@
  {cljfmt/cljfmt {:mvn/version "0.8.0"
                  :exclusions [org.clojure/clojurescript]}
   org.clojure/core.async {:mvn/version "1.5.648"}
-  org.clojure/clojure {:mvn/version "1.10.3"}}
+  org.clojure/clojure {:mvn/version "1.11.1"}}
 
  :mvn/repos {"cloud-maven" {:url "s3://cloud-1fc2183a-56c5-4f05-b37d-e78b6a7daffe/maven/releases"}}
 
