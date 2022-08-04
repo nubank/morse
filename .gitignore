@@ -6,3 +6,7 @@
 target/*
 target1/*
 classes/*
+.calva
+.clj-kondo
+.lsp
+.nrepl-port
