@@ -34,6 +34,6 @@
                      org.openjfx/javafx-web      {:mvn/version "15-ea+6"}}}
 
   ;; Morse:
-  ;; clj -A:dev:jfx -M m cognitect.rebl
+  ;; clj -A:dev:jfx -X cognitect.rebl/morse
   }
  }

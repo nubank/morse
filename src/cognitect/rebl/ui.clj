@@ -12,7 +12,9 @@
    [clojure.pprint :as pp]
    [clojure.spec.alpha :as s]
    [clojure.main :as main]
-   [clojure.core.async :as async :refer [<!! chan tap untap]])
+   [clojure.core.async :as async :refer [<!! chan tap untap]]
+   [data.replicator.client.spi :as rds-client]
+   [data.replicator.client.reader :as rds-reader])
   (:import [javafx.fxml FXMLLoader]
            [javafx.scene Scene]
            [javafx.collections FXCollections ObservableList]
@@ -192,25 +194,40 @@
 
 (defn expr-loop [{:keys [exprs ^Writer eval-writer eval-history follow-editor-check title
                          ns-label out-text] :as ui}]
-  (loop []
-    (let [{:keys [tag val ^String form ns rebl/source] :as msg} (<!! exprs)]
-      (when msg
-        (case tag
-              ::eval (do (.write eval-writer form) (.write eval-writer "\n") (.flush eval-writer))
-              :ret (when (or (= source title) (.isSelected follow-editor-check))
-                     (swap! eval-history conj msg)
-                     (send render/deps-agent render/refresh-deps)
-                     (fx/later #(do
-                                  (.setText ns-label (str "ns: " ns))
-                                  (rtz ui))))
+  (let [pending (java.util.concurrent.LinkedBlockingQueue.)]
+    (loop []
+      (let [{:keys [tag val ^String form ns rebl/source] :as msg} (<!! exprs)]
+        (when msg
+          (try
+            (println (str "\nexpr-loop: " tag " " form " " (count pending)))
+            (case tag
+              ::eval (do (println "expr-loop: write form to eval") (.write eval-writer form) (.write eval-writer "\n") (.flush eval-writer))
+              ::rds (do (println "expr-loop: write rds expr to eval, add cb to pending")
+                        (.write eval-writer form) (.write eval-writer "\n") (.flush eval-writer)
+                        (.add ^java.util.Queue pending (:cb msg)))
+              :ret (if (pos? (.size ^java.util.Queue pending))
+                     (let [cb (.remove ^java.util.Queue pending)]
+                       (println "expr-loop: delivering return to callback" (class cb))
+                       (future (deliver cb val)))
+
+                     (when (or (= source title) (.isSelected follow-editor-check))
+                       (do
+                         (println "expr-loop: adding result to eval-history and refreshing")
+                         (swap! eval-history conj msg)
+                         (send render/deps-agent render/refresh-deps)
+                         (fx/later #(do
+                                      (.setText ns-label (str "ns: " ns))
+                                      (rtz ui))))))
               ;;TODO out/err/tap
               (:out :err) (fx/later #(do (.appendText out-text val)
                                          (.end out-text)))
 
               :tap (fx/later #(append-tap ui val))
-              
+
               nil)
-        (recur)))))
+              (catch Exception e
+                (.printStackTrace e)))
+          (recur))))))
 
 (defonce ^:private ui-count (atom 0))
 
@@ -480,7 +497,18 @@
                    :tap-browse (node "tapBrowse")
                    :tap-list tap-list
                    :tap-list-view tap-list-view
-                   :tap-latest (node "tapLatest")}]
+                   :tap-latest (node "tapLatest")}
+               rds-call (fn [op]
+                          (let [p (promise)]
+                            (.println System/out (str "put! exprs " (pr-str op)))
+                            (async/put! exprs {:tag ::rds :form (pr-str op) :cb p})
+                            (let [r @p]
+                              (.println System/out (str "return of rds-call " (class r)))
+                              r)))
+               rds-client (reify rds-client/IRemote
+                            (remote-fetch [_ rid] (rds-call `(replicant/fetch ~rid)))
+                            (remote-seq [_ rid] (rds-call `(replicant/seq ~rid)))
+                            (remote-entry [_ rid k] (rds-call `(replicant/entry ~rid ~k))))]
            (.setCellFactory tap-list-view (tap-cell-factory))
            (-> scene .getStylesheets (.add (str (io/resource "cognitect/rebl/fx.css"))))
            (.setItems tap-list-view tap-list)
@@ -495,10 +523,28 @@
                                                      (async/close! exprs)
                                                      (.close pwr)))) 
            (async/thread (expr-loop ui))
-           (async/thread (try
-                           (proc prd (fn [m]
-                                       (async/put! exprs (assoc m :rebl/source (:title ui)))))
-                           (catch Throwable ex (prn {:ex ex})))))
+           (async/thread (let [data-rdrs (merge *data-readers*
+                                                {'r/id  #'rds-reader/rid-reader
+                                                 'r/seq #'rds-reader/seq-reader
+                                                 'r/kv  #'rds-reader/kv-reader
+                                                 'r/vec #'rds-reader/vector-reader
+                                                 'r/map #'rds-reader/map-reader
+                                                 'r/set #'rds-reader/set-reader})]
+                           (try
+                             (proc prd
+                                   (fn [m] (async/put! exprs (assoc m :rebl/source (:title ui))))
+                                   :readf (fn [rdr eof]
+                                            (binding [rds-reader/*remote-client* rds-client
+                                                      *data-readers*             data-rdrs]
+                                              (let [[r s] (read+string rdr false eof)]
+                                                (.println System/out (str "READF " s))
+                                                r)))
+                                   :valf (fn [s]
+                                           (.println System/out (str "VALF " s))
+                                           (binding [rds-reader/*remote-client* rds-client
+                                                     *data-readers*             data-rdrs]
+                                             (read-string s))))
+                             (catch Throwable ex (prn {:ex ex}))))))
          (catch Throwable ex
            (println ex)))))
 
@@ -506,4 +552,3 @@
   (Platform/setImplicitExit false)
   (init argmap)
   nil)
-

@@ -124,6 +124,12 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
 (defn -main
   ([] (repl server/prepl)))
 
+(defn morse
+  ([{:keys [host port]
+     :or {host "localhost", port 5555}}]
+   (ui :proc (partial server/remote-prepl host port))))
+
+
 (comment
 ;;
 (javafx.embed.swing.JFXPanel.)
