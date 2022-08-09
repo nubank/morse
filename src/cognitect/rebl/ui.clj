@@ -506,9 +506,9 @@
                               (.println System/out (str "return of rds-call " (class r)))
                               r)))
                rds-client (reify rds-client/IRemote
-                            (remote-fetch [_ rid] (rds-call `(replicant/fetch ~rid)))
-                            (remote-seq [_ rid] (rds-call `(replicant/seq ~rid)))
-                            (remote-entry [_ rid k] (rds-call `(replicant/entry ~rid ~k))))]
+                            (remote-fetch [_ rid] (rds-call `(data.replicant.server.prepl/fetch ~rid)))
+                            (remote-seq [_ rid] (rds-call `(data.replicant.server.prepl/seq ~rid)))
+                            (remote-entry [_ rid k] (rds-call `(data.replicant.server.prepl/entry ~rid ~k))))]
            (.setCellFactory tap-list-view (tap-cell-factory))
            (-> scene .getStylesheets (.add (str (io/resource "cognitect/rebl/fx.css"))))
            (.setItems tap-list-view tap-list)
