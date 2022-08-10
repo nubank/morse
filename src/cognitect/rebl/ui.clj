@@ -199,20 +199,17 @@
       (let [{:keys [tag val ^String form ns rebl/source] :as msg} (<!! exprs)]
         (when msg
           (try
-            (println (str "\nexpr-loop: " tag " " form " " (count pending)))
+            ;(println (str "\nexpr-loop: " tag " " form " " (count pending)))
             (case tag
-              ::eval (do (println "expr-loop: write form to eval") (.write eval-writer form) (.write eval-writer "\n") (.flush eval-writer))
-              ::rds (do (println "expr-loop: write rds expr to eval, add cb to pending")
-                        (.write eval-writer form) (.write eval-writer "\n") (.flush eval-writer)
+              ::eval (do (.write eval-writer form) (.write eval-writer "\n") (.flush eval-writer))
+              ::rds (do (.write eval-writer form) (.write eval-writer "\n") (.flush eval-writer)
                         (.add ^java.util.Queue pending (:cb msg)))
               :ret (if (pos? (.size ^java.util.Queue pending))
-                     (let [cb (.remove ^java.util.Queue pending)]
-                       (println "expr-loop: delivering return to callback" (class cb))
+                     (let [cb (.remove ^java.util.Queue pending)] 
                        (future (deliver cb val)))
 
                      (when (or (= source title) (.isSelected follow-editor-check))
                        (do
-                         (println "expr-loop: adding result to eval-history and refreshing")
                          (swap! eval-history conj msg)
                          (send render/deps-agent render/refresh-deps)
                          (fx/later #(do
@@ -499,11 +496,10 @@
                    :tap-list-view tap-list-view
                    :tap-latest (node "tapLatest")}
                rds-call (fn [op]
-                          (let [p (promise)]
-                            (.println System/out (str "put! exprs " (pr-str op)))
+                          (let [p (promise)] 
                             (async/put! exprs {:tag ::rds :form (pr-str op) :cb p})
                             (let [r @p]
-                              (.println System/out (str "return of rds-call " (class r)))
+                              ;(.println System/out (str "return of rds-call " (class r)))
                               r)))
                rds-client (reify rds-client/IRemote
                             (remote-fetch [_ rid] (rds-call `(data.replicant.server.prepl/fetch ~rid)))
@@ -537,10 +533,10 @@
                                             (binding [rds-reader/*remote-client* rds-client
                                                       *data-readers*             data-rdrs]
                                               (let [[r s] (read+string rdr false eof)]
-                                                (.println System/out (str "READF " s))
+                                                ;(.println System/out (str "READF " s))
                                                 r)))
                                    :valf (fn [s]
-                                           (.println System/out (str "VALF " s))
+                                           ;(.println System/out (str "VALF " s))
                                            (binding [rds-reader/*remote-client* rds-client
                                                      *data-readers*             data-rdrs]
                                              (read-string s))))
