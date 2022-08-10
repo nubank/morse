@@ -260,9 +260,16 @@
      (mapv #(nav-> (nav-step xs# %) ~@forms)
            (range (count xs#)))))
 
+(defn simple?
+  [v]
+  (or (nil? v)
+      (string? v)
+      (number? v)
+      (boolean? v)))
+
 (rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'edn-viewer}
                       :rebl/code {:pred #'code? :ctor #'code-viewer}
-                      :rebl/text {:pred #'string? :ctor #'plain-text-viewer}
+                      :rebl/text {:pred #'simple? :ctor #'plain-text-viewer}
                       :rebl/url {:pred #'fx/url? :ctor #'web-vb}
                       :rebl/spec-edn {:pred #'s/spec? :ctor #'spec-edn-viewer}
                       :rebl/map {:pred #'fx/Map? :ctor #'map-vb}
