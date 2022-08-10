@@ -48,6 +48,7 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
                       {} cs)
         pref (or (ps (set (keys vs)))
                  (first (keys vs)))]
+    ;(.println System/out (str choicek " " prefk " " (class val) ": " (pr-str {choicek vs :pref pref})))
     {choicek vs
      :pref pref}))
 
