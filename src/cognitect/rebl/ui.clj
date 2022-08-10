@@ -205,8 +205,8 @@
               ::rds (do (.write eval-writer form) (.write eval-writer "\n") (.flush eval-writer)
                         (.add ^java.util.Queue pending (:cb msg)))
               :ret (if (pos? (.size ^java.util.Queue pending))
-                     (let [cb (.remove ^java.util.Queue pending)] 
-                       (future (deliver cb val)))
+                     (let [cb (.remove ^java.util.Queue pending)]
+                       (future (deliver cb msg)))
 
                      (when (or (= source title) (.isSelected follow-editor-check))
                        (do
@@ -498,14 +498,14 @@
                rds-call (fn [op]
                           (let [p (promise)] 
                             (async/put! exprs {:tag ::rds :form (pr-str op) :cb p})
-                            (let [r @p]
+                            (let [{:keys [val exception]} @p]
                               ;(.println System/out (str "return of rds-call " (class r)))
-                              (if (and (map? r) (contains? r :via) (contains? r :trace))
+                              (if exception
                                 (do
                                   ;; TODO: Throwable map - what to do?
-                                  (.println System/out (fx/finite-pprint-str r))
+                                  (.println System/out (fx/finite-pprint-str val))
                                   nil)
-                                r))))
+                                val))))
                rds-client (reify rds-client/IRemote
                             (remote-fetch [_ rid] (rds-call `(data.replicant.server.prepl/fetch ~rid)))
                             (remote-seq [_ rid] (rds-call `(data.replicant.server.prepl/seq ~rid)))
