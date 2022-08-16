@@ -11,7 +11,7 @@
  {:dev {:extra-deps {;; Shared LICENSE file is in dev-local-distro
 ;;                     com.datomic/dev-local-distro {:git/url "git@cognitect.git.beanstalkapp.com:/cognitect/dev-local-distro.git" :sha "5d2082ef58b3e372fcb1c53052ae7e31142eb308"}
                      org.yaml/snakeyaml {:mvn/version "1.23"}
-                     io.github.cognitect-labs/replicant {:git/sha "4b61652dc7f686b7f52bb2a2cba7bf94959b6859"}
+                     io.github.cognitect-labs/replicant {:git/sha "cef24742a2bcdfb070a3b3bf8106dbe2dcb5a332"}
                      ;;io.github.cognitect-labs/replicant {:local/root "../replicant"}
                      }}
   :ci {:extra-paths ["build"]
@@ -25,8 +25,7 @@
           ;;                                             {:git/url "git@github.com:clojure/tools.build.git"
           ;;                                              :sha "634ff46a17ee0a97d8ce7d4b3a016d75275992d7"}}
           :ns-default build}
-  :jfx {:extra-deps {;;com.cognitect/rebl          {:mvn/version "0.9.241"}
-                     org.openjfx/javafx-fxml     {:mvn/version "15-ea+6"}
+  :jfx {:extra-deps {org.openjfx/javafx-fxml     {:mvn/version "15-ea+6"}
                      org.openjfx/javafx-controls {:mvn/version "15-ea+6"}
                      org.openjfx/javafx-swing    {:mvn/version "15-ea+6"}
                      org.openjfx/javafx-base     {:mvn/version "15-ea+6"}
