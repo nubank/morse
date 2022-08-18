@@ -13,8 +13,8 @@
    [clojure.spec.alpha :as s]
    [clojure.main :as main]
    [clojure.core.async :as async :refer [<!! chan tap untap]]
-   [data.replicator.client.spi :as rds-client]
-   [data.replicator.client.reader :as rds-reader])
+   [data.replicant.client.spi :as rds-client]
+   [data.replicant.client.reader :as rds-reader])
   (:import [javafx.fxml FXMLLoader]
            [javafx.scene Scene]
            [javafx.collections FXCollections ObservableList]

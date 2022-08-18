@@ -16,7 +16,7 @@
    [cognitect.rebl.impl.file :as file]
    [cognitect.rebl.impl.beans :as beans]
    [cognitect.rebl.fx :as fx]
-   [data.replicator.client.impl.rds]))
+   [data.replicant.client.impl.rds]))
 
 ;;;;;;;;;;;;;;;;; table helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn set-table-maps
@@ -267,7 +267,7 @@
       (string? v)
       (number? v)
       (boolean? v)
-      (instance? data.replicator.client.impl.rds.Relay v)))
+      (instance? data.replicant.client.impl.rds.Relay v)))
 
 (rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'edn-viewer}
                       :rebl/code {:pred #'code? :ctor #'code-viewer}
