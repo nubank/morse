@@ -415,6 +415,19 @@
                                                (fx/ellipsize 2048)))
                          (.setTooltip this tooltip)))})))))
 
+(defn- make-sequencing-event-fn [chan & {:keys [stringify-err stringify-form] :or {stringify-err pr-str, stringify-form pr-str}}]
+  (fn [op]
+    (let [p (promise)] 
+      (async/put! chan {:tag ::rds :form (stringify-form op) :cb p})
+      (let [{:keys [val exception]} @p]
+        ;;(.println System/out (str "return of rds-call " (class r)))
+        (if exception
+          (do
+            ;; TODO: Throwable map - what to do?
+            (.println System/out (stringify-err val))
+            nil)
+          val)))))
+
 (defn- init [{:keys [exprs-mult proc]}]
   (fx/later
    #(try (let [loader (FXMLLoader. (io/resource "cognitect/rebl/rebl.fxml"))
@@ -495,17 +508,7 @@
                    :tap-list tap-list
                    :tap-list-view tap-list-view
                    :tap-latest (node "tapLatest")}
-               rds-call (fn [op]
-                          (let [p (promise)] 
-                            (async/put! exprs {:tag ::rds :form (pr-str op) :cb p})
-                            (let [{:keys [val exception]} @p]
-                              ;(.println System/out (str "return of rds-call " (class r)))
-                              (if exception
-                                (do
-                                  ;; TODO: Throwable map - what to do?
-                                  (.println System/out (fx/finite-pprint-str val))
-                                  nil)
-                                val))))
+               rds-call (make-sequencing-event-fn exprs :stringify-err fx/finite-pprint-str)
                rds-client (reify rds-client/IRemote
                             (remote-fetch [_ rid] (rds-call `(data.replicant.server.prepl/fetch ~rid)))
                             (remote-seq [_ rid] (rds-call `(data.replicant.server.prepl/seq ~rid)))
