@@ -510,7 +510,9 @@
                             (remote-fetch [_ rid] (rds-call `(data.replicant.server.prepl/fetch ~rid)))
                             (remote-seq [_ rid] (rds-call `(data.replicant.server.prepl/seq ~rid)))
                             (remote-entry [_ rid k] (rds-call `(data.replicant.server.prepl/entry ~rid ~k)))
-                            (remote-string [_ rid] (rds-call `(data.replicant.server.prepl/string ~rid))))]
+                            (remote-string [_ rid] (rds-call `(data.replicant.server.prepl/string ~rid)))
+                            (remote-datafy [_ rid] (rds-call `(clojure.core.protocols/datafy ~rid)))
+                            (remote-nav [_ rid k v] (rds-call `(clojure.core.protocols/nav ~rid ~k ~v))))] 
            (.setCellFactory tap-list-view (tap-cell-factory))
            (-> scene .getStylesheets (.add (str (io/resource "cognitect/rebl/fx.css"))))
            (.setItems tap-list-view tap-list)
