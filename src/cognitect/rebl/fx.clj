@@ -96,9 +96,10 @@ map's keys against the union of all keys."
 (defn finite-pr-str
   "Returns a finite string rep for e.g. a table cell"
   [x]
-  (binding [*print-length* 5
-            *print-level* 5]
-    (some-> x pr-str (finite-str 1000))))
+  (let [strf (if (coll? x)
+               #(binding [*print-length* 5, *print-level* 5] (pr-str %))
+               str)]
+    (some-> x strf (finite-str 1000))))
 
 (defn tuples?
   [coll]
