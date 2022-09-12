@@ -74,11 +74,11 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
 
 (defn ui
   "Creates a new UI window"
-  [& {:keys [proc] :or {proc server/prepl}}]
+  [& {:keys [proc mode] :or {proc server/prepl}}]
    (require 'cognitect.rebl.ui 'cognitect.rebl.charts 'cognitect.rebl.renderers)
     ;;init javafx w/o deriving app from anything
   (javafx.embed.swing.JFXPanel.)
-  ((resolve 'cognitect.rebl.ui/create) {:exprs-mult exprs :proc proc})
+  ((resolve 'cognitect.rebl.ui/create) {:exprs-mult exprs :proc proc :mode mode})
   nil)
 
 (defn submit [expr val]
@@ -126,10 +126,10 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
   ([] (repl server/prepl)))
 
 (defn morse
-  ([{:keys [host port]
-     :or {host "localhost", port 5555}}]
-   (ui :proc (partial server/remote-prepl host port))))
-
+  ([{:keys [host port mode]
+     :or {host "localhost", port 5555, mode :remote}}]
+   (ui :proc (partial server/remote-prepl host port)
+       :mode mode)))
 
 (comment
 ;;
