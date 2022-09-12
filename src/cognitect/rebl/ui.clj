@@ -428,86 +428,105 @@
             nil)
           val)))))
 
+(defn- build-ui [exprs-mult]
+  (let [loader (FXMLLoader. (io/resource "cognitect/rebl/rebl.fxml"))
+        root (.load loader)
+        names (.getNamespace loader)
+        node (fn [id] (.get names id))
+        scene (Scene. root 1200 800)
+        pwr (java.io.PipedWriter.)
+        exprs (chan 100)
+        stage (javafx.stage.Stage.)
+        _ (.setScene stage scene)
+        tf (DateFormat/getTimeInstance DateFormat/MEDIUM)
+
+        vc (proxy [javafx.util.StringConverter] []
+             (toString [v] (-> v :id str)))
+        tap-list-view (node "tapList")
+        tap-list (FXCollections/observableArrayList)
+        ui {:title (str "REBL " (swap! ui-count inc))
+            :scene scene
+            :stage stage
+            :exprs exprs
+            :state (atom {:browse-choice {:id :rebl/eval-history}
+                          :path-nav identity
+                          :nav-forms []
+                          :path []})
+            :expr-ord (atom -1)
+            :state-history (atom ())
+            :eval-history (atom ())
+            :taps (atom [])
+            :eval-writer pwr
+            :eval-table (doto (node "evalTable")
+                          (.setItems (fx/fxlist (java.util.ArrayList.))))
+            :meta-table (node "metaTable")
+            :expr-column (doto (node "exprColumn")
+                           (.setCellValueFactory (fx/cell-value-callback :form)))
+            :val-column (doto (node "valColumn")
+                          (.setCellValueFactory (fx/cell-value-callback (comp fx/finite-pr-str :val))))
+            :start-column (doto (node "startColumn")
+                            (.setVisible false)
+                            #_(.setCellValueFactory (fx/cell-value-callback (fn [x] (some->> x :rebl/start (.format tf))))))
+            :elapsed-column (doto (node "elapsedColumn")
+                              (.setCellValueFactory (fx/cell-value-callback :ms)))
+
+            :source-column (doto (node "sourceColumn")
+                             (.setCellValueFactory (fx/cell-value-callback :rebl/source)))
+            :code-view (doto (node "codeView")
+                         #_(.setZoom 1.2))
+            :follow-editor-check (node "followEditorCheck")
+            :eval-button (node "evalButton")
+            :browser-choice (doto (node "browserChoice")
+                              (.setConverter vc))
+            :browse-pane (node "browsePane")
+            ;:def-button
+            ;;(doto (node "defButton") (.setDisable true))
+
+            :def-text (doto (node "defText")
+                        (.setPromptText "varname"))
+            :nav-text (node "navText")
+            :path-text (node "pathText")
+            :ns-label (node "nsLabel")
+            :viewer-choice (doto (node "viewerChoice")
+                             (.setConverter vc))
+            :view-pane (node "viewPane")
+            :browse-tab-pane (node "browseTabPane")
+
+            :eval-choice (node "evalChoice")
+            :root-button (doto (node "rootButton")
+                           (.setDisable true))
+            :back-button (doto (node "backButton")
+                           (.setDisable true))
+            :fwd-button (doto (node "fwdButton")
+                          (.setDisable true))
+            :out-text (doto (node "outText")
+                        (.setWrapText true))
+            :tap-clear (node "tapClear")
+            :tap-browse (node "tapBrowse")
+            :tap-list tap-list
+            :tap-list-view tap-list-view
+            :tap-latest (node "tapLatest")}]
+    (.setCellFactory tap-list-view (tap-cell-factory))
+    (-> scene .getStylesheets (.add (str (io/resource "cognitect/rebl/fx.css"))))
+    (.setItems tap-list-view tap-list)
+    (.setTitle stage (:title ui))
+    (.show stage)
+    (-> (:code-view ui) .getEngine (.load (str (io/resource "cognitect/rebl/codeview.html"))))
+    (wire-handlers ui)
+    (monaco/register (:code-view ui) {})
+    (tap exprs-mult exprs)
+    (.setOnHidden stage (reify EventHandler (handle [_ _]
+                                              (untap exprs-mult exprs)
+                                              (async/close! exprs)
+                                              (.close pwr))))
+    ui))
+
 (defn- init-remote [{:keys [exprs-mult proc]}]
   (fx/later
-   #(try (let [loader (FXMLLoader. (io/resource "cognitect/rebl/rebl.fxml"))
-               root (.load loader)               
-               names (.getNamespace loader)
-               node (fn [id] (.get names id))
-               scene (Scene. root 1200 800)
-               pwr (java.io.PipedWriter.)
+   #(try (let [ui (build-ui exprs-mult)
+               exprs (:exprs ui)
+               pwr (:eval-writer ui)
                prd (-> (java.io.PipedReader. pwr) clojure.lang.LineNumberingPushbackReader.)
-               exprs (chan 100)
-               stage (javafx.stage.Stage.)
-               _ (.setScene stage scene)
-               tf (DateFormat/getTimeInstance DateFormat/MEDIUM)
-               
-               vc (proxy [javafx.util.StringConverter] []
-                    (toString [v] (-> v :id str)))
-               tap-list-view (node "tapList")
-               tap-list (FXCollections/observableArrayList)
-               ui {:title (str "REBL " (swap! ui-count inc))
-                   :scene scene
-                   :stage stage
-                   :exprs exprs
-                   :state (atom {:browse-choice {:id :rebl/eval-history}
-                                 :path-nav identity
-                                 :nav-forms []
-                                 :path []})
-                   :expr-ord (atom -1)
-                   :state-history (atom ())
-                   :eval-history (atom ())
-                   :taps (atom [])
-                   :eval-writer pwr
-                   :eval-table (doto (node "evalTable")
-                                 (.setItems (fx/fxlist (java.util.ArrayList.))))
-                   :meta-table (node "metaTable")
-                   :expr-column (doto (node "exprColumn")
-                                  (.setCellValueFactory (fx/cell-value-callback :form)))
-                   :val-column (doto (node "valColumn")
-                                 (.setCellValueFactory (fx/cell-value-callback (comp fx/finite-pr-str :val))))
-                   :start-column (doto (node "startColumn")
-                                   (.setVisible false)
-                                   #_(.setCellValueFactory (fx/cell-value-callback (fn [x] (some->> x :rebl/start (.format tf))))))
-                   :elapsed-column (doto (node "elapsedColumn")
-                                     (.setCellValueFactory (fx/cell-value-callback :ms)))
-                   
-                   :source-column (doto (node "sourceColumn")
-                                    (.setCellValueFactory (fx/cell-value-callback :rebl/source)))                 
-                   :code-view (doto (node "codeView")
-                                #_(.setZoom 1.2))
-                   :follow-editor-check (node "followEditorCheck")
-                   :eval-button (node "evalButton")
-                   :browser-choice (doto (node "browserChoice")
-                                     (.setConverter vc))
-                   :browse-pane (node "browsePane")
-                   ;:def-button
-                   ;;(doto (node "defButton") (.setDisable true))
-
-                   :def-text (doto (node "defText")
-                               (.setPromptText "varname"))
-                   :nav-text (node "navText")
-                   :path-text (node "pathText")
-                   :ns-label (node "nsLabel")
-                   :viewer-choice (doto (node "viewerChoice")
-                                    (.setConverter vc))
-                   :view-pane (node "viewPane")
-                   :browse-tab-pane (node "browseTabPane")
-
-                   :eval-choice (node "evalChoice")
-                   :root-button (doto (node "rootButton")
-                                  (.setDisable true))
-                   :back-button (doto (node "backButton")
-                                  (.setDisable true))
-                   :fwd-button (doto (node "fwdButton")
-                                 (.setDisable true))
-                   :out-text (doto (node "outText")
-                               (.setWrapText true))
-                   :tap-clear (node "tapClear")
-                   :tap-browse (node "tapBrowse")
-                   :tap-list tap-list
-                   :tap-list-view tap-list-view
-                   :tap-latest (node "tapLatest")}
                rds-call (make-sequencing-event-fn exprs :stringify-err fx/finite-pprint-str)
                rds-client (reify rds-client/IRemote
                             (remote-fetch [_ rid] (rds-call `(data.replicant.server.prepl/fetch ~rid)))
@@ -515,20 +534,7 @@
                             (remote-entry [_ rid k] (rds-call `(data.replicant.server.prepl/entry ~rid ~k)))
                             (remote-string [_ rid] (rds-call `(data.replicant.server.prepl/string ~rid)))
                             (remote-datafy [_ rid] (rds-call `(clojure.core.protocols/datafy ~rid)))
-                            (remote-apply [_ rid args] (rds-call `(clojure.core/apply ~rid ~args))))] 
-           (.setCellFactory tap-list-view (tap-cell-factory))
-           (-> scene .getStylesheets (.add (str (io/resource "cognitect/rebl/fx.css"))))
-           (.setItems tap-list-view tap-list)
-           (.setTitle stage (:title ui))
-           (.show stage)
-           (-> (:code-view ui) .getEngine (.load (str (io/resource "cognitect/rebl/codeview.html"))))
-           (wire-handlers ui)
-           (monaco/register (:code-view ui) {})
-           (tap exprs-mult exprs)
-           (.setOnHidden stage (reify EventHandler (handle [_ _]
-                                                     (untap exprs-mult exprs)
-                                                     (async/close! exprs)
-                                                     (.close pwr)))) 
+                            (remote-apply [_ rid args] (rds-call `(clojure.core/apply ~rid ~args))))]
            (async/thread (expr-loop ui))
            (async/thread (let [data-rdrs (merge *data-readers*
                                                 {'r/id  #'rds-reader/rid-reader
@@ -553,109 +559,22 @@
                                                      *data-readers*             data-rdrs]
                                              (read-string s))))
                              (catch Throwable ex (prn {:ex ex}))))))
-         (catch Throwable ex
-           (println ex)))))
+    (catch Throwable ex
+      (println ex)))))
 
 (defn- init-in-proc [{:keys [exprs-mult proc]}]
   (fx/later
-    #(try (let [loader (FXMLLoader. (io/resource "cognitect/rebl/rebl.fxml"))
-                root (.load loader)
-                names (.getNamespace loader)
-                node (fn [id] (.get names id))
-                scene (Scene. root 1200 800)
-                pwr (java.io.PipedWriter.)
-                prd (-> (java.io.PipedReader. pwr) clojure.lang.LineNumberingPushbackReader.)
-                exprs (chan 100)
-                stage (javafx.stage.Stage.)
-                _ (.setScene stage scene)
-                tf (DateFormat/getTimeInstance DateFormat/MEDIUM)
-
-                vc (proxy [javafx.util.StringConverter] []
-                     (toString [v] (-> v :id str)))
-                tap-list-view (node "tapList")
-                tap-list (FXCollections/observableArrayList)
-                ui {:title (str "REBL " (swap! ui-count inc))
-                    :scene scene
-                    :stage stage
-                    :exprs exprs
-                    :state (atom {:browse-choice {:id :rebl/eval-history}
-                                  :path-nav identity
-                                  :nav-forms []
-                                  :path []})
-                    :expr-ord (atom -1)
-                    :state-history (atom ())
-                    :eval-history (atom ())
-                    :taps (atom [])
-                    :eval-writer pwr
-                    :eval-table (doto (node "evalTable")
-                                  (.setItems (fx/fxlist (java.util.ArrayList.))))
-                    :meta-table (node "metaTable")
-                    :expr-column (doto (node "exprColumn")
-                                   (.setCellValueFactory (fx/cell-value-callback :form)))
-                    :val-column (doto (node "valColumn")
-                                  (.setCellValueFactory (fx/cell-value-callback (comp fx/finite-pr-str :val))))
-                    :start-column (doto (node "startColumn")
-                                    (.setVisible false)
-                                    #_(.setCellValueFactory (fx/cell-value-callback (fn [x] (some->> x :rebl/start (.format tf))))))
-                    :elapsed-column (doto (node "elapsedColumn")
-                                      (.setCellValueFactory (fx/cell-value-callback :ms)))
-
-                    :source-column (doto (node "sourceColumn")
-                                     (.setCellValueFactory (fx/cell-value-callback :rebl/source)))
-                    :code-view (doto (node "codeView")
-                                 #_(.setZoom 1.2))
-                    :follow-editor-check (node "followEditorCheck")
-                    :eval-button (node "evalButton")
-                    :browser-choice (doto (node "browserChoice")
-                                      (.setConverter vc))
-                    :browse-pane (node "browsePane")
-                    ;:def-button
-                    ;;(doto (node "defButton") (.setDisable true))
-
-                    :def-text (doto (node "defText")
-                                (.setPromptText "varname"))
-                    :nav-text (node "navText")
-                    :path-text (node "pathText")
-                    :ns-label (node "nsLabel")
-                    :viewer-choice (doto (node "viewerChoice")
-                                     (.setConverter vc))
-                    :view-pane (node "viewPane")
-                    :browse-tab-pane (node "browseTabPane")
-
-                    :eval-choice (node "evalChoice")
-                    :root-button (doto (node "rootButton")
-                                   (.setDisable true))
-                    :back-button (doto (node "backButton")
-                                   (.setDisable true))
-                    :fwd-button (doto (node "fwdButton")
-                                  (.setDisable true))
-                    :out-text (doto (node "outText")
-                                (.setWrapText true))
-                    :tap-clear (node "tapClear")
-                    :tap-browse (node "tapBrowse")
-                    :tap-list tap-list
-                    :tap-list-view tap-list-view
-                    :tap-latest (node "tapLatest")}]
-            (.setCellFactory tap-list-view (tap-cell-factory))
-            (-> scene .getStylesheets (.add (str (io/resource "cognitect/rebl/fx.css"))))
-            (.setItems tap-list-view tap-list)
-            (.setTitle stage (:title ui))
-            (.show stage)
-            (-> (:code-view ui) .getEngine (.load (str (io/resource "cognitect/rebl/codeview.html"))))
-            (wire-handlers ui)
-            (monaco/register (:code-view ui) {})
-            (tap exprs-mult exprs)
-            (.setOnHidden stage (reify EventHandler (handle [_ _]
-                                                      (untap exprs-mult exprs)
-                                                      (async/close! exprs)
-                                                      (.close pwr))))
+    #(try (let [ui (build-ui exprs-mult)
+                exprs (:exprs ui)
+                pwr (:eval-writer ui)
+                prd (-> (java.io.PipedReader. pwr) clojure.lang.LineNumberingPushbackReader.)]
             (async/thread (expr-loop ui))
             (async/thread (try
                             (proc prd (fn [m]
                                         (async/put! exprs (assoc m :rebl/source (:title ui)))))
                             (catch Throwable ex (prn {:ex ex})))))
-          (catch Throwable ex
-            (println ex)))))
+      (catch Throwable ex
+        (println ex)))))
 
 (defn create [{:keys [mode] :as argmap}]
   (Platform/setImplicitExit false)
