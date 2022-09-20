@@ -13,6 +13,7 @@
    [clojure.spec.alpha :as s]
    [clojure.main :as main]
    [clojure.core.async :as async :refer [<!! chan tap untap]]
+   [data.rds.protocols :as rds]
    [data.replicant.client.spi :as rds-client]
    [data.replicant.client.reader :as rds-reader])
   (:import [javafx.fxml FXMLLoader]
@@ -528,7 +529,7 @@
                pwr (:eval-writer ui)
                prd (-> (java.io.PipedReader. pwr) clojure.lang.LineNumberingPushbackReader.)
                rds-call (make-sequencing-event-fn exprs :stringify-err fx/finite-pprint-str)
-               rds-client (reify rds-client/IRemote
+               rds-client (reify rds/IRemote
                             (remote-fetch [_ rid] (rds-call `(data.replicant.server.prepl/fetch ~rid)))
                             (remote-seq [_ rid] (rds-call `(data.replicant.server.prepl/seq ~rid)))
                             (remote-entry [_ rid k] (rds-call `(data.replicant.server.prepl/entry ~rid ~k)))
