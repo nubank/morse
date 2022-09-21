@@ -81,9 +81,9 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
   ((resolve 'cognitect.rebl.ui/create) {:exprs-mult exprs :proc proc :mode mode})
   nil)
 
-(defn submit [expr val]
-  (>!! echan {:event :rebl/editor-eval
-              :tag :ret
+(defn submit [expr val & {:keys [event tag] :or {event :rebl/editor-eval, tag :ret}}]
+  (>!! echan {:event event
+              :tag tag
               :form (pr-str expr)
               :val val}))
 
@@ -93,6 +93,11 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
   `(let [ret# ~expr]
      (submit '~expr ret#)
      ret#))
+
+(defmacro evaluate
+  "sends the expr to REBL for eval"
+  [expr]
+  `(submit '~expr nil :tag :cognitect.rebl.ui/eval))
 
 (defn repl [proc]
   (apply require main/repl-requires)
