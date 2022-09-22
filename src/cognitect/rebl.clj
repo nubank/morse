@@ -6,7 +6,8 @@
    [clojure.core.server :as server]
    [clojure.pprint :as pp]
    [clojure.core.async :as async :refer [>!! <!! chan mult]]
-   [cognitect.rebl.config :as config]))
+   [cognitect.rebl.config :as config])
+  (:refer-clojure :exclude [eval load-file]))
 
 (comment "an atom on map with keys:
 :browsers and :viewers - :identk -> {:keys [pred ctor]}")
@@ -94,10 +95,23 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
      (submit '~expr ret#)
      ret#))
 
-(defmacro evaluate
-  "sends the expr to REBL for eval"
+(defn eval
+  "Sends the expr to REBL for evaluation. Returns if the send was successful."
   [expr]
-  `(submit '~expr nil :tag :cognitect.rebl.ui/eval))
+  (submit expr nil :tag :cognitect.rebl.ui/eval))
+
+(defn load-file
+  "Takes a filename and attempts to send each Clojure form found in it
+  to REBL for evaluation."
+  [filename]
+  (with-open [r (clojure.lang.LineNumberingPushbackReader. (clojure.java.io/reader filename))]
+    (binding [*read-eval* false]
+      (let [forms (loop [acc [] rdr r]
+                    (if-let [form (read {:eof nil} rdr)]
+                      (recur (conj acc form) rdr)
+                      acc))]
+        (doseq [form forms]
+          (eval form))))))
 
 (defn repl [proc]
   (apply require main/repl-requires)
