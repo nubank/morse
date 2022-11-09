@@ -16,7 +16,6 @@
    [cognitect.rebl.impl.file :as file]
    [cognitect.rebl.impl.beans :as beans]
    [cognitect.rebl.fx :as fx]
-   [data.rds]
    [data.replicant.client.spi]))
 
 ;;;;;;;;;;;;;;;;; table helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;

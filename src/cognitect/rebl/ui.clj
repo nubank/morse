@@ -13,7 +13,7 @@
    [clojure.spec.alpha :as s]
    [clojure.main :as main]
    [clojure.core.async :as async :refer [<!! chan tap untap]]
-   [data.rds.protocols :as rds]
+   [data.replicant.client.protocols :as rds]
    [data.replicant.client.spi :as rds-client]
    [data.replicant.client.reader :as rds-reader])
   (:import [javafx.fxml FXMLLoader]
@@ -418,10 +418,10 @@
 
 (defn- make-sequencing-event-fn [chan & {:keys [stringify-err stringify-form] :or {stringify-err pr-str, stringify-form pr-str}}]
   (fn [op]
-    (let [p (promise)] 
+    (let [p (promise)]
       (async/put! chan {:tag ::rds :form (stringify-form op) :cb p})
       (let [{:keys [val exception]} @p]
-        ;;(.println System/out (str "return of rds-call " (class r)))
+        (.println System/out (str "return of rds-call " (class val) :--> val))
         (if exception
           (do
             ;; TODO: Throwable map - what to do?
@@ -533,8 +533,8 @@
                             (remote-fetch [_ rid] (rds-call `(data.replicant.server.prepl/fetch ~rid)))
                             (remote-seq [_ rid] (rds-call `(data.replicant.server.prepl/seq ~rid)))
                             (remote-entry [_ rid k] (rds-call `(data.replicant.server.prepl/entry ~rid ~k)))
-                            (remote-string [_ rid] (rds-call `(data.replicant.server.prepl/string ~rid)))
-                            (remote-datafy [_ rid] (rds-call `(clojure.core.protocols/datafy ~rid)))
+                            (remote-string [_ rid] (.println System/out (str :RSTR-UI)) (rds-call `(data.replicant.server.prepl/string ~rid)))
+                            (remote-datafy [_ rid] (.println System/out (str :RDFY-UI)) (rds-call `(clojure.core.protocols/datafy ~rid)))
                             (remote-apply [_ rid args] (rds-call `(clojure.core/apply ~rid ~args))))]
            (async/thread (expr-loop ui))
            (async/thread (let [data-rdrs (merge *data-readers*

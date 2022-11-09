@@ -11,7 +11,6 @@
  {:dev {:extra-deps {;; Shared LICENSE file is in dev-local-distro
 ;;                     com.datomic/dev-local-distro {:git/url "git@cognitect.git.beanstalkapp.com:/cognitect/dev-local-distro.git" :sha "5d2082ef58b3e372fcb1c53052ae7e31142eb308"}
                      org.yaml/snakeyaml {:mvn/version "1.23"}
-                     io.github.cognitect-labs/rds {:local/root "../rds"}
                      io.github.cognitect-labs/replicant-client {:local/root "../replicant-client"}
                      }}
   :ci {:extra-paths ["build"]
