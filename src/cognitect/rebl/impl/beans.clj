@@ -23,8 +23,8 @@
 (defn browsable?
   [inst]
   (let [c (class inst)]
-    (and (not (instance? IPersistentCollection c))
-         (not (instance? Collection c))
-         (not (instance? Map c))
+    (and (not (instance? IPersistentCollection inst))
+         (not (instance? Collection inst))
+         (not (instance? Map inst))
          (bean-class? c))))
 
