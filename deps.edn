@@ -30,6 +30,16 @@
                      org.openjfx/javafx-base     {:mvn/version "15-ea+6"}
                      org.openjfx/javafx-web      {:mvn/version "15-ea+6"}}}
 
+  :morse {:extra-paths ["test"]
+          :extra-deps {org.yaml/snakeyaml {:mvn/version "1.23"}
+                       io.github.cognitect-labs/replicant-client {:local/root "../replicant-client"}
+                       org.openjfx/javafx-fxml     {:mvn/version "15-ea+6"}
+                       org.openjfx/javafx-controls {:mvn/version "15-ea+6"}
+                       org.openjfx/javafx-swing    {:mvn/version "15-ea+6"}
+                       org.openjfx/javafx-base     {:mvn/version "15-ea+6"}
+                       org.openjfx/javafx-web      {:mvn/version "15-ea+6"}}
+          :exec-fn cognitect.rebl/morse}
+
   ;; Morse:
   ;; clj -A:dev:jfx -X cognitect.rebl/morse
   }

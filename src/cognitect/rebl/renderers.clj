@@ -16,7 +16,7 @@
    [cognitect.rebl.impl.file :as file]
    [cognitect.rebl.impl.beans :as beans]
    [cognitect.rebl.fx :as fx]
-   [data.replicant.client.spi]))
+   [clojure.data.alpha.replicant.client.spi]))
 
 ;;;;;;;;;;;;;;;;; table helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn set-table-maps
@@ -267,7 +267,7 @@
       (string? v)
       (number? v)
       (boolean? v)
-      (instance? data.replicant.client.spi.Relay v)))
+      (instance? clojure.data.alpha.replicant.client.spi.Relay v)))
 
 (rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'edn-viewer}
                       :rebl/code {:pred #'code? :ctor #'code-viewer}
