@@ -1,8 +1,8 @@
 {:deps
- {cljfmt/cljfmt {:mvn/version "0.6.8"
+ {cljfmt/cljfmt {:mvn/version "0.8.0"
                  :exclusions [org.clojure/clojurescript]}
-  org.clojure/core.async {:mvn/version "1.2.603"}
-  org.clojure/clojure {:mvn/version "1.10.0"}}
+  org.clojure/core.async {:mvn/version "1.5.648"}
+  org.clojure/clojure {:mvn/version "1.11.1"}}
 
  :mvn/repos {"cloud-maven" {:url "s3://cloud-1fc2183a-56c5-4f05-b37d-e78b6a7daffe/maven/releases"}}
 
@@ -14,7 +14,7 @@
                      io.github.cognitect-labs/replicant-client {:local/root "../replicant-client"}
                      }}
   :ci {:extra-paths ["build"]
-       :extra-deps {com.cognitect/deps.build {:sha "781218834406d92a5ec8e546f46ff5111537c796"
+       :extra-deps {com.cognitect/deps.build {:sha "eb91cbb57d0231dda74ebc81487030b0651df2b9"
                                               :git/url "git@cognitect.git.beanstalkapp.com:/cognitect/deps-build.git"}
                     ;; the maven artifacts for OpenJFX require Java 9 or later, maybe even Java 11, so cannot add them here
                     com.datomic/deps.project {:sha "03021b50349df1d740f1ace0cd5813c6f436ae38"
