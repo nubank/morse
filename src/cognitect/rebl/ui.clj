@@ -421,7 +421,7 @@
     (let [p (promise)]
       (async/put! chan {:tag ::rds :form (stringify-form op) :cb p})
       (let [{:keys [val exception]} @p]
-        (.println System/out (str "return of rds-call " (class val) :--> val))
+;;        (.println System/out (str "return of rds-call " (class val) :--> val))
         (if exception
           (do
             ;; TODO: Throwable map - what to do?
@@ -533,8 +533,8 @@
                             (remote-fetch [_ rid] (rds-call `(clojure.data.alpha.replicant.server.prepl/fetch ~rid)))
                             (remote-seq [_ rid] (rds-call `(clojure.data.alpha.replicant.server.prepl/seq ~rid)))
                             (remote-entry [_ rid k] (rds-call `(clojure.data.alpha.replicant.server.prepl/entry ~rid ~k)))
-                            (remote-string [_ rid] (.println System/out (str :RSTR-UI)) (rds-call `(clojure.data.alpha.replicant.server.prepl/string ~rid)))
-                            (remote-datafy [_ rid] (.println System/out (str :RDFY-UI)) (rds-call `(clojure.core.protocols/datafy ~rid)))
+                            (remote-string [_ rid] (rds-call `(clojure.data.alpha.replicant.server.prepl/string ~rid)))
+                            (remote-datafy [_ rid] (rds-call `(clojure.core.protocols/datafy ~rid)))
                             (remote-apply [_ rid args] (rds-call `(clojure.core/apply ~rid ~args))))]
            (async/thread (expr-loop ui))
            (async/thread (let [data-rdrs (merge *data-readers*
@@ -544,7 +544,8 @@
                                                  'r/vec #'rds-reader/vector-reader
                                                  'r/map #'rds-reader/map-reader
                                                  'r/set #'rds-reader/set-reader
-                                                 'r/fn #'rds-reader/fn-reader})]
+                                                 'r/fn #'rds-reader/fn-reader
+                                                 'r/object #'rds-reader/object-reader})]
                            (try
                              (proc prd
                                    (fn [m] (async/put! exprs (assoc m :rebl/source (:title ui))))
