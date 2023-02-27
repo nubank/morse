@@ -529,13 +529,15 @@
                pwr (:eval-writer ui)
                prd (-> (java.io.PipedReader. pwr) clojure.lang.LineNumberingPushbackReader.)
                rds-call (make-sequencing-event-fn exprs :stringify-err fx/finite-pprint-str)
-               rds-client (reify rds/IRemote
+               rds-client (reify rds/IRemoteRead
                             (remote-fetch [_ rid] (rds-call `(clojure.data.alpha.replicant.server.prepl/fetch ~rid)))
                             (remote-seq [_ rid] (rds-call `(clojure.data.alpha.replicant.server.prepl/seq ~rid)))
                             (remote-entry [_ rid k] (rds-call `(clojure.data.alpha.replicant.server.prepl/entry ~rid ~k)))
                             (remote-string [_ rid] (rds-call `(clojure.data.alpha.replicant.server.prepl/string ~rid)))
                             (remote-datafy [_ rid] (rds-call `(clojure.core.protocols/datafy ~rid)))
-                            (remote-apply [_ rid args] (rds-call `(clojure.core/apply ~rid ~args))))]
+                            (remote-apply [_ rid args] (rds-call `(clojure.core/apply ~rid ~args)))
+                            (remote-hasheq [_ rid] (rds-call `(clojure.core/hash ~rid)))
+                            (remote-hashcode [_ rid] (rds-call `(.hashCode ~rid))))]
            (async/thread (expr-loop ui))
            (async/thread (let [data-rdrs (merge *data-readers*
                                                 {'r/id  #'rds-reader/rid-reader
