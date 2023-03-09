@@ -157,7 +157,7 @@
     (when (= nv Worker$State/SUCCEEDED)
       (try
         (let [editor (js/callable engine "editor")]
-          (js/call engine editor :setValue "\"Welcome to REBL.\nEnter forms here and press the eval button or CONTROL+ENTER\"")
+          (js/call engine editor :setValue "\"Welcome to Morse.\nEnter forms here and press the eval button or CONTROL+ENTER\"")
           (register-callbacks engine editor options))
         (catch Throwable t
           (.printStackTrace t)

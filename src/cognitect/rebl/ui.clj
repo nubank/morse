@@ -445,7 +445,7 @@
              (toString [v] (-> v :id str)))
         tap-list-view (node "tapList")
         tap-list (FXCollections/observableArrayList)
-        ui {:title (str "REBL " (swap! ui-count inc))
+        ui {:title (str "Morse " (swap! ui-count inc))
             :scene scene
             :stage stage
             :exprs exprs
