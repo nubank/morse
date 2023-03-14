@@ -2,7 +2,7 @@
 
 (ns cognitect.rebl.ui
   (:require
-   [cognitect.morse :as rebl]
+   [cognitect.morse :as morse]
    [cognitect.rebl.config :as config]
    [cognitect.rebl.impl.monaco :as monaco]
    [cognitect.rebl.renderers :as render]
@@ -37,9 +37,9 @@
   "returns {:keys [view-ui view-options view-choice]}"
   [ui val]
   ;;(prn {:viewer-for val})
-  (let [{:keys [viewers pref]} (rebl/viewers-for val)
+  (let [{:keys [viewers pref]} (morse/viewers-for val)
         p (pref viewers)
-        vw (if (rebl/is-browser? pref)
+        vw (if (morse/is-browser? pref)
                 ((:ctor p) val (partial val-selected ui val))
                 ((:ctor p) val))]
     {:view-ui vw
@@ -73,7 +73,7 @@
     (update-choice viewer-choice (:view-options viewer) (:view-choice viewer))
     (update-pane view-pane (:view-ui viewer))
     (update-meta ui meta-map)
-    (.setDisable fwd-button (-> val rebl/browsers-for :browsers empty?))))
+    (.setDisable fwd-button (-> val morse/browsers-for :browsers empty?))))
 
 (defn val-selected
   [{:keys [view-pane browse-pane state] :as ui} coll node path-seg val]
@@ -90,7 +90,7 @@
     (when (and choice (not= view-choice choice))
       (config/update-viewer-prefs (into #{} (map :id) choices) (:id choice))
       (clear-deck ui)
-      (let [vw (if (rebl/is-browser? (:id choice))
+      (let [vw (if (morse/is-browser? (:id choice))
                  ((:ctor choice) view-val (partial val-selected ui view-val))
                  ((:ctor choice) view-val))]
         (swap! state assoc :view-choice choice :view-ui vw)
@@ -99,7 +99,7 @@
 (defn browser-for
   "returns {:keys [browse-ui browse-options browse-choice]}"
   [ui val]
-  (let [{:keys [browsers pref]} (rebl/browsers-for val)]
+  (let [{:keys [browsers pref]} (morse/browsers-for val)]
     {:browse-ui ((-> browsers pref :ctor) val (partial val-selected ui val))
      ;;incorporate :id for choice control
      :browse-options (-> browsers vals vec)
@@ -197,7 +197,7 @@
                          ns-label out-text] :as ui}]
   (let [pending (java.util.concurrent.LinkedBlockingQueue.)]
     (loop []
-      (let [{:keys [tag val ^String form ns rebl/source] :as msg} (<!! exprs)]
+      (let [{:keys [tag val ^String form ns morse/source] :as msg} (<!! exprs)]
         (when msg
           (try
             ;(println (str "\nexpr-loop: " tag " " form " " (count pending)))
@@ -241,8 +241,8 @@
     (swap! state-history conj (dissoc statev :on-deck))
     (.setText nav-text "")
     (swap! state assoc :path-nav identity :path (-> path (conj path-seg) (into nav-forms)))
-    (if (rebl/is-browser? (:id view-choice))
-      (let [{:keys [browsers]} (rebl/browsers-for view-val)]
+    (if (morse/is-browser? (:id view-choice))
+      (let [{:keys [browsers]} (morse/browsers-for view-val)]
         (browse-with ui
                      {:browse-options (-> browsers vals vec)
                       :browse-ui view-ui
@@ -272,7 +272,7 @@
     (update-choice viewer-choice (:view-options ostate) (:view-choice ostate))
     (.setDisable root-button (empty? nhist))
     (.setDisable back-button (empty? nhist))
-    (.setDisable fwd-button (-> (:view-val ostate) rebl/browsers-for :browsers empty?))
+    (.setDisable fwd-button (-> (:view-val ostate) morse/browsers-for :browsers empty?))
     (.requestFocus (:browse-ui ostate))))
 
 (defn tap-clear-pressed

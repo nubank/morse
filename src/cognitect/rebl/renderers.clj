@@ -12,7 +12,7 @@
    [clojure.java.io :as io]
    [clojure.main :as main]
    [clojure.spec.alpha :as s]
-   [cognitect.morse :as rebl]
+   [cognitect.morse :as morse]
    [cognitect.rebl.impl.file :as file]
    [cognitect.rebl.impl.beans :as beans]
    [cognitect.rebl.fx :as fx]
@@ -269,29 +269,29 @@
       (boolean? v)
       (instance? clojure.data.alpha.replicant.client.spi.Relay v)))
 
-(rebl/update-viewers {:rebl/data-as-edn {:pred #'any? :ctor #'edn-viewer}
-                      :rebl/code {:pred #'code? :ctor #'code-viewer}
-                      :rebl/text {:pred #'simple? :ctor #'plain-text-viewer}
-                      :rebl/url {:pred #'fx/url? :ctor #'web-vb}
-                      :rebl/spec-edn {:pred #'s/spec? :ctor #'spec-edn-viewer}
-                      :rebl/map {:pred #'fx/Map? :ctor #'map-vb}
-                      :rebl/coll {:pred #'fx/Coll? :ctor #'coll-vb}
-                      :rebl/tuples {:pred #'fx/tuples? :ctor #'tuples-vb}
-                      :rebl/maps {:pred #'fx/maps? :ctor #'maps-vb}
-                      :rebl/map-of-maps {:pred #'fx/map-of-maps? :ctor #'map-of-maps-vb}
+(morse/update-viewers {:rebl/data-as-edn  {:pred #'any? :ctor #'edn-viewer}
+                      :rebl/code          {:pred #'code? :ctor #'code-viewer}
+                      :rebl/text          {:pred #'simple? :ctor #'plain-text-viewer}
+                      :rebl/url           {:pred #'fx/url? :ctor #'web-vb}
+                      :rebl/spec-edn      {:pred #'s/spec? :ctor #'spec-edn-viewer}
+                      :rebl/map           {:pred #'fx/Map? :ctor #'map-vb}
+                      :rebl/coll          {:pred #'fx/Coll? :ctor #'coll-vb}
+                      :rebl/tuples        {:pred #'fx/tuples? :ctor #'tuples-vb}
+                      :rebl/maps          {:pred #'fx/maps? :ctor #'maps-vb}
+                      :rebl/map-of-maps   {:pred #'fx/map-of-maps? :ctor #'map-of-maps-vb}
                       :rebl/throwable-map {:ctor #'throwable-map-vb :pred #'fx/throwable-map?}
-                      :rebl/throwable {:ctor #'throwable-vb :pred #'fx/throwable?}
-                      :rebl.file/top {:ctor #'file-top :pred #'file/not-empty?}
-                      :rebl.file/browse {:ctor #'file-browse :pred #'file/browsable-file?}
-                      :rebl/bean {:ctor #'bean-browse :pred #'beans/browsable?}
+                      :rebl/throwable     {:ctor #'throwable-vb :pred #'fx/throwable?}
+                      :rebl.file/top      {:ctor #'file-top :pred #'file/not-empty?}
+                      :rebl.file/browse   {:ctor #'file-browse :pred #'file/browsable-file?}
+                      :rebl/bean          {:ctor #'bean-browse :pred #'beans/browsable?}
                       })
 
-(rebl/update-browsers {:rebl/map {:pred #'fx/Map? :ctor #'map-vb}
-                       :rebl/url {:pred #'fx/url? :ctor #'web-vb}
-                       :rebl/coll {:pred #'fx/Coll? :ctor #'coll-vb}
-                       :rebl/tuples {:pred #'fx/tuples? :ctor #'tuples-vb}
-                       :rebl/maps {:pred #'fx/maps? :ctor #'maps-vb}
+(morse/update-browsers {:rebl/map        {:pred #'fx/Map? :ctor #'map-vb}
+                       :rebl/url         {:pred #'fx/url? :ctor #'web-vb}
+                       :rebl/coll        {:pred #'fx/Coll? :ctor #'coll-vb}
+                       :rebl/tuples      {:pred #'fx/tuples? :ctor #'tuples-vb}
+                       :rebl/maps        {:pred #'fx/maps? :ctor #'maps-vb}
                        :rebl/map-of-maps {:pred #'fx/map-of-maps? :ctor #'map-of-maps-vb}
-                       :rebl/bean {:ctor #'bean-browse :pred #'beans/browsable?}
+                       :rebl/bean        {:ctor #'bean-browse :pred #'beans/browsable?}
                        :rebl.file/browse {:ctor #'file-browse :pred #'file/browsable-file?}
                        })

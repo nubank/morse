@@ -17,7 +17,7 @@ Morse is a graphical, interactive tool for browsing Clojure data. It features:
 * the ability to capture nested values as defs in the user namespace
 * metadata viewing
 * datafy support
-* full keyboard control via [hotkeys](https://github.com/cognitect-labs/rebl/wiki/Hotkeys)
+* full keyboard control via [hotkeys](https://www.clojure.org/guides/morse#keybindings)
 
 ![screenshot](TODO)
 

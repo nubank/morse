@@ -7,7 +7,7 @@
    [javafx.scene.chart AreaChart BarChart CategoryAxis LineChart NumberAxis ScatterChart StackedAreaChart StackedBarChart XYChart XYChart$Data XYChart$Series])
   (:require
    [clojure.java.io :as io]
-   [cognitect.morse :as rebl]
+   [cognitect.morse :as morse]
    [cognitect.rebl.fx :as fx]
    [cognitect.rebl.ui :as ui]))
 
@@ -163,7 +163,7 @@ from coll."
     (ui/update-pane pane chart)
     root))
 
-(rebl/update-viewers {:rebl/xy-chart {:pred #'xy-chartable? :ctor #'xy-chart-v}})
+(morse/update-viewers {:rebl/xy-chart {:pred #'xy-chartable? :ctor #'xy-chart-v}})
 
 
 
