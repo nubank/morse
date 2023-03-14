@@ -13,15 +13,15 @@
 
 (defn compile [args]
   (clean args)
-  (b/compile-clj {:basis basis
-                  :src-dirs ["src"]
-                  :class-dir class-dir
+  (b/compile-clj {:basis         basis
+                  :src-dirs      ["src"]
+                  :class-dir     class-dir
                   :compiler-opts (merge {:elide-meta [:doc :file :line]}
-                                   (:compiler-opts args))
-                  :ns-compile '[cognitect.rebl.ui
-                                cognitect.rebl.fx
-                                cognitect.rebl.charts]
-                  :filter-nses '[cognitect.rebl]})
+                                        (:compiler-opts args))
+                  :ns-compile    '[cognitect.rebl.ui
+                                   cognitect.rebl.fx
+                                   cognitect.rebl.charts]
+                  :filter-nses   '[cognitect.morse]})
   (b/copy {:target-dir class-dir
            :src-dirs ["resources"]}))
 

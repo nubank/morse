@@ -2,7 +2,7 @@
 
 (ns cognitect.rebl.ui
   (:require
-   [cognitect.rebl :as rebl]
+   [cognitect.morse :as rebl]
    [cognitect.rebl.config :as config]
    [cognitect.rebl.impl.monaco :as monaco]
    [cognitect.rebl.renderers :as render]
@@ -290,8 +290,8 @@
 
 (defn def-in-ns
   [ui ns sym v doc]
-  (intern ns sym v)
   (let [fqs (symbol (str ns) (str sym))]
+    (do-eval ui (pr-str `(intern (quote ~ns) (quote ~sym) ~v)))
     (do-eval ui (pr-str `(var ~fqs)))))
 
 (defn- original-val

@@ -38,7 +38,7 @@
                        org.openjfx/javafx-swing    {:mvn/version "15-ea+6"}
                        org.openjfx/javafx-base     {:mvn/version "15-ea+6"}
                        org.openjfx/javafx-web      {:mvn/version "15-ea+6"}}
-          :exec-fn cognitect.rebl/morse}
+          :exec-fn cognitect.morse/morse}
 
   ;; Morse:
   ;; clj -A:dev:jfx -X cognitect.rebl/morse

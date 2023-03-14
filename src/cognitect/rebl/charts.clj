@@ -7,7 +7,7 @@
    [javafx.scene.chart AreaChart BarChart CategoryAxis LineChart NumberAxis ScatterChart StackedAreaChart StackedBarChart XYChart XYChart$Data XYChart$Series])
   (:require
    [clojure.java.io :as io]
-   [cognitect.rebl :as rebl]
+   [cognitect.morse :as rebl]
    [cognitect.rebl.fx :as fx]
    [cognitect.rebl.ui :as ui]))
 

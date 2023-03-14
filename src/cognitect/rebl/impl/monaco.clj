@@ -183,7 +183,7 @@
       '[clojure.core.server :as server])
     (import
       '[com.sun.javafx.webkit WebConsoleListener])
-    (def r (cognitect.rebl/repl server/prepl)))
+    (def r (cognitect.morse/repl server/prepl)))
 
   (fx/later
     (fn []

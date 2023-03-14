@@ -12,7 +12,7 @@
    [clojure.java.io :as io]
    [clojure.main :as main]
    [clojure.spec.alpha :as s]
-   [cognitect.rebl :as rebl]
+   [cognitect.morse :as rebl]
    [cognitect.rebl.impl.file :as file]
    [cognitect.rebl.impl.beans :as beans]
    [cognitect.rebl.fx :as fx]

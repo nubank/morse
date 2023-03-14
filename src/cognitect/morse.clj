@@ -1,6 +1,6 @@
 ;;   Copyright (c) Cognitect, Inc. All rights reserved.
 
-(ns cognitect.rebl
+(ns cognitect.morse
   (:require 
    [clojure.main :as main]
    [clojure.core.server :as server]

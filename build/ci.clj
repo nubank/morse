@@ -19,10 +19,10 @@
                                        (str/replace jar-name ".jar" ".zip")]))))
 
 (def project
-  (create-project {:lib 'com.cognitect/rebl
-                   :version (str "0.9." (git/revision))
-                   :namespace 'cognitect.rebl
-                   :instrument? #(str/starts-with? (namespace %) "cognitect")
+  (create-project {:lib            'com.cognitect/rebl
+                   :version        (str "0.9." (git/revision))
+                   :namespace      'cognitect.morse
+                   :instrument?    #(str/starts-with? (namespace %) "cognitect")
                    :project-class? #(str/starts-with? % "cognitect/rebl")}))
 
 (defn write-jar
