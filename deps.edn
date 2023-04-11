@@ -1,9 +1,8 @@
 {:deps
- {cljfmt/cljfmt {:mvn/version "0.8.0"
-                 :exclusions [org.clojure/clojurescript]}
+ {cljfmt/cljfmt {:mvn/version "0.8.0" :exclusions [org.clojure/clojurescript]}
   org.clojure/core.async {:mvn/version "1.5.648"}
   org.clojure/clojure {:mvn/version "1.11.1"}
-  io.github.clojure/data.alpha.replicant-client {:local/root "../data.alpha.replicant-client"}
+  io.github.clojure/data.alpha.replicant-client {:git/tag "v0.1.0" :git/sha "0a7b34b"}
   org.openjfx/javafx-fxml     {:mvn/version "15-ea+6"}
   org.openjfx/javafx-controls {:mvn/version "15-ea+6"}
   org.openjfx/javafx-swing    {:mvn/version "15-ea+6"}
@@ -12,21 +11,13 @@
   org.yaml/snakeyaml {:mvn/version "1.23"}}
  :paths ["src" "resources"]
  :aliases
- {:dev {:extra-deps {org.yaml/snakeyaml {:mvn/version "1.23"}
-                     io.github.clojure/data.alpha.replicant-client {:local/root "../data.alpha.replicant-client"}}}
+ {:dev {:replace-deps {io.github.clojure/data.alpha.replicant-client {:local/root "../data.alpha.replicant-client"}}
+        :extra-paths ["test"]}
 
   :build {:deps {io.github.clojure/tools.build {:git/tag "v0.9.4" :git/sha "76b78fe"}}
           :ns-default build}
  
-  :morse {:extra-paths ["test"]
-          :extra-deps {org.yaml/snakeyaml {:mvn/version "1.23"}
-                       io.github.cognitect-labs/replicant-client {:local/root "../replicant-client"}
-                       org.openjfx/javafx-fxml     {:mvn/version "15-ea+6"}
-                       org.openjfx/javafx-controls {:mvn/version "15-ea+6"}
-                       org.openjfx/javafx-swing    {:mvn/version "15-ea+6"}
-                       org.openjfx/javafx-base     {:mvn/version "15-ea+6"}
-                       org.openjfx/javafx-web      {:mvn/version "15-ea+6"}}
-          :exec-fn cognitect.morse/morse}
+  :morse {:exec-fn cognitect.morse/morse}
 
   ;; Morse:
   ;; clj -X:morse <opts-map>
