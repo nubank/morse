@@ -3,11 +3,13 @@
 (ns cognitect.morse
   (:require 
    [clojure.main :as main]
+   [clojure.edn :as edn]
    [clojure.core.server :as server]
    [clojure.pprint :as pp]
    [clojure.core.async :as async :refer [>!! <!! chan mult]]
    [cognitect.rebl.config :as config])
-  (:refer-clojure :exclude [eval load-file]))
+  (:refer-clojure :exclude [eval load-file])
+  (:gen-class))
 
 (comment "an atom on map with keys:
 :browsers and :viewers - :identk -> {:keys [pred ctor]}")
@@ -141,14 +143,20 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
     (ui :proc proc)
     (proc *in* cb)))
 
-(defn -main
-  ([] (repl server/prepl)))
-
 (defn morse
   ([{:keys [host port mode]
      :or {host "localhost", port 5555, mode :remote}}]
    (ui :proc (partial server/remote-prepl host port)
        :mode mode)))
+
+(defn -main
+  [& args]
+  (let [{:keys [host port]
+         :or {host "localhost", port 5555}
+         :as opts} (and (seq args) (edn/read-string (first args)))
+         mode :remote]
+    (println "Connectiong Morse to remote at" (str host ":" port))
+    (morse {:host host, :port port, :mode mode})))
 
 (comment
 ;;

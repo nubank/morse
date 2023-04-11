@@ -2,34 +2,22 @@
  {cljfmt/cljfmt {:mvn/version "0.8.0"
                  :exclusions [org.clojure/clojurescript]}
   org.clojure/core.async {:mvn/version "1.5.648"}
-  org.clojure/clojure {:mvn/version "1.11.1"}}
-
- :mvn/repos {"cloud-maven" {:url "s3://cloud-1fc2183a-56c5-4f05-b37d-e78b6a7daffe/maven/releases"}}
-
+  org.clojure/clojure {:mvn/version "1.11.1"}
+  io.github.clojure/data.alpha.replicant-client {:local/root "../data.alpha.replicant-client"}
+  org.openjfx/javafx-fxml     {:mvn/version "15-ea+6"}
+  org.openjfx/javafx-controls {:mvn/version "15-ea+6"}
+  org.openjfx/javafx-swing    {:mvn/version "15-ea+6"}
+  org.openjfx/javafx-base     {:mvn/version "15-ea+6"}
+  org.openjfx/javafx-web      {:mvn/version "15-ea+6"}
+  org.yaml/snakeyaml {:mvn/version "1.23"}}
  :paths ["src" "resources"]
  :aliases
- {:dev {:extra-deps {;; Shared LICENSE file is in dev-local-distro
-;;                     com.datomic/dev-local-distro {:git/url "git@cognitect.git.beanstalkapp.com:/cognitect/dev-local-distro.git" :sha "5d2082ef58b3e372fcb1c53052ae7e31142eb308"}
-                     org.yaml/snakeyaml {:mvn/version "1.23"}
-                     io.github.cognitect-labs/replicant-client {:local/root "../replicant-client"}
-                     }}
-  :ci {:extra-paths ["build"]
-       :extra-deps {com.cognitect/deps.build {:sha "eb91cbb57d0231dda74ebc81487030b0651df2b9"
-                                              :git/url "git@cognitect.git.beanstalkapp.com:/cognitect/deps-build.git"}
-                    ;; the maven artifacts for OpenJFX require Java 9 or later, maybe even Java 11, so cannot add them here
-                    com.datomic/deps.project {:sha "03021b50349df1d740f1ace0cd5813c6f436ae38"
-                                              :git/url "git@cognitect.git.beanstalkapp.com:/cognitect/deps-project.git"}}}
-  :build {:extra-paths ["."]
-          :replace-deps {io.github.clojure/tools.build {:local/root "../tools.build"}}
-          ;;                                             {:git/url "git@github.com:clojure/tools.build.git"
-          ;;                                              :sha "634ff46a17ee0a97d8ce7d4b3a016d75275992d7"}}
-          :ns-default build}
-  :jfx {:extra-deps {org.openjfx/javafx-fxml     {:mvn/version "15-ea+6"}
-                     org.openjfx/javafx-controls {:mvn/version "15-ea+6"}
-                     org.openjfx/javafx-swing    {:mvn/version "15-ea+6"}
-                     org.openjfx/javafx-base     {:mvn/version "15-ea+6"}
-                     org.openjfx/javafx-web      {:mvn/version "15-ea+6"}}}
+ {:dev {:extra-deps {org.yaml/snakeyaml {:mvn/version "1.23"}
+                     io.github.clojure/data.alpha.replicant-client {:local/root "../data.alpha.replicant-client"}}}
 
+  :build {:deps {io.github.clojure/tools.build {:git/tag "v0.9.4" :git/sha "76b78fe"}}
+          :ns-default build}
+ 
   :morse {:extra-paths ["test"]
           :extra-deps {org.yaml/snakeyaml {:mvn/version "1.23"}
                        io.github.cognitect-labs/replicant-client {:local/root "../replicant-client"}
@@ -41,6 +29,6 @@
           :exec-fn cognitect.morse/morse}
 
   ;; Morse:
-  ;; clj -A:dev:jfx -X cognitect.rebl/morse
+  ;; clj -X:morse <opts-map>
   }
  }
