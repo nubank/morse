@@ -1,6 +1,6 @@
 ;;   Copyright (c) Cognitect, Inc. All rights reserved.
 
-(ns cognitect.morse
+(ns nubank.morse
   (:require 
    [clojure.main :as main]
    [clojure.edn :as edn]
