@@ -17,7 +17,7 @@
   :build {:deps {io.github.clojure/tools.build {:git/tag "v0.9.4" :git/sha "76b78fe"}}
           :ns-default build}
  
-  :morse {:exec-fn nubank.morse/morse}
+  :morse {:exec-fn dev.nu.morse/morse}
 
   ;; Morse:
   ;; clj -X:morse <opts-map>

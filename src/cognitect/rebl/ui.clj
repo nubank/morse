@@ -2,7 +2,7 @@
 
 (ns cognitect.rebl.ui
   (:require
-   [nubank.morse :as morse]
+   [dev.nu.morse :as morse]
    [cognitect.rebl.config :as config]
    [cognitect.rebl.impl.monaco :as monaco]
    [cognitect.rebl.renderers :as render]

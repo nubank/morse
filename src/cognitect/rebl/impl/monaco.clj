@@ -183,7 +183,7 @@
       '[clojure.core.server :as server])
     (import
       '[com.sun.javafx.webkit WebConsoleListener])
-    (def r (nubank.morse/repl server/prepl)))
+    (def r (dev.nu.morse/repl server/prepl)))
 
   (fx/later
     (fn []
