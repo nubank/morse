@@ -1,4 +1,4 @@
-;;   Copyright (c) Cognitect, Inc. All rights reserved.
+;;   Copyright (c) Nu North America, Inc. All rights reserved.
 
 (ns cognitect.rebl.config
   (:import [java.io IOException])

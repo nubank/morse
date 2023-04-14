@@ -22,4 +22,5 @@
   ;; Morse:
   ;; clj -X:morse <opts-map>
   }
- }
+ :tools/usage {:ns-default dev.nu.morse}
+}
