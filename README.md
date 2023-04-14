@@ -48,7 +48,7 @@ io.github.nubank/morse {:git/tag "vTODO" :git/sha "TODO"}
 
 Morse is available as a Clojure CLI tool and may be installed and upgraded via:
 
-    clj -Ttools install-latest :lib io.github.nubank/morse-distro :as morse
+    clj -Ttools install-latest :lib io.github.nubank/morse :as morse
 
 That command installs a tool named "morse" that you can launch via:
 
