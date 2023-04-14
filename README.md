@@ -58,6 +58,10 @@ The `<options-map>` is optional but if omitted defaults to `'{:host \"localhost\
 
 See the [Morse Guide](https://clojure.org/guides/morse#usage) for more details about using Morse.
 
+## Contributing
+
+Morse is open source, developed internally at Nubank. Issues can be filed using GitHub issues for this project. Initially, we prefer to do development internally and are not accepting pull requests or patches.
+
 ## Copyright and License
 
 Copyright © 2023 Nu North America, Inc
