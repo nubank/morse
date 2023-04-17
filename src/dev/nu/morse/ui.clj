@@ -430,7 +430,7 @@
           val)))))
 
 (defn- build-ui [exprs-mult]
-  (let [loader (FXMLLoader. (io/resource "cognitect/rebl/rebl.fxml"))
+  (let [loader (FXMLLoader. (io/resource "dev/nu/morse/rebl.fxml"))
         root (.load loader)
         names (.getNamespace loader)
         node (fn [id] (.get names id))
@@ -508,11 +508,11 @@
             :tap-list-view tap-list-view
             :tap-latest (node "tapLatest")}]
     (.setCellFactory tap-list-view (tap-cell-factory))
-    (-> scene .getStylesheets (.add (str (io/resource "cognitect/rebl/fx.css"))))
+    (-> scene .getStylesheets (.add (str (io/resource "dev/nu/morse/fx.css"))))
     (.setItems tap-list-view tap-list)
     (.setTitle stage (:title ui))
     (.show stage)
-    (-> (:code-view ui) .getEngine (.load (str (io/resource "cognitect/rebl/codeview.html"))))
+    (-> (:code-view ui) .getEngine (.load (str (io/resource "dev/nu/morse/codeview.html"))))
     (wire-handlers ui)
     (monaco/register (:code-view ui) {})
     (tap exprs-mult exprs)

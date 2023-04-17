@@ -117,7 +117,7 @@
 (defn throwable-map-vb
   ([ex] (throwable-map-vb ex nil))
   ([ex val-cb]
-     (let [loader (FXMLLoader. (io/resource "cognitect/rebl/exception.fxml"))
+     (let [loader (FXMLLoader. (io/resource "dev/nu/morse/exception.fxml"))
            root (.load loader)
            names (.getNamespace loader)
            node (fn [id] (.get names id))]

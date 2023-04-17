@@ -337,7 +337,7 @@ pair."
                            (set-code wv text)
                            (let [editor (js/callable eng "editor")]
                              (monaco/add-cut-copy-keys eng editor)))))))
-    (.load eng (str (io/resource "cognitect/rebl/codeview.html")))
+    (.load eng (str (io/resource "dev/nu/morse/codeview.html")))
     wv))
 
 (defn set-text-area-text

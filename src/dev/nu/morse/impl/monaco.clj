@@ -195,7 +195,7 @@
                                                                            :line-number line-number
                                                                            :source-id source-id}))))
 
-        (.load engine (str (io/resource "cognitect/rebl/codeview.html")))
+        (.load engine (str (io/resource "dev/nu/morse/codeview.html")))
         (-> engine
             .getLoadWorker
             .stateProperty

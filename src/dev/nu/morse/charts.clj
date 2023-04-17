@@ -153,7 +153,7 @@ from coll."
 
 (defn xy-chart-v
   [coll]
-  (let [loader (FXMLLoader. (io/resource "cognitect/rebl/series-pair-chart.fxml"))
+  (let [loader (FXMLLoader. (io/resource "dev/nu/morse/series-pair-chart.fxml"))
         root (.load loader)
         names (.getNamespace loader)
         node (fn [id] (.get names id))
