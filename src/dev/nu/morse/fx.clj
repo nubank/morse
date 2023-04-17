@@ -1,13 +1,13 @@
 ;;   Copyright (c) Nu North America, Inc. All rights reserved.
 
-(ns cognitect.rebl.fx
+(ns dev.nu.morse.fx
   (:require
    [clojure.java.io :as io]
    [clojure.pprint :as pp]
    [clojure.set :as set]
    [clojure.string :as str]
-   [cognitect.rebl.impl.monaco :as monaco]
-   [cognitect.rebl.impl.js :as js])
+   [dev.nu.morse.impl.monaco :as monaco]
+   [dev.nu.morse.impl.js :as js])
   (:import
    [javafx.application Platform]
    [javafx.beans.property ReadOnlyObjectWrapper]

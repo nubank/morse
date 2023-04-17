@@ -1,6 +1,6 @@
 ;;   Copyright (c) Nu North America, Inc. All rights reserved.
 
-(ns cognitect.rebl.impl.js-object
+(ns dev.nu.morse.impl.js-object
   (:import
     netscape.javascript.JSObject
     [javafx.scene.web WebEngine]
@@ -64,8 +64,8 @@
 
 (comment
 
-  (in-ns 'cognitect.rebl.impl.js-object)
-  (require '[cognitect.rebl.fx :as fx])
+  (in-ns 'dev.nu.morse.impl.js-object)
+  (require '[dev.nu.morse.fx :as fx])
 
   (fx/later
     (fn []

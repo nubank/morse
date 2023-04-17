@@ -1,6 +1,6 @@
 ;;   Copyright (c) Nu North America, Inc. All rights reserved.
 
-(ns cognitect.rebl.impl.yaml
+(ns dev.nu.morse.impl.yaml
   (:require [clojure.java.io :as io])
   (:import [org.yaml.snakeyaml Yaml]))
 

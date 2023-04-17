@@ -1,8 +1,8 @@
 ;; Copyright (c) Nu North America, Inc. All rights reserved.
 
-(ns cognitect.rebl.impl.js
+(ns dev.nu.morse.impl.js
   (:require
-    [cognitect.rebl.impl.js-object :as jso])
+    [dev.nu.morse.impl.js-object :as jso])
   (:import
     [javafx.scene.web WebEngine]
     [netscape.javascript JSObject]))

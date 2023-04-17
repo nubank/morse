@@ -7,7 +7,7 @@
    [clojure.core.server :as server]
    [clojure.pprint :as pp]
    [clojure.core.async :as async :refer [>!! <!! chan mult]]
-   [cognitect.rebl.config :as config])
+   [dev.nu.morse.config :as config])
   (:refer-clojure :exclude [eval load-file])
   (:gen-class))
 
@@ -78,10 +78,10 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
 (defn ui
   "Creates a new UI window"
   [& {:keys [proc mode] :or {proc server/prepl}}]
-   (require 'cognitect.rebl.ui 'cognitect.rebl.charts 'cognitect.rebl.renderers)
+   (require 'dev.nu.morse.ui 'dev.nu.morse.charts 'dev.nu.morse.renderers)
     ;;init javafx w/o deriving app from anything
   (javafx.embed.swing.JFXPanel.)
-  ((resolve 'cognitect.rebl.ui/create) {:exprs-mult exprs :proc proc :mode mode})
+  ((resolve 'dev.nu.morse.ui/create) {:exprs-mult exprs :proc proc :mode mode})
   nil)
 
 (defn submit [expr val & {:keys [event tag] :or {event :rebl/editor-eval, tag :ret}}]
@@ -100,7 +100,7 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
 (defn eval
   "Sends the expr to REBL for evaluation. Returns if the send was successful."
   [expr]
-  (submit expr nil :tag :cognitect.rebl.ui/eval))
+  (submit expr nil :tag :dev.nu.morse.ui/eval))
 
 (defn load-file
   "Takes a filename and attempts to send each Clojure form found in it

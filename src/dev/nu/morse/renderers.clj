@@ -1,6 +1,6 @@
 ;;   Copyright (c) Nu North America, Inc. All rights reserved.
 
-(ns cognitect.rebl.renderers
+(ns dev.nu.morse.renderers
   (:import
    [javafx.fxml FXMLLoader]
    [javafx.scene.control TableView TextArea])
@@ -13,9 +13,9 @@
    [clojure.main :as main]
    [clojure.spec.alpha :as s]
    [dev.nu.morse :as morse]
-   [cognitect.rebl.impl.file :as file]
-   [cognitect.rebl.impl.beans :as beans]
-   [cognitect.rebl.fx :as fx]
+   [dev.nu.morse.impl.file :as file]
+   [dev.nu.morse.impl.beans :as beans]
+   [dev.nu.morse.fx :as fx]
    [clojure.data.alpha.replicant.client.spi]))
 
 ;;;;;;;;;;;;;;;;; table helpers ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -239,7 +239,7 @@
   (let [kf (fn [kform]
              (if (list? kform)
                (eval `(fn [x#] (-> x# ~kform)))
-               #_(binding [*ns* (find-ns 'cognitect.rebl.renderers)]
+               #_(binding [*ns* (find-ns 'dev.nu.morse.renderers)]
                  (eval `(fn [x#] (-> x# ~kform))))
                kform))
         kfs (mapv kf forms)]

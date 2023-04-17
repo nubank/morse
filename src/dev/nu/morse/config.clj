@@ -1,6 +1,6 @@
 ;;   Copyright (c) Nu North America, Inc. All rights reserved.
 
-(ns cognitect.rebl.config
+(ns dev.nu.morse.config
   (:import [java.io IOException])
   (:require
    [clojure.edn :as edn]

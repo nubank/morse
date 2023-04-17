@@ -1,6 +1,6 @@
 ;;   Copyright (c) Nu North America, Inc. All rights reserved.
 
-(ns cognitect.rebl.impl.beans
+(ns dev.nu.morse.impl.beans
   (:import [clojure.lang IPersistentCollection]
            [java.util Map Collection])
   (:require [clojure.datafy :as datafy]

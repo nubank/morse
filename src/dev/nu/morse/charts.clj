@@ -1,6 +1,6 @@
 ;;   Copyright (c) Nu North America, Inc. All rights reserved.
 
-(ns cognitect.rebl.charts
+(ns dev.nu.morse.charts
   (:import
    [javafx.collections ObservableList]
    [javafx.fxml FXMLLoader]
@@ -8,8 +8,8 @@
   (:require
    [clojure.java.io :as io]
    [dev.nu.morse :as morse]
-   [cognitect.rebl.fx :as fx]
-   [cognitect.rebl.ui :as ui]))
+   [dev.nu.morse.fx :as fx]
+   [dev.nu.morse.ui :as ui]))
 
 (defn- set-all
   [^ObservableList container data]

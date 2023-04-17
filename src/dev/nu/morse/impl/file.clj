@@ -1,6 +1,6 @@
 ;; Copyright (c) Nu North America, Inc., All rights reserved.
 
-(ns cognitect.rebl.impl.file
+(ns dev.nu.morse.impl.file
   (:import
    clojure.lang.LineNumberingPushbackReader
    java.io.File)
@@ -124,7 +124,7 @@
  (catch java.io.FileNotFoundException _))
 
 (try
- (let [yaml-read (requiring-resolve 'cognitect.rebl.impl.yaml/load-all)]
+ (let [yaml-read (requiring-resolve 'dev.nu.morse.impl.yaml/load-all)]
    (swap!
     data-file-readers-ref
     assoc

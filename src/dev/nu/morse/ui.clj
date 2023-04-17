@@ -1,12 +1,12 @@
 ;;   Copyright (c) Nu North America, Inc. All rights reserved.
 
-(ns cognitect.rebl.ui
+(ns dev.nu.morse.ui
   (:require
    [dev.nu.morse :as morse]
-   [cognitect.rebl.config :as config]
-   [cognitect.rebl.impl.monaco :as monaco]
-   [cognitect.rebl.renderers :as render]
-   [cognitect.rebl.fx :as fx]
+   [dev.nu.morse.config :as config]
+   [dev.nu.morse.impl.monaco :as monaco]
+   [dev.nu.morse.renderers :as render]
+   [dev.nu.morse.fx :as fx]
    [clojure.datafy :as datafy]
    [clojure.java.io :as io]
    [clojure.pprint :as pp]
@@ -305,7 +305,7 @@
   [{:keys [state def-text] :as ui}]
   (let [v (original-val @state)
         name (.getText def-text)]
-    (def-in-ns ui 'user (symbol name) v "Defined by cognitect.rebl 'def as:'")
+    (def-in-ns ui 'user (symbol name) v "Defined by dev.nu.morse 'def as:'")
     ;; another option -- add the var itself to the UI history?
     #_(async/put! exprs {::eval (find-var (symbol "user" name))})))
 

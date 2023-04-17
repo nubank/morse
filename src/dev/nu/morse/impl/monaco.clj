@@ -1,10 +1,10 @@
 ;; Copyright (c) Nu North America, Inc. All rights reserved.
 
-(ns cognitect.rebl.impl.monaco
+(ns dev.nu.morse.impl.monaco
   (:require
     [cljfmt.core :as cljfmt]
-    [cognitect.rebl.impl.js :as js]
-    [cognitect.rebl.impl.js-object :as jso])
+    [dev.nu.morse.impl.js :as js]
+    [dev.nu.morse.impl.js-object :as jso])
   (:import
     [javafx.scene.web WebEngine WebView]
     [javafx.beans.value ChangeListener]
@@ -178,7 +178,7 @@
 (comment
   (do
     (require
-      '[cognitect.rebl.fx :as fx]
+      '[dev.nu.morse.fx :as fx]
       '[clojure.java.io :as io]
       '[clojure.core.server :as server])
     (import

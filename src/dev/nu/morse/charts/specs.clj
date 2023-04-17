@@ -1,6 +1,6 @@
 ;;   Copyright (c) Nu North America, Inc. All rights reserved.
 
-(ns cognitect.rebl.charts.specs
+(ns dev.nu.morse.charts.specs
   (:require [clojure.spec.alpha :as s]))
 
 (s/def ::title string?)
