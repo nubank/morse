@@ -29,8 +29,9 @@ Morse has two modes of operation: in-process and remote inspection. In this sect
 
 
 [[in-proc]]
-=== I would like to run Morse in my process and use to to inspect application state during development
+=== I would like to run Morse in my process and use it to inspect application state during development
 
+Like REBL, Morse can run insode of your application process and access its full power. To add Morse as a `:dev` dependency, simply add the following to your deps.edn file:
 
 [source,clojure]
 ----
@@ -40,26 +41,39 @@ Morse has two modes of operation: in-process and remote inspection. In this sect
 }
 ----
 
-With this dependency in place you can run your Clojure REPL with the `:dev` alias active.
+With this dependency in place you can run your Clojure REPL with the `:dev` alias active to make Morse available on the classpath. You can `require` Morse with the following:
 
 [source,clojure]
 ----
 (require '[dev.nu.morse :as morse])
-(morse/ui :mode :in-proc)
 ----
+
+Once loaded, a Morce UI is launced with the `ui` function:
 
 [source,clojure]
 ----
-(morse/inspect C1)
+(morse/ui :mode :in-proc)
 ----
 
+The Morse API provides an `inpect` function taking an object and displaying it in the Morse UI. 
+
+[source,clojure]
+----
+(morse/inspect {:a 1 :b 2})
+----
+
+You should see the map `{:a 1 :b 2}` in the data Morse data browser.
+
+The Morse API also provides an `eval` function that takes a Clojure form and evaluates it in the context of the hosting process.
 
 [source,clojure]
 ----
 (morse/eval (+ 1 2))
 ----
 
+You should see the number 3 in the Morse data browser.
 
+Having Morse available as a nimble data inspector in your development process provides a powerful lever for understanding application state and data collections.
 
 [[out-of-process]]
 === I would like to connect Morse to an external process that depends on Replicant Server
@@ -118,12 +132,13 @@ Morse is used as a dependency just like any other Clojure library and therefore 
 [[tool-install]]
 === I would like to install Morse as a Clojure CLI tool
 
-To launch Morse in remote inspection mode run the following command:
+Morse is available as a Clojure CLI tool and may be installed and upgraded via:
 
-[source, bash]
-----
-clj -Tmorse morse <options>
-----
+    clj -Ttools install-latest :lib io.github.nubank/morse :as morse
+
+That command installs a tool named "morse" that you can launch via:
+
+    clj -Tmorse morse <options>
 
 The <options> are optional key->value pairs accepting `:host` and `:port` mappings. If omitted, <options> default to `:host '"localhost"' :port 5555`.
 
@@ -132,21 +147,33 @@ The <options> are optional key->value pairs accepting `:host` and `:port` mappin
 
 Morse currently requires Java version 11 or higher.
 
-By default Morse runs the version 20 of JavaFX but if you need to run Morse with different versions of the JavaFX library then you should add the following dependencies to your deps.edn file to override Morse's default. We cannot guarantee that Morse will run as expected if you change its JavaFX versions.
+By default Morse runs with the latest version of JavaFX but if you need to run Morse with different versions of the JavaFX library then you should add the following dependencies to your deps.edn file to override Morse's default. We cannot guarantee that Morse will run as expected if you change its JavaFX versions.
 
 [source,clojure]
 ----
-org.openjfx/javafx-fxml     {:mvn/version "JFX_VER"}
-org.openjfx/javafx-controls {:mvn/version "JFX_VER"}
-org.openjfx/javafx-swing    {:mvn/version "JFX_VER"}
-org.openjfx/javafx-base     {:mvn/version "JFX_VER"}
-org.openjfx/javafx-web      {:mvn/version "JFX_VER"}}
+org.openjfx/javafx-fxml     {:mvn/version "YOUR_JFX_VER"}
+org.openjfx/javafx-controls {:mvn/version "YOUR_JFX_VER"}
+org.openjfx/javafx-swing    {:mvn/version "YOUR_JFX_VER"}
+org.openjfx/javafx-base     {:mvn/version "YOUR_JFX_VER"}
+org.openjfx/javafx-web      {:mvn/version "YOUR_JFX_VER"}}
 ----
 
 [[interface]]
 == The Morse User Interface
 
-link:#interface[image:/assets/images/content/guides/morse/morse.png["Morse UI",width=800]]
+Morse is a graphical, interactive tool for browsing or inspecting Clojure data.
+
+* In-process and remote inspection execution modes
+* A two-pane browser/viewer system for viewing collections and their contents
+* link:#navforward[Navigation into and back out of nested collections]
+* link:#code-editor[A structured editor pane for entering expressions to be evaluated]
+* link:#root[A root browse of a history of expression evaluations]
+* link:def-as[The ability to capture nested values as defs in the user namespace]
+* link:#metadata[Metadata viewing]
+* Datafy support
+* Full keyboard control via link:#keybindings[hotkeys]
+
+link:#interface[image:/assets/images/content/guides/morse/morseplain.png["Morse UI",width=800]]
 
 [[code-editor]]
 === Code Editor
