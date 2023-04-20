@@ -68,7 +68,7 @@ The Morse API also provides an `eval` function that takes a Clojure form and eva
 
 [source,clojure]
 ----
-(morse/eval (+ 1 2))
+(morse/eval '(+ 1 2))
 ----
 
 You should see the number 3 in the Morse data browser.
