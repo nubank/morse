@@ -62,7 +62,7 @@ With this dependency in place you can run your Clojure REPL with the `:dev` alia
 
 
 [[out-of-process]]
-== I would like to connect Morse to an external process that depends on Replicant Server
+=== I would like to connect Morse to an external process that depends on Replicant Server
 
 Using a project with Morse in its dependencies like described in the previous section, you can connect to a different process named PROC2 running a Replicant Server using the steps in this section.
 
@@ -97,7 +97,7 @@ By default, replicant-server runs on localhost port 5555 but is configurable per
 Once connected, the REPL pane in Morse is a remote client of the server (via a socket) of an active link:https://github.com/clojure/data.alpha.replicant-server[Replicant server]. Expressions you type into Morse are evaluated in the context of the process hosting the Replicant server. This is just like any remote socket-based repl. You can modify the remote inspection parameters to match your replicant-server launch by passing an options map to the `clj` command above:
 
 [[out-of-process-bootstrap]]
-== I would like to connect Morse to an external process that does not depend on Replicant Server
+=== I would like to connect Morse to an external process that does not depend on Replicant Server
 
 Since version 1.12-alpha2, Clojure provides a capability to add dependencies at runtime using the `add-lib` function available in the REPL. If your application process is running in a REPL then you can leverage Morse as needed by executing the following steps. This capability relies on https://clojure.org/guides/deps_and_cli[Clojure CLI] 1.11.1.1267 or later to function.
 
@@ -111,12 +111,12 @@ First, in your running process you can add the link:https://github.com/clojure/d
 This should load the replicant-server dependency into the running process which will allow you to `require` the Replicant namespace and start as server as outlined in the previous section.
 
 [[ide-use]]
-== I would like to use Morse in my Clojure IDE of choice
+=== I would like to use Morse in my Clojure IDE of choice
 
 Morse is used as a dependency just like any other Clojure library and therefore available in your IDE of choice either running in-process or external. See the previous sections for how to add Morse as a dependency and for running it in or out of process.
 
 [[tool-install]]
-== I would like to install Morse as a Clojure CLI tool
+=== I would like to install Morse as a Clojure CLI tool
 
 To launch Morse in remote inspection mode run the following command:
 
@@ -127,7 +127,12 @@ clj -Tmorse morse <options>
 
 The <options> are optional key->value pairs accepting `:host` and `:port` mappings. If omitted, <options> default to `:host '"localhost"' :port 5555`.
 
-=== Running Morse with different versions of the JavaFX library
+[[limitations]]
+== Limitations
+
+Morse currently requires Java version 11 or higher.
+
+By default Morse runs the version 20 of JavaFX but if you need to run Morse with different versions of the JavaFX library then you should add the following dependencies to your deps.edn file to override Morse's default. We cannot guarantee that Morse will run as expected if you change its JavaFX versions.
 
 [source,clojure]
 ----
@@ -137,11 +142,6 @@ org.openjfx/javafx-swing    {:mvn/version "JFX_VER"}
 org.openjfx/javafx-base     {:mvn/version "JFX_VER"}
 org.openjfx/javafx-web      {:mvn/version "JFX_VER"}}
 ----
-
-[[limitations]]
-== Limitations
-
-Morse currently requires Java version 11 or higher.
 
 [[interface]]
 == The Morse User Interface
