@@ -6,27 +6,12 @@ One of the prime value propositions in using a Lisp language is that you should 
 
 This software is considered an alpha release and subject to change.
 
-## The Morse UI
-
-Morse is a graphical, interactive tool for browsing Clojure data. It features:
-
-* In-process and remote inspection modes
-* a two-pane browser/viewer system for viewing collections and their contents
-* navigation into and back out of nested collections
-* a structured editor pane for entering expressions to be evaluated
-* a root browse of a history of expression evaluations
-* when used with non-stdio repls (e.g. nREPL), can be launched a la carte and accepts values to inspect via an API call
-* the ability to capture nested values as defs in the user namespace
-* metadata viewing
-* datafy support
-* full keyboard control via [hotkeys](https://www.clojure.org/guides/morse#keybindings)
-
 Morse runs remotely to or within your application JVM process, and can be used at dev-time without adding any runtime deps. The UI is written in JavaFX.
 
 Quick links:
 
 * [Getting Started with Clojure](https://clojure.org/guides/getting_started)
-* [Morse Guide](https://clojure.org/guides/morse)
+* [Morse Guide](docs/guide.adoc)
 * [Replicant Server](https://github.com/clojure/data.alpha.replicant-server)
 
 ## Requirements
@@ -43,22 +28,12 @@ Latest release:
 Latest Morse Git dependency coordinate:
 
 ```clojure
-io.github.nubank/morse {:git/tag "vTODO" :git/sha "TODO"}
+io.github.nubank/morse {:git/tag "v2023.04.20.02" :git/sha "0bf4b9f"}
 ``` 
 
 ## Usage:
 
-Morse is available as a Clojure CLI tool and may be installed and upgraded via:
-
-    clj -Ttools install-latest :lib io.github.nubank/morse :as morse
-
-That command installs a tool named "morse" that you can launch via:
-
-    clj -Tmorse morse <options-map>
-
-The `<options-map>` is optional but if omitted defaults to `'{:host \"localhost\", :port 5555}'`.
-
-See the [Morse Guide](https://clojure.org/guides/morse#usage) for more details about using Morse.
+See the [Morse Guide](docs/guide.adoc) to learn how to use Morse for your purposes.
 
 ## Contributing
 

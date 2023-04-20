@@ -37,7 +37,7 @@ Like REBL, Morse can run insode of your application process and access its full 
 ----
 :aliases
 {:dev
-  {:extra-deps {io.github.nubank/morse {:git/tag "v2023.04.20.01" :git/sha "73c8ed3"}}}
+  {:extra-deps {io.github.nubank/morse {:git/tag "v2023.04.20.02" :git/sha "0bf4b9f"}}}
 }
 ----
 
