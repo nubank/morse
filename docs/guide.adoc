@@ -92,7 +92,7 @@ In the deps.edn file for PROC2 you can add the following:
 }
 ----
 
-After starting PROC2 you can tun the following to start a remote Replicant:
+After starting PROC2 you can run the following to start a remote Replicant:
 
 [source, clojure]
 ----
