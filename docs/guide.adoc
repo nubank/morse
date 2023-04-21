@@ -25,13 +25,12 @@ This software is considered an alpha release and subject to change.
 
 == Usage
 
-Morse has two modes of operation: in-process and remote inspection. In this section we'll outline some common use cases and descript how to use Morse in each case.
-
+Morse has two modes of operation: in-process and remote inspection. In this section we'll outline some common use cases and describe how to use Morse in each case.
 
 [[in-proc]]
 === I would like to run Morse in my process and use it to inspect application state during development
 
-Like REBL, Morse can run insode of your application process and access its full power. To add Morse as a `:dev` dependency, simply add the following to your deps.edn file:
+Like REBL, Morse can run inside of your application process and access its full power. To add Morse as a `:dev` dependency, simply add the following to your deps.edn file:
 
 [source,clojure]
 ----
@@ -48,14 +47,14 @@ With this dependency in place you can run your Clojure REPL with the `:dev` alia
 (require '[dev.nu.morse :as morse])
 ----
 
-Once loaded, a Morce UI is launced with the `ui` function:
+Once loaded, a Morse UI is launched with the `ui` function:
 
 [source,clojure]
 ----
 (morse/ui :mode :in-proc)
 ----
 
-The Morse API provides an `inpect` function taking an object and displaying it in the Morse UI. 
+The Morse API provides an `inspect` function taking an object and displaying it in the Morse UI. 
 
 [source,clojure]
 ----
@@ -173,7 +172,7 @@ Morse is a graphical, interactive tool for browsing or inspecting Clojure data.
 * Datafy support
 * Full keyboard control via link:#keybindings[hotkeys]
 
-link:#interface[image:/assets/images/content/guides/morse/morseplain.png["Morse UI",width=800]]
+link:#interface[image:morseplain.png["Morse UI",width=800]]
 
 [[code-editor]]
 === Code Editor
