@@ -143,6 +143,15 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
     (ui :proc proc)
     (proc *in* cb)))
 
+(defn launch-in-proc []
+  (ui :mode :in-proc))
+
+(defn launch-remote
+  [& {:keys [host port]
+      :or {host "localhost", port 5555}}]
+  (ui :proc (partial server/remote-prepl host port)
+      :mode :remote))
+
 (defn morse
   ([{:keys [host port mode]
      :or {host "localhost", port 5555, mode :remote}}]
