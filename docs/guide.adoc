@@ -33,9 +33,11 @@ This software is considered an alpha release and subject to change.
 Morse has two inspection modes: in-process and remote. In this section we'll outline some common use cases and describe how to use Morse in each case.
 
 [[in-proc]]
-=== Running Morse in your application process
+=== Using Morse to develop and inspect your application state
 
-Morse can run inside of your application process and access its full power. To add Morse as a `:dev` dependency, simply add the following to your deps.edn file:
+Morse can run inside of your application process and access its full power. Having Morse available as a nimble data inspector in your development process provides a powerful lever for understanding application state and data collections.
+
+To add Morse as a `:dev` dependency, simply add the following to your deps.edn file:
 
 [source,clojure]
 ----
@@ -52,11 +54,18 @@ With this dependency in place you can run your Clojure REPL with the `:dev` alia
 clj -A:dev
 ----
 
-You can then launch the Morse UI using `requiring-resolve`, shown below:
+You then require the Morse namespace:
 
 [source,clojure]
 ----
-((requiring-resolve 'dev.nu.morse/launch-in-proc))
+(require '[dev.nu.morse :as morse])
+----
+
+You then launch the Morse UI:
+
+[source,clojure]
+----
+(morse/launch-in-proc)
 ----
 
 The Morse API provides an `inspect` function taking an object and displaying it in the Morse UI. 
@@ -68,28 +77,8 @@ The Morse API provides an `inspect` function taking an object and displaying it 
 
 You should see the map `{:a 1 :b 2}` in the data Morse data browser.
 
-Having Morse available as a nimble data inspector in your development process provides a powerful lever for understanding application state and data collections.
-
-==== Bootstrap Morse in your running process
-
-In version 1.12.0-alpha3 and beyond, Clojure provides a capability to add dependencies at run-time using the `add-lib` function available in the REPL. If your application process is running in a REPL then you can leverage Morse as needed by executing the following steps. This capability relies on https://clojure.org/guides/deps_and_cli[Clojure CLI] 1.11.1.1267 or later to function.
-
-First, in your running process you can add the Morse library at run-time using the `add-lib` function to load the latest version:
-
-[source,clojure]
-----
-(add-lib 'io.github.nubank/morse)
-----
-
-This should load the Morse dependency into the running process which will allow you use `requiring-resolve` to launch Morse as shown earlier:
-
-[source,clojure]
-----
-((requiring-resolve 'dev.nu.morse/launch-in-proc))
-----
-
 [[out-of-process]]
-=== Connecting Morse to a remote process
+=== Using Morse to inspect the application state of a remote process
 
 Morse Remote inspection requires two parts to operate. First, a server component link:https://github.com/clojure/replicant-server[replicant-server] runs in the process you wish to inspect (often your REPL). Second, Morse itself acts as a client to that active Replicant server.
 
@@ -103,15 +92,19 @@ In the deps.edn file for the process that you would like to inspect, add the fol
 }
 ----
 
-After starting the process, you can run the following to start a remote Replicant:
+After starting the process, will require the Replicant namespace:
 
 [source, clojure]
 ----
-(require '[clojure.data.alpha.replicant.server.prepl :as rs])
-(rs/start-replicant)
+(require '[clojure.data.alpha.replicant.server.prepl :as replicant])
 ----
 
-By default, replicant-server runs on localhost port 5555 but is configurable per the instructions in the link:https://github.com/clojure/replicant-server[replicant-server] repository.
+You then launch a Replicant server, giving it a `:host` string mapping and an optional `:port` number mapping:
+
+[source, clojure]
+----
+(replicant/start :host "hostname" :port n)
+----
 
 Next, add Morse as a `:dev` dependency to a different application project by inserting the following to your deps.edn file:
 
@@ -123,26 +116,33 @@ Next, add Morse as a `:dev` dependency to a different application project by ins
 }
 ----
 
-You can then launch the Morse UI using `requiring-resolve`, shown below:
+With this dependency in place you can run your Clojure REPL with the `:dev` alias active to make Morse available on the classpath:
+
+[source,bash]
+----
+clj -A:dev
+----
+
+You then require the Morse namespace:
 
 [source,clojure]
 ----
-((requiring-resolve 'dev.nu.morse/launch-remote))
+(require '[dev.nu.morse :as morse])
 ----
 
-Once connected, the REPL pane in Morse is a remote client of the server (via a socket) of an active link:https://github.com/clojure/data.alpha.replicant-server[Replicant server]. Expressions you type into Morse are evaluated in the context of the process hosting the Replicant server. This is just like any remote socket-based repl.
-
-You can supply an options map to the function loaded by `requiring-resolve` to match the target replicant-server. The function `dev.nu.morse/launch-remote` takes two mappings `:host->host-string` and `:port->port-number`. By default, the function `dev.nu.morse/launch-remote` operates as if the following options map was supplied:
+You then launch the Morse UI giving it a `:host` string mapping and an optional `:port` number mapping:
 
 [source,clojure]
 ----
-((requiring-resolve 'dev.nu.morse/launch-remote) {:host "localhost", :port 5555})
+(morse/launch-remote :host "hostname" :port n)
 ----
+
+Once connected, the REPL pane in Morse is a remote client of the server (via a socket) of an active link:https://github.com/clojure/data.alpha.replicant-server[Replicant server]. Expressions you type into Morse are evaluated in the context of the process hosting the Replicant server. This is just like any remote socket-based repl. Therefore, in order to view values in Morse is to bind them to vars in the user namespace and evaluate those names in the Morse editor buffer.
 
 [[out-of-process-bootstrap]]
 ==== Bootstraping Morse for remote inspection
 
-In version 1.12.0-alpha3 and beyond, Clojure provides a capability to add dependencies at run-time using the `add-lib` function available in the REPL. If your application process is running in a REPL then you can leverage Morse as needed by executing the following steps. This capability relies on https://clojure.org/guides/deps_and_cli[Clojure CLI] 1.11.1.1267 or later to function.
+Assuming that you have a running process that exposes a socket REPL, you can load a Replicant dependency at run-time to allow Morse to connect and inspect application state. Starting with version 1.12.0-alpha3, Clojure provides a capability to add dependencies at run-time using the `add-lib` function available in the REPL. If your application process is running in a REPL then you can leverage Morse as needed by executing the following steps. This capability relies on https://clojure.org/guides/deps_and_cli[Clojure CLI] 1.11.1.1267 or later to function. Assuming that your remote process runs in an environment with these versions present then you can use the following steps to connect Morse interactively.
 
 First, in your running process you can add the link:https://github.com/clojure/data.alpha.replicant-server[replicant-server] library at run-time using the `add-lib` function to load the latest version:
 
@@ -151,34 +151,28 @@ First, in your running process you can add the link:https://github.com/clojure/d
 (add-lib 'io.github.clojure/data.alpha.replicant-server)
 ----
 
-This should load the replicant-server dependency into the running process which will allow you to `require` the Replicant namespace and start as server as outlined in the previous section.
+This should load the replicant-server dependency into the running process which will allow you to `require` the Replicant namespace:
 
-Next, in a separate process you can add the Morse library at run-time using the `add-lib` function to load the latest version:
-
-[source,clojure]
+[source, clojure]
 ----
-(add-lib 'io.github.nubank/morse)
+(require '[clojure.data.alpha.replicant.server.prepl :as replicant])
 ----
 
-This should load the Morse dependency into the running process which will allow you use `requiring-resolve` to launch Morse as shown earlier:
+You then launch a Replicant server, giving it a `:host` string mapping and an optional `:port` number mapping:
 
-[source,clojure]
+[source, clojure]
 ----
-((requiring-resolve 'dev.nu.morse/launch-remote))
+(replicant/start :host "hostname" :port num)
 ----
 
-[[tool-install]]
-==== Installing Morse as a Clojure CLI tool
+Finally, in a terminal Morse is started as a CLI tool via:
 
-Morse is available as a Clojure CLI tool and may be installed and upgraded via:
+[source,bash]
+----
+clj -Tmorse morse :host '"hostname"' :port num
+----
 
-    clj -Ttools install-latest :lib io.github.nubank/morse :as morse
-
-That command installs a tool named "morse" that you can launch via:
-
-    clj -Tmorse morse <options>
-
-The <options> are optional mappings `:host->host-string` and `:port->port-number` mappings. If omitted, <options> default to `:host '"localhost"' :port 5555`.
+Instructions for installing Morse as a Clojure CLI tool are in the link:https://github.com/nubank/morse/blob/main/README.md[README]. 
 
 [[requirements]]
 == Requirements

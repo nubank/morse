@@ -31,6 +31,11 @@ Latest Morse Git dependency coordinate:
 ```clojure
 io.github.nubank/morse {:git/tag "v2023.04.25.01" :git/sha "f7a719e"}
 ``` 
+## Installing Morse as a Clojure CLI tool
+
+Morse is available as a Clojure CLI tool and may be installed and upgraded via:
+
+    clj -Ttools install-latest :lib io.github.nubank/morse :as morse
 
 ## Usage:
 
