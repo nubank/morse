@@ -35,7 +35,7 @@ Morse has two inspection modes: in-process and remote. In this section we'll out
 [[in-proc]]
 === Using Morse to develop and inspect your application state
 
-Morse can run inside of your application process and access its full power. Having Morse available as a nimble data inspector in your development process provides a powerful lever for understanding application state and data collections.
+Having Morse available as a nimble data inspector in your development process provides a powerful lever for understanding application state and data collections. Morse can run inside of your application process and access its full power and runtime state. Typically, you'll want to run Morse during development time to gain insight into an evolving application.
 
 To add Morse as a `:dev` dependency, simply add the following to your deps.edn file:
 
@@ -80,7 +80,7 @@ You should see the map `{:a 1 :b 2}` in the data Morse data browser.
 [[out-of-process]]
 === Using Morse to inspect the application state of a remote process
 
-Morse Remote inspection requires two parts to operate. First, a server component link:https://github.com/clojure/replicant-server[replicant-server] runs in the process you wish to inspect (often your REPL). Second, Morse itself acts as a client to that active Replicant server.
+Sometimes you'll have an application that cannot take Morse as a dependency or perhaps cannot run a GUI. In this circumstance Morse can remotely connect to a process and inspect its state. Morse Remote inspection requires two parts to operate. First, a server component link:https://github.com/clojure/replicant-server[replicant-server] runs in the process you wish to inspect (often your REPL). Second, Morse itself acts as a client to that active Replicant server.
 
 In the deps.edn file for the process that you would like to inspect, add the following:
 
@@ -142,7 +142,7 @@ Once connected, the REPL pane in Morse is a remote client of the server (via a s
 [[out-of-process-bootstrap]]
 === Bootstraping Morse for remote inspection
 
-Assuming that you have a running process that exposes a socket REPL, you can load a Replicant dependency at run-time to allow Morse to connect and inspect application state. Starting with version 1.12.0-alpha3, Clojure provides a capability to add dependencies at run-time using the `add-lib` function available in the REPL. If your application process is running in a REPL then you can leverage Morse as needed by executing the following steps. This capability relies on https://clojure.org/guides/deps_and_cli[Clojure CLI] 1.11.1.1267 or later to function. Assuming that your remote process runs in an environment with these versions present then you can use the following steps to connect Morse interactively.
+Sometimes you have an application running that you would like to use Morse inspection to investigate but there is no way to do so because the applicatin doesn't have replicant-server available. If you're able to launch a socket REPL in the process that you would like to inspect then there is a way to interactively load Replicant into the running process to enable Morse inspection. Starting with version 1.12.0-alpha3, Clojure provides a capability to add dependencies at run-time using the `add-lib` function available in the REPL. If your application process is running in a REPL then you can leverage Morse as needed by executing the following steps. This capability relies on https://clojure.org/guides/deps_and_cli[Clojure CLI] 1.11.1.1267 or later to function. Assuming that your remote process runs in an environment with these versions present then you can use the following steps to connect Morse interactively.
 
 First, in your running process you can add the link:https://github.com/clojure/data.alpha.replicant-server[replicant-server] library at run-time using the `add-lib` function to load the latest version:
 
