@@ -19,8 +19,16 @@
  
   :morse {:exec-fn dev.nu.morse/morse}
 
-  ;; Morse:
-  ;; clj -X:morse <opts-map>
+  :quickdoc
+  {:deps {org.babashka/cli {:mvn/version "0.4.36"}
+          io.github.borkdude/quickdoc
+          {:deps/root "jvm"
+           :git/sha "c5320cbe311b651a60b47f4d00d7e8ab63291b6e"}}
+   :main-opts ["-m" "babashka.cli.exec" "quickdoc.api" "quickdoc"]
+   :exec-args {:github/repo "https://github.com/clojure/data.alpha.replicant-server"
+               :git/branch "main"
+               :source-paths ["src/dev/nu/morse.clj"]}}
   }
+
  :tools/usage {:ns-default dev.nu.morse}
 }

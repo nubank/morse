@@ -91,20 +91,20 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
               :val val}))
 
 (defmacro inspect
-  "sends the expr and its value to the REBL UI"
+  "Sends the expr and its value to the Morse UI."
   [expr]
   `(let [ret# ~expr]
      (submit '~expr ret#)
      ret#))
 
 (defn eval
-  "Sends the expr to REBL for evaluation. Returns if the send was successful."
+  "Sends the expr to Morse for evaluation. Returns if the send was successful."
   [expr]
   (submit expr nil :tag :dev.nu.morse.ui/eval))
 
 (defn load-file
   "Takes a filename and attempts to send each Clojure form found in it
-  to REBL for evaluation."
+  to Morse for evaluation."
   [filename]
   (with-open [r (clojure.lang.LineNumberingPushbackReader. (clojure.java.io/reader filename))]
     (binding [*read-eval* false]
@@ -143,16 +143,27 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
     (ui :proc proc)
     (proc *in* cb)))
 
-(defn launch-in-proc []
+(defn launch-in-proc
+  "Launches an in-process mode Morse UI instance. The editor pane of that instance will
+  use the hosting process to evaluate its contents."
+  []
   (ui :mode :in-proc))
 
 (defn launch-remote
+  "Launches an remote mode Morse UI instance. The editor pane of that instance will
+  use the remote process to evaluate its contents. This function accepts keyword args
+  with mappings :host -> host-string and :port -> port-number. By default these values
+  will map to :host -> \"localhost\" and :port -> 5555."
   [& {:keys [host port]
       :or {host "localhost", port 5555}}]
   (ui :proc (partial server/remote-prepl host port)
       :mode :remote))
 
 (defn morse
+  "Launches a Morse UI instance. The editor pane of that instance will use the relevant
+  (either in-proc or remote) process to evaluate its contents. This function accepts an opts map
+  with mappings :host -> host-string, :port -> port-number, and :mode -> :remote | :in-proc.
+  By default these values will map to :host -> \"localhost\", :port -> 5555, and :mode -> :remote."
   ([{:keys [host port mode]
      :or {host "localhost", port 5555, mode :remote}}]
    (ui :proc (partial server/remote-prepl host port)
