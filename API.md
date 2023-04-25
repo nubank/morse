@@ -24,13 +24,6 @@ Sends the expr and its value to the Morse UI.
 ## `is-browser?`
 ``` clojure
 
-(is-browser? identk)
-```
-
-<sub>[source](https://github.com/nubank/morse/blob/master/src/dev/nu/morse.clj#L72-L73)</sub>
-## `launch-in-proc`
-``` clojure
-
 (launch-in-proc)
 ```
 
@@ -72,5 +65,4 @@ Launches a Morse UI instance. The editor pane of that instance will use the rele
   with mappings :host -> host-string, :port -> port-number, and :mode -> :remote | :in-proc.
   By default these values will map to :host -> "localhost", :port -> 5555, and :mode -> :remote.
 <br><sub>[source](https://github.com/nubank/morse/blob/master/src/dev/nu/morse.clj#L162-L170)</sub>
-## `registry`
-<sub>[source](https://github.com/nubank/morse/blob/master/src/dev/nu/morse.clj#L16-L16)</sub>
+
