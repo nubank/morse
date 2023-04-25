@@ -72,7 +72,7 @@ The Morse API provides an `inspect` function taking an object and displaying it 
 
 [source,clojure]
 ----
-(dev.nu.morse/inspect {:a 1 :b 2})
+(morse/inspect {:a 1 :b 2})
 ----
 
 You should see the map `{:a 1 :b 2}` in the data Morse data browser.
