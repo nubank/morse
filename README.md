@@ -13,7 +13,7 @@ Quick links:
 * [Getting Started with Clojure](https://clojure.org/guides/getting_started)
 * [Morse Guide](docs/guide.adoc)
 * [Replicant Server](https://github.com/clojure/data.alpha.replicant-server)
-* [Ask Clojure Q&A forum](https://ask.clojure.org/)
+* [Ask Clojure Q&A forum](https://ask.clojure.org/index.php/tools/morse)
 
 ## Requirements
 

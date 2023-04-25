@@ -19,7 +19,7 @@ Morse, like REBL before it, is a library that provides a graphical browser for C
 It's not always feasible to execute a graphical browser process inside of the program process, e.g. when the inspected program is running remotely. Morse can be configured to connect to and inspect a remote program, a facility built on the new Replicant* libraries. Morse uses Replicant to efficiently and incrementally traverse remote data, extending its power to a variety of new use cases.
 
 == Clojure, Morse and the Lisp Value Proposition
-Clojure lets programmers solve problems by staying connected to their running programs and live data, incrementally building up both the program and their understanding of the problem they are trying to solve. Morse, Replicant, and the new add-libs features of Clojure version 1.12.0-alpha2 all work together to amplify the power of the programmer during interactive development.
+Clojure lets programmers solve problems by staying connected to their running programs and live data, incrementally building up both the program and their understanding of the problem they are trying to solve. Morse, Replicant, and the new add-libs features of Clojure version 1.12.0-alpha3 all work together to amplify the power of the programmer during interactive development.
 
 This software is considered an alpha release and subject to change.
 
@@ -28,7 +28,7 @@ This software is considered an alpha release and subject to change.
 Morse has two inspection modes: in-process and remote. In this section we'll outline some common use cases and describe how to use Morse in each case.
 
 [[in-proc]]
-=== I would like to run Morse in my process and use it to inspect application state
+=== Running Morse in your application process
 
 Morse can run inside of your application process and access its full power. To add Morse as a `:dev` dependency, simply add the following to your deps.edn file:
 
@@ -63,20 +63,11 @@ The Morse API provides an `inspect` function taking an object and displaying it 
 
 You should see the map `{:a 1 :b 2}` in the data Morse data browser.
 
-The Morse API also provides an `eval` function that takes a Clojure form and evaluates it in the context of the hosting process.
-
-[source,clojure]
-----
-(dev.nu.morse/eval '(+ 1 2))
-----
-
-You should see the number 3 in the Morse data browser.
-
 Having Morse available as a nimble data inspector in your development process provides a powerful lever for understanding application state and data collections.
 
-==== I would like to bootstrap Morse in my running process without adding a dependency
+==== Bootstrap Morse in your running process
 
-Since version 1.12-alpha2, Clojure provides a capability to add dependencies at run-time using the `add-lib` function available in the REPL. If your application process is running in a REPL then you can leverage Morse as needed by executing the following steps. This capability relies on https://clojure.org/guides/deps_and_cli[Clojure CLI] 1.11.1.1267 or later to function.
+In version 1.12.0-alpha3 and beyond, Clojure provides a capability to add dependencies at run-time using the `add-lib` function available in the REPL. If your application process is running in a REPL then you can leverage Morse as needed by executing the following steps. This capability relies on https://clojure.org/guides/deps_and_cli[Clojure CLI] 1.11.1.1267 or later to function.
 
 First, in your running process you can add the Morse library at run-time using the `add-lib` function to load the latest version:
 
@@ -93,7 +84,7 @@ This should load the Morse dependency into the running process which will allow 
 ----
 
 [[out-of-process]]
-=== I would like to connect Morse to a remote process and use it to inspect application state
+=== Connecting Morse to a remote process
 
 Morse Remote inspection requires two parts to operate. First, a server component link:https://github.com/clojure/replicant-server[replicant-server] runs in the process you wish to inspect (often your REPL). Second, Morse itself acts as a client to that active Replicant server.
 
@@ -144,9 +135,9 @@ You can supply an options map to the function loaded by `requiring-resolve` to m
 ----
 
 [[out-of-process-bootstrap]]
-==== I would like to bootstrap Morse for remote inspection without adding it or its supporting libraries as dependencies
+==== Bootstraping Morse for remote inspection
 
-Since version 1.12-alpha2, Clojure provides a capability to add dependencies at run-time using the `add-lib` function available in the REPL. If your application process is running in a REPL then you can leverage Morse as needed by executing the following steps. This capability relies on https://clojure.org/guides/deps_and_cli[Clojure CLI] 1.11.1.1267 or later to function.
+In version 1.12.0-alpha3 and beyond, Clojure provides a capability to add dependencies at run-time using the `add-lib` function available in the REPL. If your application process is running in a REPL then you can leverage Morse as needed by executing the following steps. This capability relies on https://clojure.org/guides/deps_and_cli[Clojure CLI] 1.11.1.1267 or later to function.
 
 First, in your running process you can add the link:https://github.com/clojure/data.alpha.replicant-server[replicant-server] library at run-time using the `add-lib` function to load the latest version:
 
@@ -172,7 +163,7 @@ This should load the Morse dependency into the running process which will allow 
 ----
 
 [[tool-install]]
-==== I would like to install Morse as a Clojure CLI tool
+==== Installing Morse as a Clojure CLI tool
 
 Morse is available as a Clojure CLI tool and may be installed and upgraded via:
 
@@ -183,11 +174,6 @@ That command installs a tool named "morse" that you can launch via:
     clj -Tmorse morse <options>
 
 The <options> are optional mappings `:host->host-string` and `:port->port-number` mappings. If omitted, <options> default to `:host '"localhost"' :port 5555`.
-
-[[ide-use]]
-=== I would like to use Morse in my Clojure IDE of choice
-
-Morse is used as a dependency just like any other Clojure library and therefore available in your IDE of choice either running in-process or remote. See the previous sections for how to add Morse as a dependency and for running it in or out of process. Documentation around specific IDE integrations is forthcoming.
 
 [[requirements]]
 == Requirements
