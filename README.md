@@ -35,6 +35,10 @@ io.github.nubank/morse {:git/tag "v2023.04.20.02" :git/sha "0bf4b9f"}
 
 See the [Morse Guide](docs/guide.adoc) to learn how to use Morse for your purposes.
 
+## Docs
+
+* [API.md](API.md)
+
 ## Contributing
 
 Morse is open source, developed internally at Nubank. Issues can be filed using GitHub issues for this project. Initially, we prefer to do development internally and are not accepting pull requests or patches.
