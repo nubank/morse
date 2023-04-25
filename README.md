@@ -29,7 +29,7 @@ Latest release:
 Latest Morse Git dependency coordinate:
 
 ```clojure
-io.github.nubank/morse {:git/tag "v2023.04.20.02" :git/sha "0bf4b9f"}
+io.github.nubank/morse {:git/tag "v2023.04.25.01" :git/sha "f7a719e"}
 ``` 
 
 ## Usage:
