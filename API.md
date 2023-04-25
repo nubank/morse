@@ -21,7 +21,8 @@ Macro.
 
 Sends the expr and its value to the Morse UI.
 <br><sub>[source](https://github.com/nubank/morse/blob/master/src/dev/nu/morse.clj#L93-L98)</sub>
-## `is-browser?`
+
+## `launch-in-proc`
 ``` clojure
 
 (launch-in-proc)
