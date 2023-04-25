@@ -88,7 +88,7 @@ In the deps.edn file for the process that you would like to inspect, add the fol
 ----
 {:dev
   {:extra-deps
-    {io.github.clojure/data.alpha.replicant-server {:git/tag "v2023.04.20.01" :git/sha "8c02f64"}}}
+    {io.github.clojure/data.alpha.replicant-server {:git/tag "v2023.04.25.01" :git/sha "039bea0"}}}}
 }
 ----
 
