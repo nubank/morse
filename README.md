@@ -37,7 +37,7 @@ See the [Morse Guide](docs/guide.adoc) to learn how to use Morse for your purpos
 
 ## Docs
 
-* [docs/API.md](API.md)
+* [API.md](docs/API.md)
 
 ## Contributing
 
