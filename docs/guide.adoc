@@ -136,7 +136,7 @@ You can then launch the Morse UI using `requiring-resolve`, shown below:
 
 Once connected, the REPL pane in Morse is a remote client of the server (via a socket) of an active link:https://github.com/clojure/data.alpha.replicant-server[Replicant server]. Expressions you type into Morse are evaluated in the context of the process hosting the Replicant server. This is just like any remote socket-based repl.
 
-You can supply an options map to the function loaded by `requiring-resolve` above to match that target replicant-server. The function `dev.nu.morse/launch-remote` takes two mappings `:host->host-string` and `:port->port-number`. By default, the function `dev.nu.morse/launch-remote` operates as if the following options map was supplied:
+You can supply an options map to the function loaded by `requiring-resolve` to match the target replicant-server. The function `dev.nu.morse/launch-remote` takes two mappings `:host->host-string` and `:port->port-number`. By default, the function `dev.nu.morse/launch-remote` operates as if the following options map was supplied:
 
 [source,clojure]
 ----
@@ -187,7 +187,7 @@ The <options> are optional mappings `:host->host-string` and `:port->port-number
 [[ide-use]]
 === I would like to use Morse in my Clojure IDE of choice
 
-Morse is used as a dependency just like any other Clojure library and therefore available in your IDE of choice either running in-process or remote. See the previous sections for how to add Morse as a dependency and for running it in or out of process.
+Morse is used as a dependency just like any other Clojure library and therefore available in your IDE of choice either running in-process or remote. See the previous sections for how to add Morse as a dependency and for running it in or out of process. Documentation around specific IDE integrations is forthcoming.
 
 [[requirements]]
 == Requirements
