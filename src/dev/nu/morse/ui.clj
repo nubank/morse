@@ -8,6 +8,7 @@
    [dev.nu.morse.renderers :as render]
    [dev.nu.morse.fx :as fx]
    [clojure.datafy :as datafy]
+   [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.pprint :as pp]
    [clojure.spec.alpha :as s]
@@ -313,7 +314,7 @@
   [{:keys [state nav-text] :as ui}]
   (let [{:keys [sel-val path-seg]} @state
         nav-str (.getText nav-text)
-        nav-forms (read-string (str "[" nav-str "]"))
+        nav-forms (edn/read-string (str "[" nav-str "]"))
         path-nav (render/path-nav nav-forms)]
     (swap! state assoc :nav-str nav-str :path-nav path-nav :nav-forms nav-forms)
     (view ui path-seg sel-val)))
