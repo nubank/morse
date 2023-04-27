@@ -43,7 +43,7 @@ To add Morse as a `:dev` dependency, simply add the following to your deps.edn f
 ----
 :aliases
 {:dev
-  {:extra-deps {io.github.nubank/morse {:git/tag "v2023.04.25.01" :git/sha "f7a719e"}}}
+  {:extra-deps {io.github.nubank/morse {:git/tag "v2023.04.27.01" :git/sha "7a85e46"}}}
 }
 ----
 
@@ -112,7 +112,7 @@ Next, add Morse as a `:dev` dependency to a different application project by ins
 ----
 :aliases
 {:dev
-  {:extra-deps {io.github.nubank/morse {:git/tag "v2023.04.25.01" :git/sha "f7a719e"}}}
+  {:extra-deps {io.github.nubank/morse {:git/tag "v2023.04.27.01" :git/sha "7a85e46"}}}
 }
 ----
 
