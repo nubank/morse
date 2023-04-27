@@ -3,11 +3,11 @@
   org.clojure/core.async {:mvn/version "1.5.648"}
   org.clojure/clojure {:mvn/version "1.11.1"}
   io.github.clojure/data.alpha.replicant-client {:git/tag "v2023.04.20.01" :git/sha "bcabb7b"}
-  org.openjfx/javafx-fxml     {:mvn/version "20.0.1"}
-  org.openjfx/javafx-controls {:mvn/version "20.0.1"}
-  org.openjfx/javafx-swing    {:mvn/version "20.0.1"}
-  org.openjfx/javafx-base     {:mvn/version "20.0.1"}
-  org.openjfx/javafx-web      {:mvn/version "20.0.1"}
+  org.openjfx/javafx-fxml     {:mvn/version "19.0.2.1"}
+  org.openjfx/javafx-controls {:mvn/version "19.0.2.1"}
+  org.openjfx/javafx-swing    {:mvn/version "19.0.2.1"}
+  org.openjfx/javafx-base     {:mvn/version "19.0.2.1"}
+  org.openjfx/javafx-web      {:mvn/version "19.0.2.1"}
   org.yaml/snakeyaml {:mvn/version "1.23"}}
  :paths ["src" "resources"]
  :aliases
