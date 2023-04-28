@@ -57,13 +57,13 @@ Takes a filename and attempts to send each Clojure form found in it
 ## `morse`
 ``` clojure
 
-(morse {:keys [host port mode], :or {host "localhost", port 5555, mode :remote}})
+(morse {:keys [host port mode], :or {port 5555, mode :remote}})
 ```
 
 
 Launches a Morse UI instance. The editor pane of that instance will use the relevant
   (either in-proc or remote) process to evaluate its contents. This function accepts an opts map
   with mappings :host -> host-string, :port -> port-number, and :mode -> :remote | :in-proc.
-  By default these values will map to :host -> "localhost", :port -> 5555, and :mode -> :remote.
+  By default these values will map to :port -> 5555, and :mode -> :remote.
 <br><sub>[source](https://github.com/nubank/morse/blob/master/src/dev/nu/morse.clj#L162-L170)</sub>
 
