@@ -80,7 +80,7 @@ You should see the map `{:a 1 :b 2}` in the data Morse data browser.
 [[out-of-process]]
 === Using Morse to inspect the application state of a remote process
 
-Sometimes you'll have an application that cannot take Morse as a dependency or perhaps cannot run a GUI. In this circumstance Morse can remotely connect to a process and inspect its state. Morse Remote inspection requires two parts to operate. First, a server component link:https://github.com/clojure/replicant-server[replicant-server] runs in the process you wish to inspect (often your REPL). Second, Morse itself acts as a client to that active Replicant server.
+Sometimes you'll have an application that cannot take Morse as a dependency or perhaps cannot run a GUI. In this circumstance Morse can remotely connect to a process and inspect its state. Morse Remote inspection requires two parts to operate. First, a server component link:https://github.com/clojure/data.alpha.replicant-server[replicant-server] runs in the process you wish to inspect (often your REPL). Second, Morse itself acts as a client to that active Replicant server.
 
 In the deps.edn file for the process that you would like to inspect, add the following:
 
