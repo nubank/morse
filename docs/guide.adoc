@@ -16,6 +16,8 @@ One of the prime value propositions in using a Lisp language is that you should 
 
 Morse, like REBL before it, is a library that provides a graphical browser for Clojure data that allows active traversal into and back out of nested structures. REBL was intended to sit in the middle of your editor<->process REPL streams and automatically render and cache all REPL results. This made it difficult to integrate in dev environments that used other than raw streaming REPLs. In Morse the emphasis is now on inspecting on demand via the `inspect` API, and REPL interception is strictly optional. This should make Morse easy to integrate with all dev setups.
 
+image::morseplain.png[An overview of the Morse UI]
+
 It's not always feasible to execute a graphical browser process inside of the program process, e.g. when the inspected program is running remotely. Morse can be configured to connect to and inspect a remote program, a facility built on the new Replicant* libraries. Morse uses Replicant to efficiently and incrementally traverse remote data, extending its power to a variety of new use cases.
 
 == Clojure, Morse and the Lisp Value Proposition
