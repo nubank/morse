@@ -562,7 +562,7 @@
                                            ;(.println System/out (str "VALF " s))
                                            (binding [rds-reader/*remote-client* rds-client
                                                      *data-readers*             data-rdrs]
-                                             (first (read+string s)))))
+                                             (read-string s))))
                              (catch Throwable ex (prn {:ex ex}))))))
     (catch Throwable ex
       (println ex)))))
