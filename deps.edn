@@ -11,7 +11,7 @@
   org.yaml/snakeyaml {:mvn/version "1.23"}}
  :paths ["src" "resources"]
  :aliases
- {:dev {:extra-deps {io.github.clojure/data.alpha.replicant-client {:local/root "../data.alpha.replicant-client"}}
+ {:dev {:extra-deps {io.github.clojure/data.alpha.replicant-client {:git/tag "v2023.04.20.01" :git/sha "bcabb7b"}}
         :extra-paths ["test"]}
 
   :build {:deps {io.github.clojure/tools.build {:git/tag "v0.9.4" :git/sha "76b78fe"}}
