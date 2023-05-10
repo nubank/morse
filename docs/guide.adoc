@@ -105,39 +105,17 @@ You then launch a Replicant server, giving it a `:host` string mapping and an op
 
 [source, clojure]
 ----
-(replicant/start :host "hostname" :port n)
+(replicant/start :host "hostname" :port num)
 ----
 
-Next, add Morse as a `:dev` dependency to a different application project by inserting the following to your deps.edn file:
-
-[source,clojure]
-----
-:aliases
-{:dev
-  {:extra-deps {io.github.nubank/morse {:git/tag "v2023.04.30.01" :git/sha "d99b09c"}}}
-}
-----
-
-With this dependency in place you can run your Clojure REPL with the `:dev` alias active to make Morse available on the classpath:
+Finally, in a terminal Morse is started as a CLI tool via:
 
 [source,bash]
 ----
-clj -A:dev
+clj -Tmorse morse :host '"hostname"' :port num
 ----
 
-You then require the Morse namespace:
-
-[source,clojure]
-----
-(require '[dev.nu.morse :as morse])
-----
-
-You then launch the Morse UI giving it a `:host` string mapping and an optional `:port` number mapping:
-
-[source,clojure]
-----
-(morse/launch-remote :host "hostname" :port n)
-----
+Instructions for installing Morse as a Clojure CLI tool are in the link:https://github.com/nubank/morse/blob/main/README.md[README]. 
 
 Once connected, the REPL pane in Morse is a remote client of the server (via a socket) of an active link:https://github.com/clojure/data.alpha.replicant-server[Replicant server]. Expressions you type into Morse are evaluated in the context of the process hosting the Replicant server. This is just like any remote socket-based REPL. Therefore, in order to view values in Morse is to bind them to vars in the user namespace and evaluate those names in the Morse editor buffer.
 
@@ -175,6 +153,8 @@ clj -Tmorse morse :host '"hostname"' :port num
 ----
 
 Instructions for installing Morse as a Clojure CLI tool are in the link:https://github.com/nubank/morse/blob/main/README.md[README]. 
+
+Once connected, the REPL pane in Morse is a remote client of the server (via a socket) of an active link:https://github.com/clojure/data.alpha.replicant-server[Replicant server]. Expressions you type into Morse are evaluated in the context of the process hosting the Replicant server. This is just like any remote socket-based REPL. Therefore, in order to view values in Morse is to bind them to vars in the user namespace and evaluate those names in the Morse editor buffer.
 
 [[requirements]]
 == Requirements
