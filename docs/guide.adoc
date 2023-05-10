@@ -108,7 +108,7 @@ You then launch a Replicant server, giving it a `:host` string mapping and an op
 (replicant/start :host "hostname" :port num)
 ----
 
-Finally, in a terminal Morse is started as a CLI tool via:
+Finally, in a terminal start Morse as a CLI tool via:
 
 [source,bash]
 ----
@@ -145,7 +145,7 @@ You then launch a Replicant server, giving it a `:host` string mapping and an op
 (replicant/start :host "hostname" :port num)
 ----
 
-Finally, in a terminal Morse is started as a CLI tool via:
+Finally, in a terminal start Morse as a CLI tool via:
 
 [source,bash]
 ----
