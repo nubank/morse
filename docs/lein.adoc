@@ -28,11 +28,11 @@ To add Morse as a dependency in your `:dev` profile, simply add the following to
                    :repositories [["jitpack" "https://jitpack.io"]]}
 ----
 
-With this dependency in place you can run your Clojure REPL with the `:dev` profile active to make Morse available on the classpath:
+With this dependency in place you can run your Clojure REPL (with the `:dev` profile active by default) to make Morse available on the classpath:
 
 [source,bash]
 ----
-lein with-profile dev repl
+lein repl
 ----
 
 You then require the Morse namespace:
