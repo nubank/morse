@@ -27,7 +27,7 @@ This software is considered an alpha release and subject to change.
 
 **More about Morse**
 
-* link:./ui.adoc[Morse user guide] *this document*
+* link:./guide.adoc[Morse user guide] *this document*
 * link:./ui.adoc[Morse User Interface guide]
 
 == Usage
@@ -38,6 +38,8 @@ Morse has two inspection modes: in-process and remote. In this section we'll out
 === Using Morse to develop and inspect your application state
 
 Having Morse available as a nimble data inspector in your development process provides a powerful lever for understanding application state and data collections. Morse can run inside of your application process and access its full power and runtime state. Typically, you'll want to run Morse during development time to gain insight into an evolving application.
+
+*This document assumes the use of deps.clj and the Clojure CLI, please read link:./lein.adoc[the Leiningen guide] for lein use.*
 
 To add Morse as a `:dev` dependency, simply add the following to your deps.edn file:
 

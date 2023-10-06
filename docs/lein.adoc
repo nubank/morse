@@ -1,0 +1,61 @@
+= Morse with Leiningen
+Fogus
+2023-10-06
+:type: guides
+:toc: macro
+:icons: font
+
+ifdef::env-github,env-browser[:outfilesuffix: .adoc]
+
+toc::[]
+
+[[introduction]]
+
+== Using Morse in a Leiningen Project
+
+This software is considered an alpha release and subject to change.
+
+**More about Morse**
+
+* link:./guide.adoc[Morse user guide]
+* link:./ui.adoc[Morse User Interface guide]
+
+To add Morse as a dependency in your `:dev` profile, simply add the following to your project.clj file:
+
+[source,clojure]
+----
+  :profiles {:dev {:dependencies [[com.github.nubank/morse "v2023.10.06.02"]]
+                   :repositories [["jitpack" "https://jitpack.io"]]}
+----
+
+With this dependency in place you can run your Clojure REPL with the `:dev` profile active to make Morse available on the classpath:
+
+[source,bash]
+----
+lein with-profile dev repl
+----
+
+You then require the Morse namespace:
+
+[source,clojure]
+----
+(require '[dev.nu.morse :as morse])
+----
+
+You then launch the Morse UI:
+
+[source,clojure]
+----
+(morse/launch-in-proc)
+----
+
+The Morse API provides an `inspect` function taking an object and displaying it in the Morse UI. 
+
+[source,clojure]
+----
+(morse/inspect {:a 1 :b 2})
+----
+
+You should see the map `{:a 1 :b 2}` in the data Morse data browser.
+
+For more information about using Morse, see the link:./guide.adoc[Morse user guide].
