@@ -143,11 +143,34 @@ See https://github.com/cognitect-labs/rebl/wiki/Extending-REBL."
     (ui :proc proc)
     (proc *in* cb)))
 
+(defn- follow-read
+  "Enhanced :read hook for repl supporting :morse/detach"
+  [request-prompt request-exit]
+  (or ({:line-start request-prompt :stream-end request-exit}
+        (main/skip-whitespace *in*))
+      (let [input (read {:read-cond :allow} *in*)]
+        (main/skip-if-eol *in*)
+        (case input
+          :morse/detach request-exit
+          input))))
+
+(defn- follow-eval [form]
+  (let [ret (clojure.core/eval form)]
+    (submit form ret)
+    ret))
+
+(defn- follow-repl []
+  (main/repl
+   :read follow-read
+   :eval follow-eval))
+
 (defn launch-in-proc
   "Launches an in-process mode Morse UI instance. The editor pane of that instance will
   use the hosting process to evaluate its contents."
-  []
-  (ui :mode :in-proc))
+  [& {:keys [follow-repl?]}]
+  (ui :mode :in-proc)
+  (when follow-repl?
+    (follow-repl)))
 
 (defn launch-remote
   "Launches an remote mode Morse UI instance. The editor pane of that instance will
