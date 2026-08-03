@@ -3,6 +3,8 @@
 *.iml
 .vscode
 .rebl
+.morse
+
 target/*
 target1/*
 classes/*
